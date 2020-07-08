@@ -165,6 +165,25 @@ if (EmptyCommandFileCount > 0) {
 }
 
 client.on("message", async message => {
+    let Guild = JSON.parse("./GuildList.json", "utf8");
+    if (!Guild[message.guild.id]) {
+        Guild[message.guild.id] = {
+            prefix: process.env.defaultPrefix,
+        }
+    }
+    let prefix = Guild[message.guild.id].prefix;
+
+    let Channel = JSON.parse("./ChannelStatus.json", "utf8");
+    if (!Channel[message.channel.id]) {
+        Channel[message.channel.id] = {
+            FalseCMDReply: process.env.defaultFalseCMDReply,
+            AllowReply: process.env.defaultReplyStatus
+        }
+    }
+    
+    let FalseCMDReply = Channel[message.channel.id].FalseCMDReply;
+    let ReplyStatus = Channel[message.channel.id].AllowReply;
+    
     if (!message.client.permissions.has("SEND_MESSAGES") || !message.client.permissions.has("VIEW_CHANNELS")) return;
 
     const args = message.content.slice(prefix.length).split(/ +/);
