@@ -4,7 +4,6 @@ const Path = require("path");
 
 const Discord = require("discord.js");
 const Winston = require("winston");
-const { prefix } = require("../../sayumi-2020-03-24_131652/settings");
 
 
 require("dotenv").config;
