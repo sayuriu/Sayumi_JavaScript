@@ -1,0 +1,12 @@
+{
+    "name": "Sayumi",
+    "version": "0.0.0",
+    "author": "Sayuri",
+    "license": "MIT",
+    "script": {
+      "start": "node sayumi.js"
+    },
+    "dependencies" : {
+      
+    }
+}
