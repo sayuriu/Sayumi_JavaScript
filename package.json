@@ -1,6 +1,6 @@
 {
   "name": "sayumi",
-  "version": "0.0.0",
+  "version": "0.1.427",
   "author": "Sayuri",
   "license": "MIT",
   "description": "",
@@ -8,6 +8,8 @@
     "start": "node sayumi.js"
   },
   "dependencies": {
-    "discord.js": "^12.2.0"
+    "discord.js": "^12.2.0",
+    "dotenv": "^8.2.0",
+    "winston": "^3.3.3"
   }
 }
