@@ -1,6 +1,6 @@
 //Init
 const FileSystem = require("fs");
-const Path = require("path");
+const path = require("path");
 
 const Discord = require("discord.js");
 const Winston = require("winston");
@@ -132,7 +132,7 @@ let EmptyCommandFileCount = 0;
 const CommandLoad = (dir) => {
 
     FileSystem.readdirSync(dir).forEach(file => {
-        const Path = Root + Path.join(dir, file)
+        const Path = Root + path.join(dir, file)
         if (file === "settings.js") return;
         if (FileSystem.lstatSync(Path).isDirectory) {
             CommandLoad(Path);
