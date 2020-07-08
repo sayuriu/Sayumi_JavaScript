@@ -1,15 +1,49 @@
 {
+<<<<<<< HEAD
   "name": "sayumi",
   "version": "0.1.427",
   "author": "Sayuri",
   "license": "MIT",
   "description": "",
   "script": {
+=======
+  "name": "Sayumi",
+  "version": "0.0.1",
+  "description": "Not yet.",
+  "author": "Sayuri",
+  "license": "MIT",
+  "main": "sayumi.js",
+  "scripts": {
+>>>>>>> 4f04eb12a13593e6cd0440cd84686e091aacc604
     "start": "node sayumi.js"
   },
   "dependencies": {
     "discord.js": "^12.2.0",
     "dotenv": "^8.2.0",
+<<<<<<< HEAD
     "winston": "^3.3.3"
   }
 }
+=======
+    "ffmpeg": "^0.0.4",
+    "ffmpeg-static": "^4.2.5",
+    "@discordjs/opus": "^0.3.2",
+    "@discordjs/uws": "^11.149.1",
+    "sodium": "^3.0.2",
+    "libsodium-wrappers": "^0.7.5",
+    "node-opus": "^0.3.3",
+    "opusscript": "^0.0.7",
+    "bufferutil": "^4.0.1",
+    "utf-8-validate": "^5.0.2",
+    "erlpack": "^0.1.3",
+    "zlib-sync": "^0.1.7",
+    "winston": "^3.3.3"
+  },
+  "engine": {
+    "node": "10.x.x"
+  }, 
+  "resopitory": {
+    "url": "https://github.com/u-sayuri/Sayumi_JavaScript"
+  }
+}
+>>>>>>> 4f04eb12a13593e6cd0440cd84686e091aacc604
