@@ -1,13 +1,13 @@
 {
-    "name": "sayumi",
-    "version": "0.0.0",
-    "author": "Sayuri",
-    "license": "MIT",
-    "description": "",
-    "script": {
-      "start": "node sayumi.js"
-    },
-    "dependencies" : {
-      
-    }
+  "name": "sayumi",
+  "version": "0.0.0",
+  "author": "Sayuri",
+  "license": "MIT",
+  "description": "",
+  "script": {
+    "start": "node sayumi.js"
+  },
+  "dependencies": {
+    "discord.js": "^12.2.0"
+  }
 }
