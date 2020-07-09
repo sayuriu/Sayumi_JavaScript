@@ -1,3 +1,6 @@
 .env
 log.txt
 db.txt
+GuildList.json
+ChannelStatus.json
+node_modules
