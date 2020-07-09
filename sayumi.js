@@ -4,11 +4,15 @@ const path = require("path");
 
 const Discord = require("discord.js");
 const Winston = require("winston");
-const { error } = require("console");
-
+const Database = require("mongoose");
+const GlobalSettings = require("./DefaultGlobalSettings");
+const { connect } = require("http2");
 
 require("dotenv").config;
-const {TOKEN, master} = process.env;
+const {TOKEN, master, databaseUsername, databasePassword} = process.env;
+
+//Paths
+const URIString = `mongodb+srv://${databaseUsername}:${databasePassword}@main-ftdmd.azure.mongodb.net`; 
 
 const client = new Discord.Client();
 const cooldown = new Discord.Collection();
@@ -43,7 +47,7 @@ let sec = "";
         sec = seconds;
     }
 
-//Logger init 
+// Logger init 
 const logger = Winston.createLogger({
     transports: [
       new Winston.transports.Console(),
@@ -70,7 +74,19 @@ client.on("ready", () => {
     console.error(error);
   });
 
-//Status message and misc.
+// Database init
+console.log("Connecting to database...")
+Database.connect(`mongodb+srv://${databaseUsername}:${databasePassword}@main-ftdmd.azure.mongodb.net/sayumi/test/`, {
+    useUnifiedTopology: true,
+});
+
+const Connection = Database.connection;
+Connection.on('error', e => {
+    console.error.bind(console, 'Connection ERR:')
+    logger.log("error", e);
+})
+
+// Status message and misc.
 client.once("ready", () => {
     const options = [
       "Log standby...",
@@ -132,7 +148,7 @@ const CommandLoad = (dir) => {
                 EmptyCommandFileCount++;
             }
             if (Command.status === false) {
-                UnexecutableFileCount++
+                UnexecutableFileCount++;
             } 
             else ExecutableFileCount++;
             client.commands.set(Command.name, Command);
@@ -155,45 +171,33 @@ if (FileCount <= 0) {
     }
 }
 
-// Local database init
-let database = [];
-FileSystem.readdirSync(Root).forEach(file => {
-    if (file !== "db.txt") return;
-    const dbFile = "db.txt";
-    if (!dbFile) {
-    FileSystem.writeFile("db.txt", (err) => {
-        console.log(err);
-        return;
-    });
-    } else if (dbFile) {
-    database = FileSystem.readFile(dbFile);
-    return database;
-    }
-});
 
 // Message events
 client.on("message", async message => {
     let Guild = JSON.parse("./GuildList.json", "utf8");
     let Channel = JSON.parse("./ChannelStatus.json", "utf8");
 
-    let prefix = process.env.defaultPrefix;
-    let FalseCMDReply = process.env.defaultFalseCMDReply;
-    let ReplyStatus = process.env.defaultReplyStatus;
+    let prefix = GlobalSettings.defaultPrefix;
+    let FalseCMDReply = GlobalSettings.defaultFalseCMDReply;
+    let ReplyStatus = GlobalSettings.defaultReplyStatus;
 
     if (message.guild) {
         if (!Guild[message.guild.id]) {
             Guild[message.guild.id] = {
-                prefix: process.env.defaultPrefix,
+                prefix: GlobalSettings.defaultPrefix,
+                welcomeChannel: false,
+                greetingMessage: "",
+
             }
         }
         prefix = Guild[message.guild.id].prefix;
     }
 
-    if (message.channel && message.channel.type !== "dm") {
+    if (message.channel && message.channel.type !== "dm" && message.channel.type !== "voice") {
         if (!Channel[message.channel.id]) {
             Channel[message.channel.id] = {
-                FalseCMDReply: process.env.defaultFalseCMDReply,
-                AllowReply: process.env.defaultReplyStatus
+                FalseCMDReply: GlobalSettings.defaultFalseCMDReply,
+                AllowReply: GlobalSettings.defaultReplyStatus
             }
         }
         FalseCMDReply = Channel[message.channel.id].FalseCMDReply;
@@ -450,6 +454,44 @@ client.on("message", async message => {
         return;
       }
     
+});
+
+// Guild events
+client.on("guildCreate", async (client, guild) => {
+    Database.connect(URIString + "/sayumi/GuildList", {
+        useNewURLParser: true,
+        useUnifiedTopology: true,
+    })
+    const Guild = require("./databaseModels/guild");
+
+    const NewGuild = new Guild({
+        ItemID: Database.Types.ObjectId(),
+        guildName:      guild.name,
+        guildID:        guild.id,
+        guildOwnerTag:  guild.owner.tag,
+        guildOwnerID:   guild.owner.id,
+        memberCount:    guild.member.size,
+        prefix:         GlobalSettings.defaultPrefix,
+        welcomeChannel: GlobalSettings.welcomeChannel,
+        welcomeMessage: GlobalSettings.welcomeMessage,
+        adminRoles:     GlobalSettings.AdminRoles,
+        modRoles:       GlobalSettings.moderatorRoles,
+        // 
+        modStatus:      GlobalSettings.moderatorStatus,
+        adminStatus:    GlobalSettings.Administrator,
+    });
+
+    NewGuild.save().then(res => console.log(res)).catch(console.error);
+    logger.log("info", `I was added to ${guild.name}!`)
+});
+
+client.on("guildDelete", async guild => {   
+    Database,connect(URIString + "/sayumi/GuildList", {
+        useNewURLParser: true,
+        useUnifiedTopology: true,
+    });
+
+
 });
 
 // Login.
