@@ -1,8 +1,8 @@
-//These are default settings when you add Sayumi into a server.
-//These settings don't work in DMs.
+// These are default settings when you add Sayumi into a server.
+// These settings don't work in DMs.
 
 module.exports = {
-    defaultPrefix: "/",
+    defaultPrefix: '/',
     defaultFalseCMDReply: false,
     defaultReplyStatus: true,
     defaultWelcomeChannel: null,
@@ -10,5 +10,5 @@ module.exports = {
     moderatorStatus: false,
     moderatorRoles: [],
     AdminRoles: [],
-    Administrator: false 
-}
+    Administrator: false,
+};

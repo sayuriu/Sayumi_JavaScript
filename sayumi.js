@@ -8,13 +8,14 @@ const Database = require('mongoose');
 const GlobalSettings = require('./DefaultGlobalSettings');
 const { connect } = require('http2');
 
-require('dotenv').config;
+require('dotenv').config();
 const { TOKEN, master, databaseUsername, databasePassword } = process.env;
 
 // Paths
 const URIString = `mongodb+srv://${databaseUsername}:${databasePassword}@main-ftdmd.azure.mongodb.net`;
 
 const client = new Discord.Client();
+
 const cooldown = new Discord.Collection();
 const MentionCooldown = new Discord.Collection();
 client.commandsList = new Discord.Collection();
@@ -28,24 +29,9 @@ const hours = (Math.floor(now / 3600000) % 24) + 7;
 const minutes = Math.floor(now / 60000) % 60;
 const seconds = Math.floor(now / 1000) % 60;
 
-let hrs = '';
-    if (hours < 10) {
-        hrs = `0${hours}`;
-    } else {
-        hrs = hours;
-    }
-let min = '';
-    if (minutes < 10) {
-        min = `0${minutes}`;
-    } else {
-        min = minutes;
-    }
-let sec = '';
-    if (seconds < 10) {
-        sec = `0${seconds}`;
-    } else {
-        sec = seconds;
-    }
+const hrs = `${hours   < 10 ? '0' : ''}` + hours;
+const min = `${minutes < 10 ? '0' : ''}` + minutes;
+const sec = `${seconds < 10 ? '0' : ''}` + seconds;
 
 // Logger init
 const logger = Winston.createLogger({
@@ -98,7 +84,6 @@ client.once('ready', () => {
     ];
     const ready = options[Math.floor(Math.random() * options.length)];
     console.log(ready);
-    client.users.get(process.env.ownerID).send('Terminal online.');
     setInterval(() => {
       const statuses = [
         'raw event data',
@@ -128,49 +113,68 @@ client.once('disconnect', () => {
 
 // Load executables from command directory
 const Root = './';
-const Commands = Root + 'executables';
+const CommandsLibrary = 'executables';
+const DatabaseLibrary = 'databaseModels';
 let FileCount = 0;
 let ExecutableFileCount = 0;
 let UnexecutableFileCount = 0;
-let EmptyCommandFileCount = 0;
+let EmptyFileCount = 0;
 
-const CommandLoad = (dir) => {
+function getFileSize(filename) {
+    const stats = FileSystem.statSync(filename);
+    const fileSizeInBytes = stats["size"];
+    return fileSizeInBytes;
+}
+
+function DirectoryLoad(dir) {
 
     FileSystem.readdirSync(dir).forEach(file => {
         const Path = Root + path.join(dir, file);
         if (file === 'settings.js') return;
-        if (FileSystem.lstatSync(Path).isDirectory) {
-            CommandLoad(Path);
+        if (FileSystem.lstatSync(Path).isDirectory()) {
+            DirectoryLoad(Path);
         }
         else if (file.endsWith('.js')) {
             FileCount++;
-            const Command = require(dir);
-            if (!Command.issue || !Command.issue === {}) {
-                EmptyCommandFileCount++;
+            const Command = require(Path);
+            const FileSize = getFileSize(Path);
+            if (FileSize <= 0) {
+                EmptyFileCount++;
             }
             if (Command.status === false) {
                 UnexecutableFileCount++;
             }
             else ExecutableFileCount++;
-            client.commands.set(Command.name, Command);
-            client.aliases.set(Command.aliases, Command.name);
+            client.commandsList.set(Command.name, Command);
+            client.aliasesList.set(Command.aliases, Command.name);
         }
-   });
-};
-
-CommandLoad(Commands);
-
-if (FileCount <= 0) {
-    console.log('[INFO] The directory is currently empty!');
-} else {
-    console.log(`[INFO] Successfully loaded ${FileCount} commands`);
-    if (UnexecutableFileCount > 0) {
-        console.log(`with ${UnexecutableFileCount} files disabled`);
+    });
+    if (FileCount <= 0) {
+        console.log(['[INFO] The directory is currently empty!']);
+        } else {
+        console.log(`[INFO] Successfully loaded ${FileCount} file${FileCount > 1 ? 's' : ''}`);
+        if (UnexecutableFileCount > 0) {
+            console.log(`with ${UnexecutableFileCount} file${UnexecutableFileCount > 1 ? 's' : ''} disabled`);
+        }
+        if (EmptyFileCount > 0) {
+            console.log(`with ${EmptyFileCount} file${EmptyFileCount > 1 ? 's' : ''} empty`);
+        }
     }
-    if (EmptyCommandFileCount > 0) {
-        console.log(`with ${EmptyCommandFileCount} files empty`);
-    }
+    resetFileCounter();
 }
+
+function resetFileCounter() {
+    FileCount = 0;
+    ExecutableFileCount = 0;
+    UnexecutableFileCount = 0;
+    EmptyFileCount = 0;
+    return;
+}
+
+console.log(['[INFO] Loading executables...']);
+DirectoryLoad(CommandsLibrary);
+console.log(['[INFO] Loading database models...']);
+DirectoryLoad(DatabaseLibrary);
 
 
 // Message events
@@ -206,12 +210,11 @@ client.on('message', async message => {
     }
 
     if (message.guild) {
-        if (!message.client.permissions.has('SEND_MESSAGES') || !message.client.permissions.has('READ_MESSAGE_HISTORY')) return;
         if (ReplyStatus === false) {
             if (!message.member.hasPermission('ADMINISTRATOR')) return;
             else;
         }
-
+        if (!message.client.permissions.has('SEND_MESSAGES') || !message.client.permissions.has('READ_MESSAGE_HISTORY')) return;
     }
     const args = message.content.slice(prefix.length).split(/ +/);
     const CommandName = args.shift().toLowerCase();
