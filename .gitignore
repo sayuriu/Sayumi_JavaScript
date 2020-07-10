@@ -5,3 +5,5 @@ GuildList.json
 ChannelStatus.json
 node_modules
 package-lock.json
+.eslintrc.json
+
