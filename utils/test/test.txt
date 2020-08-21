@@ -1,0 +1,25 @@
+//     let availablity = true;
+                //     const Command = require(fullPath);
+                //     if (!Command.name || typeof Command.name !== 'string')
+                //     {
+                //         WarnLog.push(`"${fullPath}": The command has either no name or invalid name type.`);
+                //         hostFolder.unexec++;
+                //         availablity = false;
+                //     }
+                //     if (!Command.issue || Command.issue === null)
+                //     {
+                //         WarnLog.push(`${Command.name ? `Command "${Command.name}" has either no or invalid functions` : `File "${fullPath}" has either no or invalid functions and name.`}`);
+                //         if (availablity === true) hostFolder.unexec++;
+                //         hostFolder.unexec++;
+                //         availablity = false;
+                //     }
+                //     if (Command.status === 'dev')
+                //     {
+                //         hostFolder.dev++;
+                //     }
+                //     if (functions.getFileStats(fullPath).size === 0) hostFolder.empty++;
+                //     else
+                //     {
+                //         client.CommandList.set(Command.name || `"${files[i].split(".").pop()}"`, Command.issue || null);
+                //         hostFolder.exe++;
+                //     }
