@@ -9,12 +9,20 @@ const convertDate = functions.convertDate;
 const currentDate = convertDate(date, month, year);
 
 module.exports = class EmbedConstructor {
+    /**
+     * The embed used for update patches.
+     * @param {string} header The title of the update.
+     * @param {string} message This contains the contents of the update.
+     * @param {number} versionNumber The current version of this unit.
+     * @param {number?} updateCode  `0: major | 1: minor | 2: patches`
+     */
     update(header, message)
     {
         const updateReport = new discord.MessageEmbed()
-                .setTitle('Update | Patch ' + `\`${currentDate}\``)
+                .setTitle('Update | Patch ' + `[\`${currentDate}\`]`)
                 .setColor('42e3f5')
                 .addField(header, message)
+                .setFooter(``)
                 .setTimestamp();
         return updateReport;
     }

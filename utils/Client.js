@@ -1,44 +1,42 @@
 const Loader = require('./Loader');
-const Function = require('./Functions');
-const Embeds = require('./embeds');
-const discord = require('discord.js');
-
-const embeds = new Embeds;
-const functions = new Function;
 const loader = new Loader;
+
+/**
+ * Yes.
+ */
 module.exports = class Sayuri_Client {
+
+    /**
+     * Initiates a login session to Discord.
+     * @param {object} client The client to pass in.
+     * @param {string} token The token of the client. Refer to your app's page for more details.
+     */
     login(client, token)  {
+        if (!client) throw new Error('[Sayuri > Client] Did you pass the client yet?');
+        if (typeof client !== 'object') throw new Error('[Sayuri > Client] The client is not an object.');
+        if (typeof token !== 'string') throw new Error('[Sayuri > Login] The token provided is not a string.');
         client.login(token);
     }
+
+    /**
+     * Initiates the event listener.
+     * @param {object} client The client to pass in.
+     */
     eventListener(client)
     {
-        client.on('ready', () => {
-            console.log('Status 200');
-        });
-        client.once('ready', () => {
-            // const message = {
-            //     channel: {
-            //         id: '78943659384549323',
-            //         name: 'uwu',
-            //         nsfw: true,
-            //         guild: 'Eli\'s a simp',
-            //         type: 'dm',
-            //     },
-            //     author: {
-            //         tag: 'Eli#1000',
-            //         id: '454912325678399499',
-            //     },
-            // };
-            // // const duration = '';
-            // const reason = 'you share Eli';
-            // const target = {
-            //     tag: 'Sayuri#1222',
-            //     id: '520964894279860224',
-            // };
-            // client.users.cache.find(users => users.id === '520964894279860224').send(Embeds.error(message, null));
-            client.channels.cache.find(ch => ch.id === '731918444085379142').send(embeds.update('Info', 'Added `Framework.Loader` for basic command loads'));
-            // functions.logger('inFo', 'LET\'S GOOOOOOOOOOOOOOOO');
-        });
-        loader.EventLoader(client);
+        if (!client) throw new Error('[Sayuri > Client] Did you pass the client yet?');
+        if (typeof client !== 'object') throw new Error('[Sayuri > Client] The client is not an object.');
+        loader.EventLoader('events', client, '../');
+    }
+
+    /**
+     * Loads the executables from the library.
+     * @param {object} client The client to pass in.
+     */
+    CommandInit(client)
+    {
+        if (!client) throw new Error('[Sayuri > Client] Did you pass the client yet?');
+        if (typeof client !== 'object') throw new Error('[Sayuri > Client] The client is not an object.');
+        loader.ExeLoader('executables', client, '../');
     }
 };
