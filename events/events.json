@@ -1,0 +1,45 @@
+{
+    "name": "events",
+    "files": [
+        "events.json",
+        "ready.js",
+        "ready_once.js"
+    ],
+    "folders": [
+        {
+            "name": "guildEvents",
+            "files": [],
+            "subfolders": [],
+            "parent": true,
+            "parentName": "events",
+            "evt": [],
+            "dev": 0,
+            "empty": 0,
+            "size": "n/a"
+        },
+        {
+            "name": "messageEvents",
+            "files": [
+                "message.js",
+                "messageEvents.json"
+            ],
+            "subfolders": [],
+            "parent": true,
+            "parentName": "events",
+            "evt": [
+                "message.js"
+            ],
+            "dev": 0,
+            "empty": 0,
+            "size": "2.2 kB"
+        }
+    ],
+    "parent": false,
+    "evt": [
+        "ready.js",
+        "ready_once.js"
+    ],
+    "dev": 0,
+    "empty": 0,
+    "size": "3.3 kB"
+}

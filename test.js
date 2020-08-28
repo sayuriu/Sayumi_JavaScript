@@ -17,3 +17,6 @@
 //  }
 
 //  checkDuplicate();
+
+
+// Order: Scan first, warn later.

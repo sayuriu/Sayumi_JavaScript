@@ -1,0 +1,16 @@
+{
+    "name": "executables",
+    "files": [
+        "executables.json",
+        "uptime.js"
+    ],
+    "folders": [],
+    "parent": false,
+    "exe": [
+        "uptime.js (dev)"
+    ],
+    "unexec": 1,
+    "empty": 0,
+    "dev": 1,
+    "size": "2.1 kB"
+}

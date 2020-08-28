@@ -18,8 +18,9 @@ module.exports = class EmbedConstructor {
      */
     update(header, message)
     {
+        const ver = require('../package.json').version;
         const updateReport = new discord.MessageEmbed()
-                .setTitle('Update | Patch ' + `[\`${currentDate}\`]`)
+                .setTitle('Update | Patch ' + `${ver}` + `[\`${currentDate}\`]`)
                 .setColor('42e3f5')
                 .addField(header, message)
                 .setFooter(``)
