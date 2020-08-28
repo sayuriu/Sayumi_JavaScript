@@ -1,0 +1,65 @@
+{
+	"greetings": {
+		"daytime": {
+			"early_morning": [
+				"Why would you stay up at a time like this?",
+				"You should go to sleep.",
+				"Staying up overnight is bad for your health."
+			],
+			"morning": [	
+				"Morning.",
+				"Good morning."
+			],
+			"noon": [
+				"Lunch time~",
+				"Don't forget to take your lunch!"
+			],
+			"afternoon": [
+				"Good afternoon."
+			]
+		},
+		"nighttime": {
+			"evening": [
+				"Good evening.",
+				"Have your dinner yet?"
+			],
+			"night": [
+				"It's night time~",
+				"Go to sleep."
+			]
+		}
+	},
+	"errors": {
+		"functions_responses": [
+			"Are you sure the input is an array?",
+			"The input is not an array."
+		],
+		"command_errors": [
+			"The command you're trying to issue is not being issued due to some errors. Please try again later.",
+      		"Oops, looks like I've encountered an error. Error is being reported, I'm trying to fix this as soon as possible."
+		]
+	},
+	"statuses": [
+		"raw event data", 
+		"what is her prefix", 
+		"how to become a reliable maid", 
+		"Sayuri's notes", 
+		"guides to create a REST API",
+		"debug console",
+		"terminal output",
+		"101-How-to bully"
+	],
+	"commands": {
+		"only_prefix": [
+			"Hmmmmmm",
+			"Eh.",
+			"Hi.",
+			"I'm thinking new ways to response to those mentions. Any ideas?"
+		],
+		"empty_arguments": [
+			"Lacking arguments to work with.",
+			"Insufficient amount of arguments provided.",
+			"Data returns `null`. Wanna try again?"
+		]
+	}
+}

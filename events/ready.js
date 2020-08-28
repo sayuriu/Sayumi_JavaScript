@@ -1,13 +1,16 @@
 const Embeds  = require('../utils/embeds');
 const Functions = require('../utils/Functions');
+const Logger = require('../utils/Logger');
 const embeds = new Embeds;
 const functions = new Functions;
+const logger = new Logger;
 
 module.exports = {
 	name: 'ready',
 	stable: true,
 	onEmit: (client) => {
-		functions.log('status', 'Good evening!');
-		// client.channels.cache.find(ch => ch.id === '731918444085379142').send(embeds.update('Carriers', 'Optimized and improved command / event handlers'));
+		logger.carrier('status: 200', functions.Greetings());
+
+		// client.channels.cache.find(ch => ch.id === '731918444085379142').send(embeds.update('Logging', 'Further optimized loaders and added detailed logging'));
 	},
 };

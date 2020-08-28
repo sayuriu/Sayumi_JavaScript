@@ -1,0 +1,16 @@
+{
+    "name": "messageEvents",
+    "files": [
+        "message.js",
+        "messageEvents.json"
+    ],
+    "subfolders": [],
+    "parent": true,
+    "parentName": "events",
+    "evt": [
+        "message.js"
+    ],
+    "dev": 0,
+    "empty": 0,
+    "size": "2.2 kB"
+}

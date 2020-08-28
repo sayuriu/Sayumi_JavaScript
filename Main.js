@@ -1,29 +1,27 @@
 // #region AssetRequire
 const discord = require('discord.js');
 const Client = require("./utils/Client");
-const Functions = require('./utils/Functions');
+const Database = require('./utils/Database');
 
 require('dotenv').config();
 // #endregion
 
 // #region PreDefine
-const { TOKEN } = process.env;
+const { TOKEN, databaseUsername, databasePassword } = process.env;
 const Sayuri = new discord.Client();
 Sayuri.CommandList = new discord.Collection();
 Sayuri.CommandAliases = new discord.Collection();
 Sayuri.CommandCagetories = new discord.Collection();
 
-const functions = new Functions;
 const client = new Client;
-
+const database = new Database;
 // #endregion
-client.login(Sayuri, TOKEN);
+
+// #region Actions
+database.init(false, databaseUsername, databasePassword);
 client.CommandInit(Sayuri);
 client.eventListener(Sayuri);
-functions.Test();
+client.login(Sayuri, TOKEN);
+client.handleProcessErrors();
 
-module.exports = {
-    CommanndList: Sayuri.CommandList,
-    CommandAliases: Sayuri.CommandAliases,
-    CommandCagetories: Sayuri.CommandCagetories,
-};
+// #endregion

@@ -1,10 +1,9 @@
 const FileSystem = require('fs');
 const Path = require('path');
 const Function = require('./Functions');
-const { exception } = require('console');
 const functions = new Function;
-
-const Directory = [];
+const Logger = require('./Logger');
+const logger = new Logger;
 
 module.exports = class Loader {
 
@@ -17,6 +16,7 @@ module.exports = class Loader {
     */
     ExeLoader(pathName, client, Root, subfolder)
     {
+        logger.carrier('status: SCAN', `[Loader] Checking "${pathName}"...`);
         if (subfolder === undefined || subfolder === null) subfolder = false;
         if (typeof subfolder !== 'boolean') throw new Error('[CommandLoader] The last parameter if specified must a boolean.');
         const AliasesArray = [];
@@ -30,20 +30,25 @@ module.exports = class Loader {
             unexec: 0,
             empty: 0,
             dev: 0,
+            size: 'n/a',
         };
         if (Root === '..') Root = '../';
         if (typeof pathName !== 'string' || typeof Root !== 'string') throw new Error('[CommandLoader] pathName or Root provided is not a string.');
         const { files, folders } = hostFolder;
 
+        // If the host folder is empty, escape immediately to prevent wasting memory
+        hostFolder.size = functions.getTotalSize(subfolder ? Root + pathName : pathName);
+        if (hostFolder.size === 'n/a') return logger.warn(`[Loader] "${subfolder ? Root + pathName : pathName}": This folder is empty!`);
+
         // Stage 1: Pre-scan. This filters files and folders and put them into corresponding arrays.
         FileSystem.readdirSync(subfolder ? Root + pathName : pathName).forEach(file => {
             const fullPath = Path.join(pathName, file);
-            // console.log(`"${fullPath}": ${FileSystem.lstatSync(fullPath).isDirectory()}`);
-                if (FileSystem.lstatSync(subfolder ? Root + fullPath : fullPath).isDirectory()) folders.push({
+            if (FileSystem.lstatSync(subfolder ? Root + fullPath : fullPath).isDirectory()) folders.push({
                 name: file,
                 files: [],
                 subfolders: [],
                 parent: true,
+                parentName: pathName,
                 exe: [],
                 unexec: 0,
                 empty: 0,
@@ -62,8 +67,9 @@ module.exports = class Loader {
                 const fullPath = Path.join(pathName, file);
                 this.CommandCheck(file, AliasesArray, fullPath, client, hostFolder, WarnLog, Root, subfolder);
             }
-            if (WarnLog.length > 0) functions.log('warn', functions.joinArrayString(WarnLog));
+            if (WarnLog.length > 0) logger.warn(functions.joinArrayString(WarnLog));
        }
+       functions.Counter(hostFolder, 'cmd');
 
         // Stage 2.2: Load subfolders.
         if (folders.length > 0)
@@ -73,17 +79,21 @@ module.exports = class Loader {
             {
                 const WarnLog = [];
                 const target = folders[0];
-                const Folder = Path.join(Root, pathName, target.name);
-                FileSystem.readdirSync(Folder).forEach(file => {
-                    const fullPath = Path.join(Folder, file);
-                    if (FileSystem.lstatSync(fullPath).isDirectory()) target.subfolders.push(file);
-                    this.CommandCheck(file, AliasesArray, fullPath, client, target, WarnLog, Root, subfolder);
-                });
+                const Folder = Path.join(pathName, target.name);
+                if (target.files.length > 0 || target.subfolders.length > 0)
+                {
+                    functions.Counter(target, 'cmd');
+                    FileSystem.writeFileSync(`${Folder}/${target.name}.json`, JSON.stringify(target, null, 4));
+                }
                 if (target.files.length < 1 && target.subfolders.length < 1)
                 {
                     WarnLog.push(`"${Folder}": This folder is empty!`);
                 }
-                if (WarnLog.length > 0) functions.log('warn', functions.joinArrayString(WarnLog));
+                FileSystem.readdirSync(Folder).forEach(file => {
+                    const fullPath = Path.join(Folder, file);
+                    this.CommandCheck(file, AliasesArray, fullPath, client, target, WarnLog, Root, subfolder);
+                });
+                if (WarnLog.length > 0) logger.warn(`[Executable Loader] ${functions.joinArrayString(WarnLog)}`);
             }
 
             // If there are 2 or more subfolders
@@ -96,18 +106,23 @@ module.exports = class Loader {
                     const Folder = Path.join(pathName, target.name);
                     FileSystem.readdirSync(subfolder ? Root + Folder : Folder).forEach(file => {
                         const fullPath = Path.join(Folder, file);
-                        if (FileSystem.lstatSync(subfolder ? Root + fullPath : fullPath).isDirectory()) target.subfolders.push(file);
                         this.CommandCheck(file, AliasesArray, fullPath, client, target, WarnLog, Root, subfolder);
                     });
                     if (target.files.length < 1 && target.subfolders.length < 1)
                     {
                         WarnLog.push(`"${Folder}": This folder is empty!`);
                     }
-                    if (WarnLog.length > 0) functions.log('warn', functions.joinArrayString(WarnLog));
+                    if (WarnLog.length > 0) logger.warn(`[Executable Loader] ${functions.joinArrayString(WarnLog)}`);
+                    if (target.files.length > 0 || target.subfolders.length > 0)
+                    {
+                        functions.Counter(target, 'cmd');
+                        FileSystem.writeFileSync(`${Folder}/${target.name}.json`, JSON.stringify(target, null, 4));
+                    }
                 }
             }
         }
-        functions.duplicationCheck(AliasesArray, 'Alias');
+        functions.duplicationCheck(AliasesArray, 'alias');
+        FileSystem.writeFileSync(`${subfolder ? Root + pathName : pathName}/${hostFolder.name}.json`, JSON.stringify(hostFolder, null, 4));
         return hostFolder;
     }
 
@@ -117,8 +132,11 @@ module.exports = class Loader {
      * @param {string?} Root Root directory located from this file's location. `./` if it's not specified.
      * @returns `object`
     */
-    EventLoader(pathName, client, Root)
+    EventLoader(pathName, client, Root, subfolder)
     {
+        logger.carrier('status: SCAN', `[Loader] Checking "${pathName}"...`);
+        if (subfolder === undefined || subfolder === null) subfolder = false;
+        if (typeof subfolder !== 'boolean') throw new Error('[CommandLoader] The last parameter if specified must a boolean.');
         if (!Root || Root === null) Root = './';
         const hostFolder = {
             name: pathName,
@@ -128,10 +146,15 @@ module.exports = class Loader {
             evt: [],
             dev: 0,
             empty: 0,
+            size: 'n/a',
         };
         if (Root === '..') Root = '../';
         if (typeof pathName !== 'string' || typeof Root !== 'string') throw new Error('[EventLoader] pathName or Root provided is not a string.');
         const { files, folders } = hostFolder;
+
+        // If the host folder is empty, escape immediately to prevent wasting memory
+        hostFolder.size = functions.getTotalSize(subfolder ? Root + pathName : pathName);
+        if (hostFolder.size === 'n/a') return logger.warn(`[Loader] "${subfolder ? Root + pathName : pathName}": This folder is empty!`);
 
         // Stage 1: Pre-scan. This filters files and folders and put them into corresponding arrays.
         FileSystem.readdirSync(pathName).forEach(file => {
@@ -141,9 +164,11 @@ module.exports = class Loader {
                 files: [],
                 subfolders: [],
                 parent: true,
+                parentName: pathName,
                 evt: [],
                 dev: 0,
                 empty: 0,
+                size: 'n/a',
             });
             else files.push(file);
         });
@@ -158,8 +183,9 @@ module.exports = class Loader {
                 const fullPath = Path.join(pathName, file);
                 this.EventCheck(file, fullPath, client, hostFolder, WarnLog, Root);
             }
-            if (WarnLog.length > 0) functions.log('warn', functions.joinArrayString(WarnLog));
+            if (WarnLog.length > 0) logger.warn(`[Event Loader]`, functions.joinArrayString(WarnLog));
         }
+        functions.Counter(hostFolder, 'evt');
 
         // Stage 2.2: Load subfolders.
         if (folders.length > 0)
@@ -170,17 +196,21 @@ module.exports = class Loader {
                 const WarnLog = [];
                 const target = folders[0];
                 const Folder = Path.join(pathName, target.name);
-                // console.log("true:", FileSystem.readdirSync(Path.join(pathName, target.name)));
+                target.size = functions.getTotalSize(subfolder ? Root + Folder : Folder);
                 FileSystem.readdirSync(Folder).forEach(file => {
                     const fullPath = Path.join(Folder, file);
-                    if (FileSystem.lstatSync(fullPath).isDirectory()) target.subfolders.push(file);
                     this.EventCheck(file, fullPath, client, target, WarnLog, Root);
                 });
                 if (target.files.length < 1 && target.subfolders.length < 1)
                 {
                     WarnLog.push(`"${Folder}": This folder is empty!`);
                 }
-                if (WarnLog.length > 0) functions.log('warn', functions.joinArrayString(WarnLog));
+                if (WarnLog.length > 0) logger.warn(`[Event Loader] ${functions.joinArrayString(WarnLog)}`);
+                if (target.files.length > 0 || target.subfolders.length > 0)
+                {
+                    functions.Counter(target, 'evt');
+                    FileSystem.writeFileSync(`${Folder}/${target.name}.json`, JSON.stringify(target, null, 4));
+                }
             }
 
             // If there are 2 or more subfolders
@@ -191,61 +221,27 @@ module.exports = class Loader {
                     const WarnLog = [];
                     const target = folders[i];
                     const Folder = Path.join(pathName, target.name);
+                    target.size = functions.getTotalSize(subfolder ? Root + Folder : Folder);
                     FileSystem.readdirSync(Folder).forEach(file => {
                         const fullPath = Path.join(Folder, file);
-                        if (FileSystem.lstatSync(fullPath).isDirectory()) target.subfolders.push(file);
                         this.EventCheck(file, fullPath, client, target, WarnLog, Root);
                     });
                     if (target.files.length < 1 && target.subfolders < 1)
                     {
                         WarnLog.push(`"${Folder}": This folder is empty!`);
                     }
-                    if (WarnLog.length > 0) functions.log('warn', functions.joinArrayString(WarnLog));
+                    if (WarnLog.length > 0) logger.warn(`[Event Loader] ${functions.joinArrayString(WarnLog)}`);
+                    if (target.files.length > 0 || target.subfolders.length > 0)
+                    {
+                        functions.Counter(target, 'evt');
+                        FileSystem.writeFileSync(`${Folder}/${target.name}.json`, JSON.stringify(target, null, 4));
+                    }
                 }
             }
         }
+        FileSystem.writeFileSync(`${subfolder ? Root + pathName : pathName}/${hostFolder.name}.json`, JSON.stringify(hostFolder, null, 4));
         return hostFolder;
     }
-
-    // TODO: Add counter and some minor functions
-
-    // Counter(Dir, type)
-    // {
-    //     if (typeof )
-    // }
-
-    // if (typeof Dir !== 'object') throw new Error('The directory provided is not an object.');
-    //     if (Dir.files) Dir.File = Dir.files.length;
-    //     if (Dir.dev) Dir.Unstable = Dir.dev;
-    //     if (Dir.empty) Dir.Empty = Dir.empty;
-    //     if (Dir.unexec) Dir.Unexecutable = Dir.unexec;
-    //     if (Dir.File > 0)  {
-    //         if (Dir.File === Dir.Unexecutable) console.log(`> "${Dir.name}": Successfully loaded ${Dir.File} disabled file${Dir.File > 1 ? 's' : ''}`);
-    //         else if (Dir.File === Dir.Unstable) console.log(`> "${Dir.name}": Successfully loaded ${Dir.File} unstable file${Dir.File > 1 ? 's' : ''}`);
-    //         else if (Dir.File === Dir.Empty) console.log(`> "${Dir.name}": Successfully loaded ${Dir.File} empty file${Dir.File > 1 ? 's' : ''}`);
-    //         else console.log(`> "${Dir.name}": Successfully loaded ${Dir.File} file${Dir.File > 1 ? 's' : ''}`);
-    //     }
-    //     if (Dir.Unstable > 0 && Dir.Unstable !== Dir.File) {
-    //         const res = [
-    //             `with ${Dir.Unstable} file${Dir.Unstable > 1 ? 's' : ''} unstable`,
-    //             `with ${Dir.Unstable} unstable file${Dir.Unstable > 1 ? 's' : ''}`,
-    //         ];
-    //         console.log(functions.Responses(res));
-    //     }
-    //     if (Dir.Unexecutable > 0 && Dir.Unexecutable !== Dir.File) {
-    //         const res = [
-    //             `with ${Dir.Unexecutable} file${Dir.Unexecutable > 1 ? 's' : ''} disabled`,
-    //             `with ${Dir.Unexecutable} disabled file${Dir.Unexecutable > 1 ? 's' : ''}`,
-    //         ];
-    //         console.log(functions.Responses(res));
-    //     }
-    //     if (Dir.Empty > 0 && Dir.Empty !== Dir.File) {
-    //         const res = [
-    //             `with ${Dir.Empty} file${Dir.Empty > 1 ? 's' : ''} empty`,
-    //             `with ${Dir.Empty} empty file${Dir.Empty > 1 ? 's' : ''}`,
-    //         ];
-    //         console.log(functions.Responses(res));
-    //     }
 
     /** Check executables from a file and bind them to the `client` object.
      * @param {string} file Name of the file you want to scan.
@@ -256,12 +252,13 @@ module.exports = class Loader {
      * @param {array?} warnArray The array used for warnings in console.
      * @param {string?} Root The root directory located from this method. This may get removed in future optimizations.
      * @param {boolean?} subfolder If the file which called this method is located in a subfolder to Root. `false`by default.
-     * @see method `Loader.EventLoad` ('Loader.js')
+     * @see method `Loader.ExeLoader` ('Loader.js')
      */
     CommandCheck(file, AliasesArray, path, client, object, warnArray, Root, subfolder)
     {
         if (subfolder === undefined || subfolder === null) subfolder = false;
         if (typeof subfolder !== 'boolean') throw new Error('[CommandCheck] The last parameter if specified must a boolean.');
+        if (FileSystem.lstatSync(path).isDirectory()) return object.subfolders.push(file);
         if (object.parent) object.files.push(file);
         if (file.endsWith('.js'))
         {
@@ -297,7 +294,7 @@ module.exports = class Loader {
                     object.dev++;
                 }
             }
-            if (functions.getFileStats(subfolder ? Root + path : path).size === 0)
+            if (FileSystem.statSync(path)['size'] === 0)
             {
                 if (availablity === true) object.unexec++;
                 object.empty++;
@@ -322,10 +319,11 @@ module.exports = class Loader {
      * @param {object?} object The object used in the nested method. Refer to Loader functions.
      * @param {array?} warnArray The array used for warnings in console.
      * @param {string?} Root The root directory located from this method. This may get removed in future optimizations.
-     * @see method `Loader.EventLoad` ('Loader.js')
+     * @see method `Loader.EventLoader` ('Loader.js')
      */
     EventCheck(file, path, client, object, warnArray, Root)
     {
+        if (FileSystem.lstatSync(path).isDirectory()) return object.subfolders.push(file);
         if (object.parent) object.files.push(file);
         if (file.endsWith('.js'))
         {
@@ -354,7 +352,7 @@ module.exports = class Loader {
                     warnArray.push(`Event "${EventFile.name}" doesn't have any callback function.`);
                 }
             }
-            if (functions.getFileStats(path).size === 0)
+            if (FileSystem.statSync(path)['size'] === 0)
             {
                 availablity = false;
                 object.empty++;
@@ -370,5 +368,4 @@ module.exports = class Loader {
             }
         }
     }
-
 };
