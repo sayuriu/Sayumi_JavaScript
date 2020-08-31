@@ -1,10 +1,10 @@
 module.exports = {
 	name: 'uptime',
-	description: 'Shows how long is it sice last terminal reset/code changes.',
+	description: 'Shows how long is it sice last boot.',
+	stable: true,
 	group: 'Information',
     aliases: ['runtime'],
 	onTrigger(message, client) {
-		console.log(('<Information>'), `Logging current uptime...`);
 		const days = Math.floor(client.uptime / 86400000);
 		const hours = Math.floor(client.uptime / 3600000) % 24;
 		const minutes = Math.floor(client.uptime / 60000) % 60;
@@ -31,7 +31,6 @@ module.exports = {
 		if(message.author.id !== "520964894279860224") {
 			return message.channel.send(response2);
 		}
-		console.log(('<Information>'), `Logging current uptime complete.\n - Recorded uptime: ${UpTime}.`);
 		message.channel.send(response1);
 	},
 };

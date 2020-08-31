@@ -60,6 +60,11 @@
 			"Lacking arguments to work with.",
 			"Insufficient amount of arguments provided.",
 			"Data returns `null`. Wanna try again?"
+		],
+		"guild_only_invalid": [
+			"Unfortunately, this command cannot be executed inside DMs.",
+			"Sorry, but i can't do this inside a direct-message chat.",
+			"Make sure that you typed this command inside a server."
 		]
 	}
 }

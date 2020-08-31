@@ -81,7 +81,7 @@ module.exports = class Logger {
 
         const logger = Winston.createLogger({
             transports: [
-              new Winston.transports.File({ filename: `${logDir}/log.log`, level: 'info', json: false}),
+              new Winston.transports.File({ filename: `${logDir}/log.log`, level: 'info', json: false }),
               new Winston.transports.File({ filename: `${logDir}/log.log`, level: 'warn', json: false }),
               new Winston.transports.File({ filename: `${logDir}/log.log`, level: 'debug', json: false }),
               new Winston.transports.File({ filename: `${logDir}/log.log`, level: 'verbose', json: false }),

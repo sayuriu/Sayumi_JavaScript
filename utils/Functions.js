@@ -1,8 +1,12 @@
 const FileSystem = require('fs');
+const discord = require('discord.js');
 const responses = require('./responses.json');
 const chalk = require('chalk');
 const Logger = require('./Logger');
 const logger = new Logger;
+const now = Date.now();
+require('dotenv').config();
+const { master } = process.env;
 
 module.exports = class Functions  {
 
@@ -68,6 +72,48 @@ module.exports = class Functions  {
         return `${month}${date}${year.substr(2, 2)}`;
     }
 
+    /** This method only works specifically with Discord message objects.
+     * @param {*} CooldownCollection
+     * @param {string} Item
+     * @param {string} target
+     * @param {object} message The message object.
+     */
+    Cooldown(CooldownCollection, Item, CooldownAmount, target, message, guild)
+    {
+        if (!CooldownCollection.has(Item)) CooldownCollection.set(Item, new discord.Collection());
+        if (!guild) guild === false;
+
+        // Get the timestamps
+        const timestamps = CooldownCollection.get(Item);
+        CooldownAmount = (CooldownAmount || 3) * 1000;
+
+        if (timestamps.has(target)) {
+            const expirationTime = timestamps.get(target) + CooldownAmount;
+
+            if (now < expirationTime && guild ? message.guild : target && message.channel.type !== 'dm')
+            {
+                const timeLeft = (expirationTime - now) / 1000;
+                if (message !== null && message !== undefined)
+                {
+                    if (Item === 'mention') return;
+                    message.reply(
+                        `please wait ${timeLeft.toFixed(0)} more second${ timeLeft > 1 ? 's' : '' } before reusing the '${Item}' command.`,
+                    );
+                    this.Cooldown(CooldownCollection, 'mention', 5, message.author.id, message);
+                    return;
+                }
+                else return;
+            }
+        }
+        timestamps.set(target, now);
+		setTimeout(() => timestamps.delete(target), CooldownAmount);
+    }
+
+    /** Stating files in the console output.
+     * @param {object} dirObject The directory object to pass in. Usually it's taken from the loader.
+     * @param {string} type The type of data you want to inspect. In Discord, it's reduced to commands, events and database models. This will be added more in the future.
+     * @see method `Loader.ExeLoader` and `Loader.EventLoader` (Loader.js)
+     */
     Counter(dirObject, type)
     {
         if (typeof dirObject !== 'object') return logger.error('[Global Functions > File Counter] Directory given is not an object.');
@@ -86,9 +132,9 @@ module.exports = class Functions  {
 
             if (files.length > 0)
             {
-                if (files.length === unexec) Header = Header + chalk.hex('#8c8c8c')(`${files} disabled file${files.length > 1 ? 's' : ''}`);
-                else if (files.length === dev) Header = Header + chalk.hex('#8c8c8c')(`${files} unstable file${files.length > 1 ? 's' : ''}`);
-                else if (files.length === empty) Header = Header + chalk.hex('#8c8c8c')(`${files} empty file${files.length > 1 ? 's' : ''}`);
+                if (files.length === unexec) Header = Header + chalk.hex('#8c8c8c')(`${files.length} disabled file${files.length > 1 ? 's' : ''}`);
+                else if (files.length === dev) Header = Header + chalk.hex('#8c8c8c')(`${files.length} unstable file${files.length > 1 ? 's' : ''}`);
+                else if (files.length === empty) Header = Header + chalk.hex('#8c8c8c')(`${files.length} empty file${files.length > 1 ? 's' : ''}`);
                 else Header = Header + chalk.hex('#8c8c8c')(`${files.length} file${files.length > 1 ? 's' : ''}`);
             }
 
@@ -127,7 +173,7 @@ module.exports = class Functions  {
                 log.push('Found ' + chalk.hex('#8c8c8c')(`${unexec} non-executable${unexec > 1 ? 's' : ''}`));
             }
             console.log(Header);
-            console.log(this.joinArrayString(log));
+            if (log.length > 0) console.log(this.joinArrayString(log));
         }
 
         // If the class is events
@@ -139,8 +185,8 @@ module.exports = class Functions  {
 
             if (files.length > 0)
             {
-                if (files.length === dev) Header = Header + chalk.hex('#8c8c8c')(`${files} unstable event${files.length > 1 ? 's' : ''}`);
-                else if (files.length === empty) Header = Header + chalk.hex('#8c8c8c')(`${files} empty file${files.length > 1 ? 's' : ''}`);
+                if (files.length === dev) Header = Header + chalk.hex('#8c8c8c')(`${files.length} unstable event${files.length > 1 ? 's' : ''}`);
+                else if (files.length === empty) Header = Header + chalk.hex('#8c8c8c')(`${files.length} empty file${files.length > 1 ? 's' : ''}`);
                 else Header = Header + chalk.hex('#8c8c8c')(`${files.length} file${files.length > 1 ? 's' : ''}`);
             }
 
@@ -180,7 +226,7 @@ module.exports = class Functions  {
                 log.push('Found ' + chalk.hex('#8c8c8c')(`${nonEvent} misc file${nonEvent > 1 ? 's' : ''}`));
             }
             console.log(Header);
-            console.log(this.joinArrayString(log));
+            if (log.length > 0) console.log(this.joinArrayString(log));
         }
     }
 
@@ -208,31 +254,27 @@ module.exports = class Functions  {
                     {
                         WarnArray.push(`${type} "${res[i]}": Duplicates found.`);
                     }
-                    logger.warn(this.joinArrayString(WarnArray));
+                    if (WarnArray.length > 0) logger.warn(this.joinArrayString(WarnArray));
                     break;
                 }
                 case WarnArray:
                 {
                     for(const i in res)
                     {
-                        WarnArray.push(`${type} "${res[i]}": Duplicates found.`);
+                        if (WarnArray.length > 0) WarnArray.push(`${type} "${res[i]}": Duplicates found.`);
                     }
                 }
             }
         }
     }
 
-    /**
-     * Returns a time object.
-     */
+    /** Returns a time object. */
     DateTime()
     {
         const date = new Date();
-        const now = Date.now();
         const time = date.toTimeString();
         const month = date.getMonth() + 1;
         const res = {
-            now: now,
             date: `${date.getDate() < 10 ? '0' : ''}${date.getDate()}`,
             dateID: `${Math.floor(Date.now() / 86400000)}`,
             month: `${month < 10 ? '0' : ''}${month}`,
@@ -245,6 +287,9 @@ module.exports = class Functions  {
         return res;
     }
 
+    /** (ecessive method) Gets a file's last extension.
+     * @param {string} filename The file's name.
+     */
     getExtension(filename)
     {
         if (typeof filename !== 'string') throw new TypeError('The filename is not a string.');
@@ -274,7 +319,9 @@ module.exports = class Functions  {
         return arrayOfFiles;
     }
 
-
+    /** Calculates total file sizes from a given array of file paths.
+     * @param {string} path The directory you need to scan.
+     */
     getTotalSize(path)
     {
         const arrayOfFiles = this.getAllFiles(path);
@@ -288,10 +335,14 @@ module.exports = class Functions  {
         return this.convertBytes(totalSize);
     }
 
+    /** (miscellaneous method) Used for logging.
+     * @param {array} stringArray The array to pass in.
+     */
     joinArrayString(stringArray)
     {
         if (stringArray === null || stringArray === undefined) return false;
         if (stringArray.length < 1) return logger.warn('ArrayString has no item.');
+        // if (stringArray.length < 1) throw new ReferenceError('ArrayString has no item.');
         if (stringArray.length === 1) return `${stringArray[0]}`;
         if (stringArray.length > 1)
         {

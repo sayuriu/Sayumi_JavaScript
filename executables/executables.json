@@ -1,16 +1,33 @@
 {
     "name": "executables",
     "files": [
-        "executables.json",
-        "uptime.js"
+        "executables.json"
     ],
-    "folders": [],
+    "folders": [
+        {
+            "name": "utils",
+            "files": [
+                "prefix.js",
+                "uptime.js",
+                "utils.json"
+            ],
+            "subfolders": [],
+            "parent": true,
+            "parentName": "executables",
+            "exe": [
+                "prefix.js",
+                "uptime.js"
+            ],
+            "unexec": 1,
+            "empty": 0,
+            "dev": 0,
+            "size": "2.1 kB"
+        }
+    ],
     "parent": false,
-    "exe": [
-        "uptime.js (dev)"
-    ],
+    "exe": [],
     "unexec": 1,
     "empty": 0,
-    "dev": 1,
+    "dev": 0,
     "size": "2.1 kB"
 }

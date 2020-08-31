@@ -50,6 +50,8 @@ module.exports = class Database {
 			});
 			connection.on('error', error => {
 				log.error(`[Remote Database > mongoDB] A connection error has occured. \n${error.message}`);
+				log.carrier('status: 500', 'This will use localhost instead.');
+				this.init(true);
 			});
 		}
 		else

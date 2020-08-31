@@ -80,6 +80,11 @@ module.exports = class Loader {
                 const WarnLog = [];
                 const target = folders[0];
                 const Folder = Path.join(pathName, target.name);
+                target.size = functions.getTotalSize(subfolder ? Root + Folder : Folder);
+                FileSystem.readdirSync(Folder).forEach(file => {
+                    const fullPath = Path.join(Folder, file);
+                    this.CommandCheck(file, AliasesArray, fullPath, client, target, WarnLog, Root, subfolder);
+                });
                 if (target.files.length > 0 || target.subfolders.length > 0)
                 {
                     functions.Counter(target, 'cmd');
@@ -89,10 +94,6 @@ module.exports = class Loader {
                 {
                     WarnLog.push(`"${Folder}": This folder is empty!`);
                 }
-                FileSystem.readdirSync(Folder).forEach(file => {
-                    const fullPath = Path.join(Folder, file);
-                    this.CommandCheck(file, AliasesArray, fullPath, client, target, WarnLog, Root, subfolder);
-                });
                 if (WarnLog.length > 0) logger.warn(`[Executable Loader] ${functions.joinArrayString(WarnLog)}`);
             }
 
@@ -104,6 +105,7 @@ module.exports = class Loader {
                     const WarnLog = [];
                     const target = folders[i];
                     const Folder = Path.join(pathName, target.name);
+                    target.size = functions.getTotalSize(subfolder ? Root + Folder : Folder);
                     FileSystem.readdirSync(subfolder ? Root + Folder : Folder).forEach(file => {
                         const fullPath = Path.join(Folder, file);
                         this.CommandCheck(file, AliasesArray, fullPath, client, target, WarnLog, Root, subfolder);
@@ -302,6 +304,7 @@ module.exports = class Loader {
             }
             if (availablity ===  true)
             {
+                object.exe.push(`${file}`);
                 client.CommandList.set(name, CommandFile);
                 if (CommandFile.aliases)
                 {
@@ -310,6 +313,7 @@ module.exports = class Loader {
                 }
             }
         }
+        else object.unexec++;
     }
 
     /** Check events from a file and bind them to the `client` object.
