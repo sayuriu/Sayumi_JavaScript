@@ -11,6 +11,6 @@ module.exports = {
 	onEmit: (client) => {
 		logger.carrier('status: 200', functions.Greetings());
 
-		// client.channels.cache.find(ch => ch.id === '731918444085379142').send(embeds.update('Logging', 'Further optimized loaders and added detailed logging'));
+		// client.channels.cache.find(ch => ch.id === '731918444085379142').send(embeds.update('Database', 'Implemented basic database operations and message handing'));
 	},
 };

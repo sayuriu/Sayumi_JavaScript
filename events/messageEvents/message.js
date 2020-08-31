@@ -3,6 +3,7 @@ const Functions = require('../../utils/Functions');
 const Logger = require('../../utils/Logger');
 const Embeds = new (require('../../utils/embeds'));
 const responses = require('../../utils/responses.json');
+const DefaultSettings = require('../../utils/DefaultGlobalSettings.json');
 const Guild = new guildActions;
 const functions = new Functions;
 const log = new Logger;
@@ -14,9 +15,15 @@ module.exports = {
 	stable: true,
 	onEmit: async (client, message) => {
 		// Get the info first.
-		const source = await Guild.guildGet(message.guild);
-		let prefix = source.prefix;
+		let prefix = DefaultSettings.prefix;
 		const mention = `<@!${maid}>`;
+		const source = await Guild.guildGet(message.guild);
+
+		// Gets the prefix if the message is sent in a guild.
+		if (message.guild)
+		{
+			prefix = source.prefix;
+		}
 
 		// She starts listening if the message starts with a prefix or a direct mention.
 		if (message.content.startsWith(prefix) || message.content.startsWith(mention))
@@ -29,8 +36,8 @@ module.exports = {
 				mentionID = true;
 			}
 
-			// Returns when the message is sent in an appropriate channel
-			if (!source.AllowedReplyOn.some(channelID => channelID === message.channel.id)) return;
+			// Returns when the message is sent in an appropriate channel (In guilds ofcourse)
+			if (message.guild && !source.AllowedReplyOn.some(channelID => channelID === message.channel.id)) return;
 			else
 			{
 				const args = message.content.slice(mentionID ? prefix.length + 1 : prefix.length).split(/ +/);
@@ -52,13 +59,27 @@ module.exports = {
 						`If that is an unadded feature, consider typing \`${source.prefix}feedback ${typo}\` if you want this feature/command added to my collection.`,
 					];
 					const res = functions.Randomized(NotACmd);
-					if (source.FalseCMDReply === true) return message.channel.send(res);
+					if (source.FalseCMDReply === true)
+					{
+						functions.Cooldown(client.Cooldowns, typo, 3, message.author.id, message);
+						return message.channel.send(res);
+					}
 					else return;
 				}
 
 				// Else....
 				else
 				{
+					// Sending guild-only commands through DMs
+					if (RequestedCommand.guildOnly && message.channel.type === 'dm')
+					{
+						return message.reply(functions.Randomized(responses.commands.guild_only_invalid));
+					}
+
+					// Cooldowns (throttling)
+					if (RequestedCommand.guildCooldown && message.guild) functions.Cooldown(client.Cooldowns, RequestedCommand.name, RequestedCommand.cooldown, message.guild.id, message, true);
+					else functions.Cooldown(client.Cooldowns, RequestedCommand.name, RequestedCommand.cooldown, message.author.id, message, false);
+
 					// If the command requires args... But the user doesn't includes many.
 					if (RequestedCommand.args && !args.length)
 					{
@@ -69,7 +90,7 @@ module.exports = {
 						{
 							let string;
 							if (RequestedCommand.usage) string = `\nUsage: \`${prefix}${RequestedCommand.name} ${RequestedCommand.usage}\`.`;
-							return message.channel.send(`${functions.Randomized(responses.commands.empty_arguments)}`);
+							return message.channel.send(`${functions.Randomized(responses.commands.empty_arguments)} + ${string || ''}`);
 						}
 					}
 					// Master-explicit commands
@@ -82,7 +103,8 @@ module.exports = {
 
 					// Try executing the command
 					try {
-						RequestedCommand.onTrigger(message, args, client);
+						if (RequestedCommand.args) RequestedCommand.onTrigger(message, args, client);
+						else RequestedCommand.onTrigger(message, client);
 					// Catch errors
 					} catch (error) {
 						log.error(`[Command Execution] An error has occured while executing "${RequestedCommand.name}": \n${error.message}`);
