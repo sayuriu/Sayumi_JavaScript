@@ -109,4 +109,44 @@ module.exports = class EmbedConstructor {
         };
         return mute;
     }
+
+    // Utilities
+    messageLog(message, object)
+    {
+        if (message === null) message = {
+            author: {
+                username: null,
+            },
+            createdAt: 'n/a',
+            editedAt: 'n/a',
+        };
+        if (object === null || object === undefined) object = {
+            status: null,
+            channelID: null,
+            logLimit: null,
+        };
+        const info = new discord.MessageEmbed()
+                            .setColor('#ded181')
+                            .setDescription(`Status: ${object.status ? `Enabled\n Inform channel: ${object.channelID === null || object.channelID === '' ? 'None' : `<#${object.channelID}>`}` : 'Disabled'} \nLog limit per user: \`${object.logLimit}\` (This can't be disabled)`)
+                            .setFooter(`Settings: Message changes`);
+        const deleted = new discord.MessageEmbed()
+                                .setColor('#fa1933')
+                                .setTitle(`Deleted message (${message.author.tag})`)
+                                .setDescription(`\`"${message.content}"\``)
+                                .setFooter(`Message timestamp: ${message.createdAt}`);
+        const updated = new discord.MessageEmbed()
+                                .setColor('#f7700f')
+                                .setTitle(`Edited message (${message.author.username})`)
+                                .addFields(
+                                    { name: 'Original', value: `${object.oldMessage}` },
+                                    { name: 'Edited', value: `${object.newMessage}` },
+                                )
+                                .setFooter(`Message timestamp: ${message.editedAt}`);
+        const res = {
+            info: info,
+            deleted: deleted,
+            updated: updated,
+        };
+        return res;
+    }
 };

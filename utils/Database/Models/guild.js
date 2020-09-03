@@ -11,29 +11,37 @@ const Guilds = new Database.Schema({
     },
     welcomeChannel: {
         type: String,
-        default: DefaultSettings.WelcomeChannel,
+        default: null,
     },
     defaultWelcomeMsg: {
         type: String,
-        default: DefaultSettings.WelcomeMsg,
-    },
-    AdminRoles: {
-        type: Array,
-        default: DefaultSettings.AdminRoles,
-    },
-    moderatorRoles: {
-        type: Array,
-        default: DefaultSettings.moderatorRoles,
+        default: null,
     },
 
-    // Utils and misc.
     AllowedReplyOn: {
         type: Array,
     },
     FalseCMDReply: {
-        type: Boolean,
-        default: DefaultSettings.FalseCMDReply,
+        type: Array,
     },
+
+    LogHoldLimit: {
+        type: Number,
+        default: 1,
+    },
+    MessageLogChannel: {
+        type: String,
+    },
+    MessageLogState: {
+        type: Boolean,
+        default: false,
+    },
+    MessageLog: {
+        type: Map,
+        default: new Map(),
+    },
+}, {
+    collection: 'GuildList',
 });
 
-module.exports = Database.model("GuildList", Guilds);
+module.exports = Database.model('GuildList', Guilds);

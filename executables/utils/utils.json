@@ -1,6 +1,9 @@
 {
     "name": "utils",
     "files": [
+        "allowReplyConfig.js",
+        "falseCMDReply.js",
+        "messageLogSettings.js",
         "prefix.js",
         "uptime.js",
         "utils.json"
@@ -9,11 +12,14 @@
     "parent": true,
     "parentName": "executables",
     "exe": [
+        "allowReplyConfig.js",
+        "falseCMDReply.js",
+        "messageLogSettings.js",
         "prefix.js",
         "uptime.js"
     ],
     "unexec": 1,
     "empty": 0,
     "dev": 0,
-    "size": "2.1 kB"
+    "size": "15.1 kB"
 }
