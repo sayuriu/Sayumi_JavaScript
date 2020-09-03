@@ -13,6 +13,7 @@ Sayuri.CommandList = new discord.Collection();
 Sayuri.CommandAliases = new discord.Collection();
 Sayuri.CommandCagetories = new discord.Collection();
 Sayuri.Cooldowns = new discord.Collection();
+Sayuri.AFKUsers = new discord.Collection();
 
 const client = new Client;
 const database = new Database;
@@ -24,5 +25,4 @@ client.CommandInit(Sayuri);
 client.eventListener(Sayuri);
 client.login(Sayuri, TOKEN);
 client.handleProcessErrors();
-
 // #endregion

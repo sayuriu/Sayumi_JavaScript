@@ -4,7 +4,7 @@ module.exports = {
 	stable: true,
 	group: 'Information',
     aliases: ['runtime'],
-	onTrigger(message, client) {
+	onTrigger: (message, client) => {
 		const days = Math.floor(client.uptime / 86400000);
 		const hours = Math.floor(client.uptime / 3600000) % 24;
 		const minutes = Math.floor(client.uptime / 60000) % 60;

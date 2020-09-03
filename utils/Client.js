@@ -47,11 +47,11 @@ module.exports = class Sayuri_Client {
     handleProcessErrors()
     {
         process.on("uncaughtException", error => {
-            log.error(`[Uncaught Exception] ${error.message}`);
+            log.error(`[Uncaught Exception] ${error.message}\n${error.stack}`);
             console.error(error);
         });
         process.on("unhandledRejection", error => {
-            log.error(`[Unhandled Promise Rejection] ${error.message}`);
+            log.error(`[Unhandled Promise Rejection] ${error.message}\n${error.stack}`);
             console.error(error);
         });
     }

@@ -6,11 +6,27 @@ const Logger = require('./Logger');
 const logger = new Logger;
 const now = Date.now();
 require('dotenv').config();
-const { master } = process.env;
 
 module.exports = class Functions  {
 
     // Some methods are dedicated to a specific command or class, but here you go.
+
+    ArrayEqualityCheck(Array1, Array2)
+    {
+        if (!Array.isArray(Array1) || !Array.isArray(Array2) || Array1.length !== Array2.length)
+        return false;
+
+        const arr1 = Array1.concat().sort();
+        const arr2 = Array2.concat().sort();
+
+        for (let i = 0; i < arr1.length; i++)
+        {
+            if (arr1[i] !== arr2[i])
+                return false;
+        }
+
+        return true;
+    }
 
     channelCheck(channel)
     {
@@ -96,11 +112,13 @@ module.exports = class Functions  {
                 if (message !== null && message !== undefined)
                 {
                     if (Item === 'mention') return;
-                    message.reply(
-                        `please wait ${timeLeft.toFixed(0)} more second${ timeLeft > 1 ? 's' : '' } before reusing the '${Item}' command.`,
-                    );
-                    this.Cooldown(CooldownCollection, 'mention', 5, message.author.id, message);
-                    return;
+                    else
+                    {
+                        // this.Cooldown(CooldownCollection, 'mention', 5, message.author.id, message);
+                        return message.reply(
+                        `please wait ${timeLeft.toFixed(0)} more second${ timeLeft > 1 ? 's' : '' } before reusing the \`${Item}\` command.`,
+                        );
+                    }
                 }
                 else return;
             }
@@ -109,9 +127,23 @@ module.exports = class Functions  {
 		setTimeout(() => timestamps.delete(target), CooldownAmount);
     }
 
+    CompareObjects(target, source)
+    {
+        if (typeof target !== 'object') throw new TypeError('[Global Functions > Object Comparison] The target must be an object.');
+        if (typeof source !== 'object') throw new TypeError('[Global Functions > Object Comparison] The source must be an object.');
+        for (const key in source)
+		{
+			if (Object.prototype.hasOwnProperty.call(source, key))
+			{
+				if (target[key] !== source[key]) return false;
+				else return true;
+			}
+		}
+    }
+
     /** Stating files in the console output.
      * @param {object} dirObject The directory object to pass in. Usually it's taken from the loader.
-     * @param {string} type The type of data you want to inspect. In Discord, it's reduced to commands, events and database models. This will be added more in the future.
+     * @param {string} type The type of data you want to inspect. For Discord, it's reduced to commands, events and database models. This will be added more in the future.
      * @see method `Loader.ExeLoader` and `Loader.EventLoader` (Loader.js)
      */
     Counter(dirObject, type)
@@ -123,7 +155,7 @@ module.exports = class Functions  {
         const validInput = ['executables', 'commands', 'cmd', 'events', 'evt', 'database', 'db'];
         if (!validInput.some(item => item === inspector)) return logger.error('[Global Functions > File Counter] Wrong type given.');
 
-        // If the class is commands
+        // If commands
         if (inspector === 'executables' || inspector === 'commands' || inspector === 'cmd')
         {
             const { name, files, folders, subfolders, exe, unexec, parent, parentName, empty, dev, size } = dirObject;
@@ -176,7 +208,7 @@ module.exports = class Functions  {
             if (log.length > 0) console.log(this.joinArrayString(log));
         }
 
-        // If the class is events
+        // If events
         if (inspector === 'event' || inspector === 'evt')
         {
             const { name, files, folders, subfolders, evt, parent, parentName, empty, dev, size } = dirObject;
@@ -285,6 +317,11 @@ module.exports = class Functions  {
             sec: time.substr(6, 2),
         };
         return res;
+    }
+
+    escapeRegExp(string)
+    {
+        return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&');
     }
 
     /** (ecessive method) Gets a file's last extension.

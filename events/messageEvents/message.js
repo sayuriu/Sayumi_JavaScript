@@ -16,12 +16,14 @@ module.exports = {
 	onEmit: async (client, message) => {
 		// Get the info first.
 		let prefix = DefaultSettings.prefix;
+		let source;
 		const mention = `<@!${maid}>`;
-		const source = await Guild.guildGet(message.guild);
 
 		// Gets the prefix if the message is sent in a guild.
 		if (message.guild)
 		{
+			source = await Guild.guildGet(message.guild);
+			if (!source) source = await Guild.guildGet(message.guild);
 			prefix = source.prefix;
 		}
 
@@ -40,6 +42,7 @@ module.exports = {
 			if (message.guild && !source.AllowedReplyOn.some(channelID => channelID === message.channel.id)) return;
 			else
 			{
+				message.content = functions.escapeRegExp(message.content);
 				const args = message.content.slice(mentionID ? prefix.length + 1 : prefix.length).split(/ +/);
 				const CommandName = args.shift().toLowerCase();
 
@@ -52,14 +55,14 @@ module.exports = {
 					const typo = CommandName;
 					const NotACmd = [
 						"This is not a vaild command for me.",
-						`Perhaps a typo, ${message.author}?`,
+						`Perhaps a typo, ${message.guild ? message.member.displayName : message.author.username}?`,
 						"I can't issue this.",
 						`Use \`${prefix}help\` for a help list if you are confused.`,
 						`What is *${typo}*?`,
-						`If that is an unadded feature, consider typing \`${source.prefix}feedback ${typo}\` if you want this feature/command added to my collection.`,
+						`If that is an unadded feature, consider typing \`${mentionID ? '@Sayumi' : prefix}feedback ${typo}\` if you want this feature/command added to my collection.`,
 					];
 					const res = functions.Randomized(NotACmd);
-					if (source.FalseCMDReply === true)
+					if (message.channel.type === 'dm' || source.FalseCMDReply.some(chID => chID === message.channel.id))
 					{
 						functions.Cooldown(client.Cooldowns, typo, 3, message.author.id, message);
 						return message.channel.send(res);
@@ -81,7 +84,8 @@ module.exports = {
 					else functions.Cooldown(client.Cooldowns, RequestedCommand.name, RequestedCommand.cooldown, message.author.id, message, false);
 
 					// If the command requires args... But the user doesn't includes many.
-					if (RequestedCommand.args && !args.length)
+					// Note: Added reqArgs for commands that specifically requires args.
+					if (RequestedCommand.args && RequestedCommand.reqArgs && !args.length)
 					{
 						// Eval command-explicit
 						if (RequestedCommand.terminal) return message.channel.send('Terminal standing by.').then(m => m.delete(4000));
