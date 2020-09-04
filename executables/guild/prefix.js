@@ -3,7 +3,7 @@ const guildActions = new (require('../../utils/Database/Methods/guildActions'));
 module.exports = {
 	name: 'prefix',
 	guildOnly: true,
-	cooldown: 300,
+	cooldown: 15,
 	stable: true,
 	args: true,
 	usage: '[newPrefix]',

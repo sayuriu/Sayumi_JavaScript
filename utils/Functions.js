@@ -88,45 +88,6 @@ module.exports = class Functions  {
         return `${month}${date}${year.substr(2, 2)}`;
     }
 
-    /** This method only works specifically with Discord message objects.
-     * @param {*} CooldownCollection
-     * @param {string} Item
-     * @param {string} target
-     * @param {object} message The message object.
-     */
-    Cooldown(CooldownCollection, Item, CooldownAmount, target, message, guild)
-    {
-        if (!CooldownCollection.has(Item)) CooldownCollection.set(Item, new discord.Collection());
-        if (!guild) guild === false;
-
-        // Get the timestamps
-        const timestamps = CooldownCollection.get(Item);
-        CooldownAmount = (CooldownAmount || 3) * 1000;
-
-        if (timestamps.has(target)) {
-            const expirationTime = timestamps.get(target) + CooldownAmount;
-
-            if (now < expirationTime && guild ? message.guild : target && message.channel.type !== 'dm')
-            {
-                const timeLeft = (expirationTime - now) / 1000;
-                if (message !== null && message !== undefined)
-                {
-                    if (Item === 'mention') return;
-                    else
-                    {
-                        // this.Cooldown(CooldownCollection, 'mention', 5, message.author.id, message);
-                        return message.reply(
-                        `please wait ${timeLeft.toFixed(0)} more second${ timeLeft > 1 ? 's' : '' } before reusing the \`${Item}\` command.`,
-                        );
-                    }
-                }
-                else return;
-            }
-        }
-        timestamps.set(target, now);
-		setTimeout(() => timestamps.delete(target), CooldownAmount);
-    }
-
     CompareObjects(target, source)
     {
         if (typeof target !== 'object') throw new TypeError('[Global Functions > Object Comparison] The target must be an object.');

@@ -25,7 +25,8 @@ module.exports =  {
 		{
 			User = {
 				tag: message.author.tag,
-				nickname: message.author.displayName || null,
+				nickname: message.member.nickname,
+				id: message.author.id,
 				deletedMessages: {},
 			};
 			History.set(User.id, User);
@@ -34,6 +35,7 @@ module.exports =  {
 		let DeletedHistory = User.deletedMessages;
 		if (DeletedHistory === undefined) DeletedHistory = {};
 		if (User.tag !== message.author.tag) User.tag !== message.author.tag;
+		if (User.nickname !== message.member.nickname) User.nickname = message.member.nickname;
 
 		const object = {
 			dateID: `${Date.now()}`,
