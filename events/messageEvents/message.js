@@ -1,3 +1,4 @@
+const discord = require('discord.js');
 const guildActions = require('../../utils/Database/Methods/guildActions');
 const Functions = require('../../utils/Functions');
 const Logger = require('../../utils/Logger');
@@ -80,8 +81,50 @@ module.exports = {
 					}
 
 					// Cooldowns (throttling)
-					if (RequestedCommand.guildCooldown && message.guild) functions.Cooldown(client.Cooldowns, RequestedCommand.name, RequestedCommand.cooldown, message.guild.id, message, true);
-					else functions.Cooldown(client.Cooldowns, RequestedCommand.name, RequestedCommand.cooldown, message.author.id, message, false);
+					const cooldowns = client.Cooldowns;
+					const now = Date.now();
+
+					if (!cooldowns.has(RequestedCommand.name)) cooldowns.set(RequestedCommand.name, new discord.Collection());
+
+					const timestamps = cooldowns.get(RequestedCommand.name);
+					const cooldownAmount = (RequestedCommand.cooldown || 2) * 1000;
+
+					if (RequestedCommand.guildCooldown && message.guild)
+					{
+						if (timestamps.has(message.guild.id))
+						{
+							const expirationTime = timestamps.get(message.guild.id) + cooldownAmount;
+
+							if (now < expirationTime)
+							{
+								const timeLeft = (expirationTime - now) / 1000;
+								return message.reply(
+									`please wait ${timeLeft.toFixed(1)} more second${ timeLeft > 1 ? 's' : '' } before reusing the \`${RequestedCommand.name}\` command.`,
+								);
+							}
+						}
+
+						timestamps.set(message.guild.id, now);
+						setTimeout(() => timestamps.delete(message.guild.id), cooldownAmount);
+					}
+					else
+					{
+						if (timestamps.has(message.author.id))
+						{
+							const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+
+							if (now < expirationTime && message.channel.type !== 'dm')
+							{
+								const timeLeft = (expirationTime - now) / 1000;
+								return message.reply(
+									`please wait ${timeLeft.toFixed(1)} more second${ timeLeft > 1 ? 's' : '' } before reusing the \`${RequestedCommand.name}\` command.`,
+								);
+							}
+						}
+
+						timestamps.set(message.author.id, now);
+						setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+					}
 
 					// If the command requires args... But the user doesn't includes many.
 					// Note: Added reqArgs for commands that specifically requires args.
