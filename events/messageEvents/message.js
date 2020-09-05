@@ -89,6 +89,7 @@ module.exports = {
 					const timestamps = cooldowns.get(RequestedCommand.name);
 					const cooldownAmount = (RequestedCommand.cooldown || 2) * 1000;
 
+					// Guild cooldowns
 					if (RequestedCommand.guildCooldown && message.guild)
 					{
 						if (timestamps.has(message.guild.id))
@@ -107,6 +108,7 @@ module.exports = {
 						timestamps.set(message.guild.id, now);
 						setTimeout(() => timestamps.delete(message.guild.id), cooldownAmount);
 					}
+					// User cooldowns
 					else
 					{
 						if (timestamps.has(message.author.id))
@@ -137,15 +139,23 @@ module.exports = {
 						{
 							let string;
 							if (RequestedCommand.usage) string = `\nUsage: \`${prefix}${RequestedCommand.name} ${RequestedCommand.usage}\`.`;
-							return message.channel.send(`${functions.Randomized(responses.commands.empty_arguments)} + ${string || ''}`);
+							return message.channel.send(`${functions.Randomized(responses.commands.empty_arguments)} ${string || ''}`);
 						}
 					}
+
 					// Master-explicit commands
 					if (RequestedCommand.master_explicit && message.author.id !== master) {
 						return message.channel.send(`Sorry ${message.author}, but this command can be issued by my master only.`).then(msg => {
 							if (message.channel.name.includes('general')) return msg.delete(4000);
 							else return msg.delete(6000);
 						});
+					}
+
+					// NSFW commands
+					if (RequestedCommand.nsfw && message.channel.nsfw === false)
+					{
+						if (message.deletable) message.delete();
+						return message.channel.send('Please execute this command from an appropriate channel.').then(m => m.delete(3000));
 					}
 
 					// Try executing the command

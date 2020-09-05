@@ -5,14 +5,14 @@
     ],
     "folders": [
         {
-            "name": "utils",
+            "name": "guild",
             "files": [
                 "allowReplyConfig.js",
                 "falseCMDReply.js",
+                "guild.json",
                 "messageLogSettings.js",
                 "prefix.js",
-                "uptime.js",
-                "utils.json"
+                "setNSFW.js"
             ],
             "subfolders": [],
             "parent": true,
@@ -22,12 +22,43 @@
                 "falseCMDReply.js",
                 "messageLogSettings.js",
                 "prefix.js",
-                "uptime.js"
+                "setNSFW.js (dev)",
+                "setNSFW.js"
             ],
-            "unexec": 1,
+            "unexec": 2,
+            "empty": 0,
+            "dev": 1,
+            "size": "14.8 kB"
+        },
+        {
+            "name": "master-explicit",
+            "files": [],
+            "subfolders": [],
+            "parent": true,
+            "parentName": "executables",
+            "exe": [],
+            "unexec": 0,
             "empty": 0,
             "dev": 0,
-            "size": "15.1 kB"
+            "size": "n/a"
+        },
+        {
+            "name": "utils",
+            "files": [
+                "help.js",
+                "uptime.js",
+                "utils.json"
+            ],
+            "subfolders": [],
+            "parent": true,
+            "parentName": "executables",
+            "exe": [
+                "uptime.js"
+            ],
+            "unexec": 2,
+            "empty": 0,
+            "dev": 0,
+            "size": "2.1 kB"
         }
     ],
     "parent": false,
@@ -35,5 +66,5 @@
     "unexec": 1,
     "empty": 0,
     "dev": 0,
-    "size": "15.1 kB"
+    "size": "2.1 kB"
 }

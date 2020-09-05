@@ -125,6 +125,7 @@ module.exports = class Loader {
         }
         functions.duplicationCheck(AliasesArray, 'alias');
         FileSystem.writeFileSync(`${subfolder ? Root + pathName : pathName}/${hostFolder.name}.json`, JSON.stringify(hostFolder, null, 4));
+        this.BindCategory(client);
         return hostFolder;
     }
 
@@ -371,5 +372,49 @@ module.exports = class Loader {
                 else client.on(name, onEmit.bind(null, client));
             }
         }
+    }
+
+    /** Binds each command loaded from the list to its approriate categories.
+     * @param {object} client The client to pass in.
+     */
+    BindCategory(client)
+    {
+        const groupArray = [];
+        client.CommandList.forEach(commandObject => {
+            // Get all category entries
+           if (Array.isArray(commandObject.group))
+           {
+                commandObject.group.forEach(element => {
+                    if (!groupArray.some(item => item === element)) groupArray.push(element);
+                });
+           }
+
+           let AssignedGroup = commandObject.group;
+           if (!AssignedGroup || AssignedGroup === undefined) AssignedGroup = 'Unassigned';
+           if (!groupArray.some(item => item === AssignedGroup)) groupArray.push(AssignedGroup);
+        });
+
+        // Now, for each command object...
+
+        groupArray.forEach(group => {
+            if (Array.isArray(group)) return;
+            const commandArray = [];
+            client.CommandList.forEach(cmd => {
+                let affectedCommand;
+                if (Array.isArray(cmd.group))
+                {
+                    affectedCommand = cmd.group.some(name => name === group);
+                }
+                else
+                {
+                    if (!cmd.group) cmd.group = 'Unassigned';
+                    affectedCommand = cmd.group === group;
+                }
+                if (affectedCommand) commandArray.push(cmd.name);
+            });
+            client.CommandCategories.set(group, commandArray);
+        });
+
+        console.log(client.CommandCategories);
     }
 };

@@ -4,7 +4,6 @@ const responses = require('./responses.json');
 const chalk = require('chalk');
 const Logger = require('./Logger');
 const logger = new Logger;
-const now = Date.now();
 require('dotenv').config();
 
 module.exports = class Functions  {
