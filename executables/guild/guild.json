@@ -1,0 +1,26 @@
+{
+    "name": "guild",
+    "files": [
+        "allowReplyConfig.js",
+        "falseCMDReply.js",
+        "guild.json",
+        "messageLogSettings.js",
+        "prefix.js",
+        "setNSFW.js"
+    ],
+    "subfolders": [],
+    "parent": true,
+    "parentName": "executables",
+    "exe": [
+        "allowReplyConfig.js",
+        "falseCMDReply.js",
+        "messageLogSettings.js",
+        "prefix.js",
+        "setNSFW.js (dev)",
+        "setNSFW.js"
+    ],
+    "unexec": 2,
+    "empty": 0,
+    "dev": 1,
+    "size": "14.8 kB"
+}
