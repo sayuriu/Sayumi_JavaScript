@@ -3,21 +3,14 @@ module.exports = {
 	aliases: ['r18', 'setnsfw'],
 	description: "Toggles NSFW setting for this channel.",
 	guildOnly: true,
+	stable: true,
 	args: true,
 	reqArgs: true,
+	reqPerms: 'MANAGE_CHANNELS',
+	reqUser: 'Channel Manager',
 	group: ['Server Management'],
 	usage: '[boolean]',
 	onTrigger: (message, args) => {
-		if (!message.member.permissions.has("MANAGE_CHANNELS"))
-		{
-			message.reply("you're lacking permissions.").then(m => m.delete(5000));
-			return;
-		}
-		if (!message.guild.me.permissions.has("MANAGE_CHANNELS"))
-		{
-			message.channel.send("Missing permissions.").then(m => m.delete(5000));
-			return;
-		}
 		if (!args[0])
 		{
 			if (!message.channel.nsfw) {

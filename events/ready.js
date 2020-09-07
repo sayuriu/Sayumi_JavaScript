@@ -8,9 +8,7 @@ const logger = new Logger;
 module.exports = {
 	name: 'ready',
 	stable: true,
-	onEmit: (client) => {
+	onEmit: () => {
 		logger.carrier('status: 200', functions.Greetings());
-
-		// client.channels.cache.find(ch => ch.id === '731918444085379142').send(embeds.update('Database', 'Implemented basic database operations and message handing'));
 	},
 };

@@ -4,11 +4,15 @@ const discord = require('discord.js');
 
 module.exports = {
 	name: 'msglog',
-	description: 'Log deleted messages from users',
+	description: 'Log deleted messages from users.',
 	stable: true,
+	guildOnly: true,
 	args: true,
 	cooldown: 15,
-	usage: '[enable / disable?] or [set <channel name> | setlimit <number>]',
+	reqPerms: 'MANAGE_GUILD',
+	reqUser: 'Guild Manager',
+	group: ['Server Management', 'Utilities'],
+	usage: ['[enable / disable?]', '[set <channel name> | setlimit <number>]'],
 	onTrigger: async (message, args) => {
 		const data = await guildActions.guildGet(message.guild);
 		if (args[0] !== undefined) args[0] = args[0].toLowerCase();
@@ -25,7 +29,6 @@ module.exports = {
 		}
 		else
 		{
-			if (!message.member.permissions.has('MANAGE_GUILD')) return message.channel.send(`**${message.member.displayName}**, you are lacking permission to do so.`);
 			switch (args[0])
 			{
 				case 'enable':

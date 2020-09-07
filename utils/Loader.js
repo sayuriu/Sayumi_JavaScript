@@ -380,8 +380,19 @@ module.exports = class Loader {
     BindCategory(client)
     {
         const groupArray = [];
+        const object = require('./categories.json');
+        const discord = require('discord.js');
+        client.CategoryCompare = new discord.Collection();
+
+        // Set categories for comparing
+        for (const category in object)
+        {
+            const target = object[category];
+            client.CategoryCompare.set(target.name, target.keywords);
+        }
+
+        // Get all category entries
         client.CommandList.forEach(commandObject => {
-            // Get all category entries
            if (Array.isArray(commandObject.group))
            {
                 commandObject.group.forEach(element => {
@@ -394,8 +405,36 @@ module.exports = class Loader {
            if (!groupArray.some(item => item === AssignedGroup)) groupArray.push(AssignedGroup);
         });
 
-        // Now, for each command object...
+        // Sort out similarities
+        Array.prototype.similar = compare => {
+            const array = [];
+            for(const i in this) {
+                if(compare.indexOf(this[i]) > -1) {
+                    array.push(this[i]);
+                }
+            }
+            return array;
+        };
 
+        // const similarities = groupArray.similar(Object.keys(object));
+        const odd = [];
+
+        groupArray.forEach(element => {
+            if (Object.keys(object).some(i => i === element)) return;
+            else odd.push(element);
+        });
+
+        if (odd.length > 0) odd.forEach(element => {
+            if (Array.isArray(element)) return;
+            object[element] = {
+                name: element,
+                descriptions: '',
+                colorCode: '#000000',
+                keywords: [],
+            };
+        });
+
+        // Now, for each command object...
         groupArray.forEach(group => {
             if (Array.isArray(group)) return;
             const commandArray = [];
@@ -412,9 +451,17 @@ module.exports = class Loader {
                 }
                 if (affectedCommand) commandArray.push(cmd.name);
             });
-            client.CommandCategories.set(group, commandArray);
+
+            const groupObject = {
+                name: group,
+                descriptions: object[group].descriptions,
+                colorCode: object[group].colorCode,
+                commands: commandArray,
+                keywords: client.CategoryCompare.get(group),
+            };
+            client.CommandCategories.set(group, groupObject);
         });
 
-        console.log(client.CommandCategories);
+        FileSystem.writeFileSync('./utils/Categories.json', JSON.stringify(object, null, 4));
     }
 };

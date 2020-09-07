@@ -7,7 +7,7 @@ const log = new (require('./Logger'));
 /**
  * Yes.
  */
-module.exports = class Sayuri_Client {
+module.exports = class Sayuri {
 
     /**
      * Initiates a login session to Discord.
@@ -43,7 +43,7 @@ module.exports = class Sayuri_Client {
         loader.ExeLoader('executables', client, '../');
     }
 
-    /** This is for handing some additional runtime errors. */
+    /** This is for handing some additional runtime errors and events. */
     handleProcessErrors()
     {
         process.on("uncaughtException", error => {
@@ -53,6 +53,9 @@ module.exports = class Sayuri_Client {
         process.on("unhandledRejection", error => {
             log.error(`[Unhandled Promise Rejection] ${error.message}\n${error.stack}`);
             console.error(error);
+        });
+        process.on('exit', code => {
+            log.carrier(`status: ${code}`, `Process instance has exited with code ${code}.`);
         });
     }
 };
