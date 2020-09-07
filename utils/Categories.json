@@ -1,7 +1,7 @@
 {
     "Unassigned": {
         "name": "Unassigned",
-        "descriptions": "",
+        "descriptions": "Hmmmm, I wonder if Sayuri done naming those....",
         "colorCode": "#ed6f45",
         "keywords": [
             "unassigned"
@@ -9,7 +9,7 @@
     },
     "Server Management": {
         "name": "Server Management",
-        "descriptions": "",
+        "descriptions": "Used to manage the server in your way.",
         "colorCode": "#a882fa",
         "keywords": [
             "server"
@@ -26,7 +26,7 @@
     },
     "Settings": {
         "name": "Settings",
-        "descriptions": "",
+        "descriptions": "Internal settings for Sayumi.",
         "colorCode": "#d882fa",
         "keywords": [
             "settings"
@@ -34,7 +34,7 @@
     },
     "Utilities": {
         "name": "Utilities",
-        "descriptions": "",
+        "descriptions": "Utilities and fun tools maybe?",
         "colorCode": "#90fa82",
         "keywords": [
             "util",

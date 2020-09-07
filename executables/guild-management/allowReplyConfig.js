@@ -10,7 +10,8 @@ module.exports = {
 	reqUser: 'Channel Manager',
 	args: true,
 	group: 'Settings',
-	usage: '[add | remove | list?] (channel ID or name)',
+	usage: ['[list?]', '<add / remove> <channel ID / name or direct tag>'],
+	notes: 'By default Sayumi will prioritize looking for `bot` channel then `general` if no such channel found.',
 	onTrigger: async (message, args) => {
 		const source = await guildActions.guildGet(message.guild);
 		const AllowedReplyOn = source.AllowedReplyOn;

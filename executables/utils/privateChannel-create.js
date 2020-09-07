@@ -2,61 +2,43 @@ module.exports = {
 	name: 'createprivate',
 	aliases: ['addprivate', 'newpch', 'newprivate'],
 	description: 'Create a new private channel.',
-	reqPerms: 'MANAGE_CHANNELS',
-	reqUser: 'Channel Manager',
-	group: 'Server Management',
+	reqPerms: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
+	stable: false,
+	reqUser: ['Channel Manager', 'Roles Manager'],
+	group: ['Server Management', 'Utilities'],
 	guildOnly: true,
-	issue(message, args) {
-		if (!message.member.permissions.has('MANAGE_CHANNELS', 'MANAGE_ROLES')) {
-			message.channel.send("You're lacking permissions to do that.");
-			return;
-		}
-		if (!message.guild.me.permissions.has('MANAGE_CHANNELS', 'MANAGE_ROLES')) {
-			message.channel.send("Missing permission.");
-			return;
-		}
-		const channel = {
-			name: "",
-			type: "",
-		};
-		channel.name = args[0];
-		if (!args[0]) {
-			channel.name = "private";
-		}
-		if (message.guild.channels.some(c => c.name === channel.name)) {
-			message.reply(`a channel with the name \`${channel.name}\` already exsist.`);
-			return;
-		}
+	args: true,
+	usage: '[<type> <name>]',
+	notes: 'By default is a text channel with a name `private`!',
+	onTrigger: (message, args, client) => {
+		let channelType = args[0];
+		if (!channelType) channelType = 'text';
+		const validTypes = ['text', 'voice'];
+		if (channelType)
+		{
+			channelType = channelType.toLowerCase();
+			if (!validTypes.some(i => i === channelType)) return message.channel.send('The type must be either text or voice.');
 
-		channel.type = args[1];
-		if (args[1] !== undefined
-			&& args[1] !== ""
-			&& args[1] !== "text"
-			&& args[1] !== "voice"
-			&& args[1] !== "cagetory"
-			&& args[1] !== "news"
-			&& args[1] !== "store") {
-			message.reply("that doesn't seems to be a valid channel type.");
-			return;
-		}
-		if (args[1] === "" || args[1] === undefined) {
-			channel.type = "text";
-		}
-		message.guild.createChannel(channel.name, { type: channel.type }, [
-			{
-				id: message.guild.id,
-				deny: ['VIEW_CHANNEL'],
-			},
-			{
-				id: message.author.id,
-				allow: ['VIEW_CHANNEL'],
-			},
-			{
-				id: "530044410050772992",
-				allow: ['VIEW_CHANNEL'],
-			},
-		])
-			.then(() => message.channel.send(`Successfully created a private ${channel.type} channel.`).then(m => m.delete(4000)))
+			let channelName = args[1];
+			if (!args[1] || args[1] === '') channelName = 'private';
+			channelName = channelName.toLowerCase();
+
+			message.guild.createChannel(channelName, { type: channelType }, [
+				{
+					id: message.guild.id,
+					deny: ['VIEW_CHANNEL'],
+				},
+				{
+					id: message.author.id,
+					allow: ['VIEW_CHANNEL'],
+				},
+				{
+					id: client.user.id,
+					allow: ['VIEW_CHANNEL'],
+				},
+			])
+			.then(() => message.channel.send(`Successfully created a private ${channelType} channel.`).then(m => m.delete(4000)))
 			.catch(console.error);
+		}
 	},
 };
