@@ -5,19 +5,21 @@ module.exports = {
 	guildOnly: true,
 	stable: true,
 	args: true,
-	reqArgs: true,
 	reqPerms: 'MANAGE_CHANNELS',
 	reqUser: 'Channel Manager',
 	group: ['Server Management'],
-	usage: '[boolean]',
+	usage: '[boolean?]',
+	notes: 'Actually you can just type this command without the args to toggle the setting.',
 	onTrigger: (message, args) => {
 		if (!args[0])
 		{
 			if (!message.channel.nsfw) {
 				message.channel.setNSFW(true);
+				return message.channel.send('true');
 			}
 			if (message.channel.nsfw) {
 				message.channel.setNSFW(false);
+				return message.channel.send('false');
 			}
 		}
 

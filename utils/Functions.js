@@ -1,7 +1,7 @@
 const FileSystem = require('fs');
-const discord = require('discord.js');
 const responses = require('./responses.json');
 const chalk = require('chalk');
+const discord = require('discord.js');
 const Logger = require('./Logger');
 const logger = new Logger;
 require('dotenv').config();
@@ -25,6 +25,21 @@ module.exports = class Functions  {
         }
 
         return true;
+    }
+
+    ArrayOrString(input)
+    {
+        if (Array.isArray(input))
+        {
+            const array = [];
+            input.forEach(i => {
+                array.push(i.toString());
+            });
+            input = array;
+
+            return { output: input, boolean: true };
+        }
+        else return { output: input, boolean: false };
     }
 
     channelCheck(channel)

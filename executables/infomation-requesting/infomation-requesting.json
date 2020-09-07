@@ -1,0 +1,18 @@
+{
+    "name": "infomation-requesting",
+    "files": [
+        "help.js",
+        "infomation-requesting.json"
+    ],
+    "subfolders": [],
+    "parent": true,
+    "parentName": "executables",
+    "exe": [
+        "help.js (dev)",
+        "help.js"
+    ],
+    "unexec": 2,
+    "empty": 0,
+    "dev": 1,
+    "size": "6.2 kB"
+}

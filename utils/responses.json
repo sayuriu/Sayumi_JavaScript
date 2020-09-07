@@ -65,6 +65,15 @@
 			"Unfortunately, this command cannot be executed inside DMs.",
 			"Sorry, but i can't do this inside a direct-message chat.",
 			"Make sure that you typed this command inside a server."
+		],
+		"command_aliases": [
+			"Other ways to call this command:",
+			"Aliases:"
 		]
-	}
+	},
+	"tips": [
+		"Do you know mentioning me directly also works as the prefix?",
+		"Is this even a tip?",
+		""
+	]
 }

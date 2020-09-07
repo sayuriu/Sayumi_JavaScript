@@ -1,7 +1,9 @@
 {
     "name": "utils",
     "files": [
-        "help.js",
+        "privateChannel-clear.js",
+        "privateChannel-create.js",
+        "privateChannel-setCurrent.js",
         "uptime.js",
         "utils.json"
     ],
@@ -9,12 +11,16 @@
     "parent": true,
     "parentName": "executables",
     "exe": [
-        "help.js (dev)",
-        "help.js",
+        "privateChannel-clear.js (dev)",
+        "privateChannel-clear.js",
+        "privateChannel-create.js (dev)",
+        "privateChannel-create.js",
+        "privateChannel-setCurrent.js (dev)",
+        "privateChannel-setCurrent.js",
         "uptime.js"
     ],
-    "unexec": 2,
+    "unexec": 4,
     "empty": 0,
-    "dev": 1,
-    "size": "7.1 kB"
+    "dev": 3,
+    "size": "4.8 kB"
 }
