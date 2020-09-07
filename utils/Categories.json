@@ -1,0 +1,45 @@
+{
+    "Unassigned": {
+        "name": "Unassigned",
+        "descriptions": "",
+        "colorCode": "#ed6f45",
+        "keywords": [
+            "unassigned"
+        ]
+    },
+    "Server Management": {
+        "name": "Server Management",
+        "descriptions": "",
+        "colorCode": "#a882fa",
+        "keywords": [
+            "server"
+        ]
+    },
+    "Information": {
+        "name": "Information",
+        "descriptions": "All about info requesting!",
+        "colorCode": "#82c8fa",
+        "keywords": [
+            "inforeq",
+            "information"
+        ]
+    },
+    "Settings": {
+        "name": "Settings",
+        "descriptions": "",
+        "colorCode": "#d882fa",
+        "keywords": [
+            "settings"
+        ]
+    },
+    "Utilities": {
+        "name": "Utilities",
+        "descriptions": "",
+        "colorCode": "#90fa82",
+        "keywords": [
+            "util",
+            "utils",
+            "utilities"
+        ]
+    }
+}

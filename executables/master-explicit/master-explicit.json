@@ -1,0 +1,17 @@
+{
+    "name": "master-explicit",
+    "files": [
+        "logClear.js",
+        "master-explicit.json"
+    ],
+    "subfolders": [],
+    "parent": true,
+    "parentName": "executables",
+    "exe": [
+        "logClear.js"
+    ],
+    "unexec": 1,
+    "empty": 0,
+    "dev": 0,
+    "size": "1.5 kB"
+}

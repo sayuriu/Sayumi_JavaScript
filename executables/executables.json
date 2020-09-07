@@ -5,11 +5,11 @@
     ],
     "folders": [
         {
-            "name": "guild",
+            "name": "guild-management",
             "files": [
                 "allowReplyConfig.js",
                 "falseCMDReply.js",
-                "guild.json",
+                "guild-management.json",
                 "messageLogSettings.js",
                 "prefix.js",
                 "setNSFW.js"
@@ -22,25 +22,29 @@
                 "falseCMDReply.js",
                 "messageLogSettings.js",
                 "prefix.js",
-                "setNSFW.js (dev)",
                 "setNSFW.js"
             ],
-            "unexec": 2,
+            "unexec": 1,
             "empty": 0,
-            "dev": 1,
-            "size": "14.8 kB"
+            "dev": 0,
+            "size": "14.1 kB"
         },
         {
             "name": "master-explicit",
-            "files": [],
+            "files": [
+                "logClear.js",
+                "master-explicit.json"
+            ],
             "subfolders": [],
             "parent": true,
             "parentName": "executables",
-            "exe": [],
-            "unexec": 0,
+            "exe": [
+                "logClear.js"
+            ],
+            "unexec": 1,
             "empty": 0,
             "dev": 0,
-            "size": "n/a"
+            "size": "1.5 kB"
         },
         {
             "name": "utils",
@@ -53,12 +57,14 @@
             "parent": true,
             "parentName": "executables",
             "exe": [
+                "help.js (dev)",
+                "help.js",
                 "uptime.js"
             ],
             "unexec": 2,
             "empty": 0,
-            "dev": 0,
-            "size": "2.1 kB"
+            "dev": 1,
+            "size": "7.1 kB"
         }
     ],
     "parent": false,
@@ -66,5 +72,5 @@
     "unexec": 1,
     "empty": 0,
     "dev": 0,
-    "size": "2.1 kB"
+    "size": "7.1 kB"
 }

@@ -5,6 +5,7 @@ const Logger = require('../../utils/Logger');
 const Embeds = new (require('../../utils/embeds'));
 const responses = require('../../utils/responses.json');
 const DefaultSettings = require('../../utils/DefaultGlobalSettings.json');
+const { reqPerms } = require('../../executables/guild-management/falseCMDReply');
 const Guild = new guildActions;
 const functions = new Functions;
 const log = new Logger;
@@ -65,7 +66,7 @@ module.exports = {
 					const res = functions.Randomized(NotACmd);
 					if (message.channel.type === 'dm' || source.FalseCMDReply.some(chID => chID === message.channel.id))
 					{
-						functions.Cooldown(client.Cooldowns, typo, 3, message.author.id, message);
+						// functions.Cooldown(client.Cooldowns, typo, 3, message.author.id, message);
 						return message.channel.send(res);
 					}
 					else return;
@@ -96,11 +97,11 @@ module.exports = {
 						{
 							const expirationTime = timestamps.get(message.guild.id) + cooldownAmount;
 
-							if (now < expirationTime)
+							if (now < expirationTime && message.author.id !== master)
 							{
 								const timeLeft = (expirationTime - now) / 1000;
 								return message.reply(
-									`please wait ${timeLeft.toFixed(1)} more second${ timeLeft > 1 ? 's' : '' } before reusing the \`${RequestedCommand.name}\` command.`,
+									`please wait ${timeLeft.toFixed(1)} second${ Math.floor(timeLeft) > 1 ? 's' : '' } before reusing the \`${RequestedCommand.name}\` command.`,
 								);
 							}
 						}
@@ -115,11 +116,11 @@ module.exports = {
 						{
 							const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
 
-							if (now < expirationTime && message.channel.type !== 'dm')
+							if (now < expirationTime && message.channel.type !== 'dm' && message.author.id !== master)
 							{
 								const timeLeft = (expirationTime - now) / 1000;
 								return message.reply(
-									`please wait ${timeLeft.toFixed(1)} more second${ timeLeft > 1 ? 's' : '' } before reusing the \`${RequestedCommand.name}\` command.`,
+									`please wait ${timeLeft.toFixed(1)} second${ Math.floor(timeLeft) > 1 ? 's' : '' } before reusing the \`${RequestedCommand.name}\` command.`,
 								);
 							}
 						}
@@ -156,6 +157,40 @@ module.exports = {
 					{
 						if (message.deletable) message.delete();
 						return message.channel.send('Please execute this command from an appropriate channel.').then(m => m.delete(3000));
+					}
+
+					// Perms checking
+					if (RequestedCommand.reqPerms && message.guild)
+					{
+						let uConfirm = true;
+						let meConfirm = true;
+						let array = false;
+						const required = [];
+						if (Array.isArray(RequestedCommand.reqPerms))
+						{
+							RequestedCommand.reqPerms.forEach(permission => {
+								if (message.member.permissions.has(permission)) return;
+								else uConfirm = false;
+							});
+
+							RequestedCommand.reqPerms.forEach(permission => {
+								if (message.guild.me.permissions.has(permission)) return;
+								else
+								{
+									required.push(permission);
+									array = true;
+									meConfirm = false;
+								}
+							});
+						}
+						else
+						{
+							if (!message.member.permissions.has(RequestedCommand.reqPerms)) uConfirm = false;
+							if (!message.guild.me.permissions.has(RequestedCommand.reqPerms)) meConfirm = false;
+						}
+
+						if (uConfirm === false) return message.channel.send(`**${message.member.displayName}**, you are lacking permission to do so.`);
+						if (meConfirm === false) return message.channel.send(`Lacking permissions: \`${array ? `${required.length > 1 ? required.join(', ') : required[0]}` : RequestedCommand.reqPerms}\``);
 					}
 
 					// Try executing the command

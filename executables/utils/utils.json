@@ -9,10 +9,12 @@
     "parent": true,
     "parentName": "executables",
     "exe": [
+        "help.js (dev)",
+        "help.js",
         "uptime.js"
     ],
     "unexec": 2,
     "empty": 0,
-    "dev": 0,
-    "size": "2.1 kB"
+    "dev": 1,
+    "size": "7.1 kB"
 }

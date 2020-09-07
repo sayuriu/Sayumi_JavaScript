@@ -20,9 +20,9 @@ const database = new Database;
 // #endregion
 
 // #region Actions
-// database.init(false, databaseUsername, databasePassword);
+database.init(false, databaseUsername, databasePassword);
 client.CommandInit(Sayuri);
-// client.eventListener(Sayuri);
-// client.login(Sayuri, TOKEN);
-// client.handleProcessErrors();
+client.eventListener(Sayuri);
+client.login(Sayuri, TOKEN);
+client.handleProcessErrors();
 // #endregion

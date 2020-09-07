@@ -1,4 +1,3 @@
-// For reporting deleted messages
 const guildActions = new (require('../../utils/Database/Methods/guildActions'));
 const embeds = new (require('../../utils/embeds'));
 

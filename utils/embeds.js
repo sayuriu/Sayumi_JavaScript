@@ -45,9 +45,9 @@ module.exports = class EmbedConstructor {
         if (errorMsg === null) errorMsg = 'null';
         const errorReport = new discord.MessageEmbed()
                                         .setTitle('An error has occured.')
-                                        .setDescription(`${res.message}`)
+                                        .setDescription(`${res.message}\nExecuted by ${message.author.tag}`)
                                         .setColor('ff0000')
-                                        .addField(`*Executed by ${message.author.tag}*\nError: \`${errorMsg}\``)
+                                        .addField('Received error:', `\`${errorMsg}\``)
                                         .setFooter('All devs, please check the error and fix it ASAP!');
         return errorReport;
     }
@@ -111,7 +111,7 @@ module.exports = class EmbedConstructor {
     }
 
     // Utilities
-    messageLog(message, object)
+    messageLog(message, object, oldMsg, newMsg)
     {
         if (message === null) message = {
             author: {
@@ -125,6 +125,20 @@ module.exports = class EmbedConstructor {
             channelID: null,
             logLimit: null,
         };
+        if (oldMsg === null || oldMsg === undefined) oldMsg = {
+            author: {
+                tag: null,
+                id: null,
+            },
+            content: 'n/a',
+        };
+        if (newMsg === null || newMsg === undefined) newMsg = {
+            author: {
+                tag: null,
+                id: null,
+            },
+            content: 'n/a',
+        };
         const info = new discord.MessageEmbed()
                             .setColor('#ded181')
                             .setDescription(`Status: ${object.status ? `Enabled\n Inform channel: ${object.channelID === null || object.channelID === '' ? 'None' : `<#${object.channelID}>`}` : 'Disabled'} \nLog limit per user: \`${object.logLimit}\` (This can't be disabled)`)
@@ -132,16 +146,15 @@ module.exports = class EmbedConstructor {
         const deleted = new discord.MessageEmbed()
                                 .setColor('#fa1933')
                                 .setTitle(`Deleted message (${message.author.tag})`)
-                                .setDescription(`\`"${message.content}"\``)
+                                .setDescription(`\`${message.content}\``)
                                 .setFooter(`Message timestamp: ${message.createdAt}`);
         const updated = new discord.MessageEmbed()
+                                .setTitle('Edited message')
+                                .setDescription(`Author: ${oldMsg.author.tag}\`\nID: ${oldMsg.author.id}\``)
                                 .setColor('#f7700f')
-                                .setTitle(`Edited message (${message.author.username})`)
-                                .addFields(
-                                    { name: 'Original', value: `${object.oldMessage}` },
-                                    { name: 'Edited', value: `${object.newMessage}` },
-                                )
-                                .setFooter(`Message timestamp: ${message.editedAt}`);
+                                .addField('Orginal', `\`${oldMsg.content}\``)
+                                .addField('Edited:', `\`${newMsg.content}\``)
+                                .setTimestamp();
         const res = {
             info: info,
             deleted: deleted,
