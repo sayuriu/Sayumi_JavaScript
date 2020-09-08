@@ -1,0 +1,88 @@
+<ref *2> Message {
+  deleted: false,
+  id: '752481193206743160',
+  type: 'DEFAULT',
+  content: '',
+  author: ClientUser {
+    id: '730811680086425720',
+    bot: true,
+    username: 'Sayumi',
+    discriminator: '9497',
+    avatar: '18dd494040a686ca6763a00bf27407c4',
+    lastMessageID: '752481193206743160',
+    lastMessageChannelID: '750615220166066216',
+    verified: true,
+    mfaEnabled: true,
+    _typing: Map(0) {},
+    flags: UserFlags { bitfield: 0 }
+  },
+  pinned: false,
+  tts: false,
+  nonce: undefined,
+  system: false,
+  embeds: [
+    MessageEmbed {
+      type: 'rich',
+      title: 'Deleted message (Sayuri#1222)',
+      description: '`"urgh"`',
+      url: undefined,
+      color: 16390451,
+      timestamp: null,
+      fields: [],
+      thumbnail: null,
+      image: null,
+      video: null,
+      author: null,
+      provider: null,
+      footer: [Object],
+      files: []
+    }
+  ],
+  attachments: Collection(0) [Map] {},
+  createdTimestamp: 1599475896885,
+  editedTimestamp: null,
+  reactions: ReactionManager {
+    cacheType: [class Collection extends Collection],
+    cache: Collection(0) [Map] {},
+    message: [Circular *2]
+  },
+  mentions: MessageMentions {
+    everyone: false,
+    users: Collection(0) [Map] {},
+    roles: Collection(0) [Map] {},
+    _members: null,
+    _channels: null,
+    crosspostedChannels: Collection(0) [Map] {}
+  },
+  webhookID: null,
+  application: null,
+  activity: null,
+  _edits: <ref *3> [
+    Message {
+      channel: [TextChannel],
+      deleted: false,
+      id: '752481193206743160',
+      type: 'DEFAULT',
+      content: '',
+      author: [ClientUser],
+      pinned: false,
+      tts: false,
+      nonce: undefined,
+      system: false,
+      embeds: [Array],
+      attachments: Collection(0) [Map] {},
+      createdTimestamp: 1599475896885,
+      editedTimestamp: null,
+      reactions: [ReactionManager],
+      mentions: [MessageMentions],
+      webhookID: null,
+      application: null,
+      activity: null,
+      _edits: [Circular *3],
+      flags: [MessageFlags],
+      reference: null
+    }
+  ],
+  flags: MessageFlags { bitfield: 0 },
+  reference: null
+}

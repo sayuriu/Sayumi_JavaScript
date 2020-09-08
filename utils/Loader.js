@@ -266,6 +266,7 @@ module.exports = class Loader {
         if (file.endsWith('.js'))
         {
             let availablity = true;
+            let dev = false;
             let CommandFile;
             if (Root) CommandFile = require(Root + path);
             if (!Root || Root === null || Root === undefined) CommandFile = require(path);
@@ -295,6 +296,7 @@ module.exports = class Loader {
                 {
                     object.exe.push(`${file} (dev)`);
                     object.dev++;
+                    dev = true;
                 }
             }
             if (FileSystem.statSync(path)['size'] === 0)
@@ -305,7 +307,7 @@ module.exports = class Loader {
             }
             if (availablity ===  true)
             {
-                object.exe.push(`${file}`);
+                if (dev === false) object.exe.push(`${file}`);
                 client.CommandList.set(name, CommandFile);
                 if (CommandFile.aliases)
                 {

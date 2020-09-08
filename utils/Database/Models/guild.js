@@ -40,6 +40,14 @@ const Guilds = new Database.Schema({
         type: Map,
         default: new Map(),
     },
+    AllowPartialNSFW: {
+        type: Boolean,
+        default: false,
+    },
+    AFKUsers: {
+        type: Boolean,
+        default: false,
+    }
 }, {
     collection: 'GuildList',
 });

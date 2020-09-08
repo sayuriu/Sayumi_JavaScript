@@ -1,26 +1,27 @@
 {
     "name": "utils",
     "files": [
+        "afk.js",
         "privateChannel-clear.js",
         "privateChannel-create.js",
         "privateChannel-setCurrent.js",
         "uptime.js",
+        "urban.js",
         "utils.json"
     ],
     "subfolders": [],
     "parent": true,
     "parentName": "executables",
     "exe": [
-        "privateChannel-clear.js (dev)",
+        "afk.js",
         "privateChannel-clear.js",
         "privateChannel-create.js (dev)",
-        "privateChannel-create.js",
         "privateChannel-setCurrent.js (dev)",
-        "privateChannel-setCurrent.js",
-        "uptime.js"
+        "uptime.js",
+        "urban.js (dev)"
     ],
     "unexec": 4,
     "empty": 0,
     "dev": 3,
-    "size": "4.8 kB"
+    "size": "7.8 kB"
 }

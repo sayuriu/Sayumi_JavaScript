@@ -107,7 +107,7 @@ module.exports = {
 				{
 					const usageArray = [];
 					target.usage.forEach(i => {
-						usageArray.push(`\`${prefix + i}\``);
+						usageArray.push(`\`${prefix}${name} ${i}\``);
 					});
 					if (usageArray.length === 1) usage = usageArray[0];
 					else
@@ -141,7 +141,7 @@ module.exports = {
 
 				embed.addField('Usage:', `${usageIsArray ? usage.join('\n') : `\`${prefix + usage}\``}` + `\n${noteIsArray ? `**Extra notes:**\n*${note.join('\n')}*` : `**Extra notes:** *${note}*`}`)
 							.addField('Command availability:', `${master_explicit ? 'Master dedicated ~' : `${guildOnly ? `${user.length > 0 ? `[Guild only] ${userIsArray ? user.join(', ') : user}` : 'Guild only.'}` : 'Everywhere, expect voice.'}`}`, true)
-							.addField('Cooldown', `${cooldown ? `${cooldown} second${cooldown > 1 ? 's' : ''}` : '3 seconds'}${guildCooldown ? ', guild' : ''}`, true)
+							.addField('Cooldown', `${cooldown ? `${cooldown > 0 ? `${cooldown} second${cooldown > 1 ? 's' : ''}` : 'None'}` : '3 seconds'}${guildCooldown ? ', guild' : ''}`, true)
 							.setFooter(`[] means optional (or none), <> means required. \nCurrent prefix: ${prefix}`);
 
 				return message.channel.send(embed);
