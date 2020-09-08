@@ -5,12 +5,11 @@ const Logger = require('../../utils/Logger');
 const Embeds = new (require('../../utils/embeds'));
 const responses = require('../../utils/responses.json');
 const DefaultSettings = require('../../utils/DefaultGlobalSettings.json');
-const { reqPerms } = require('../../executables/guild-management/falseCMDReply');
 const Guild = new guildActions;
 const functions = new Functions;
-const log = new Logger;
+const logger = new Logger;
 require('dotenv').config();
-const { maid, master } = process.env;
+const { master } = process.env;
 
 module.exports = {
 	name: 'message',
@@ -19,14 +18,52 @@ module.exports = {
 		// Get the info first.
 		let prefix = DefaultSettings.prefix;
 		let source;
+		const maid = client.user.id;
 		const mention = `<@!${maid}>`;
 
 		// Gets the prefix if the message is sent in a guild.
 		if (message.guild)
 		{
 			source = await Guild.guildGet(message.guild);
-			if (!source) source = await Guild.guildGet(message.guild);
 			prefix = source.prefix;
+		}
+
+		// AFK section
+		if (message.guild && source.AFKUsers)
+		{
+			const userArray = [];
+
+			// Remove AFK for users
+			const IfAFK = client.AFKUsers.get(message.author.id);
+			if (IfAFK)
+			{
+				if (message.guild.me.permissions.has('MANAGE_NICKNAMES')) message.member.setNickname(IfAFK.name).catch(err => {message.channel.send('...').then(m => m.delete(2500)); });
+				client.AFKUsers.delete(message.author.id);
+				if (message.guild && source.AllowedReplyOn.some(channelID => channelID === IfAFK.lastChannel)) client.channels.cache.find(channel => channel.id === IfAFK.lastChannel).send(`Welcome back <@!${IfAFK.id}>, I have removed your AFK!`).then(m => m.delete(4000));
+				else;
+			}
+
+			// AFK on ping
+			if (message.mentions.users.size > 0)
+			{
+				message.mentions.users.forEach(user => {
+					const userMention = client.AFKUsers.get(user.id);
+					if (userMention) userArray.push(userMention);
+				});
+				if (userArray.length === 1)
+					{
+						const target = userArray[0];
+						const { hour, minute, second } = functions.TimestampToTime(Date.now() - target.AFKTimeStamp);
+						let timeString = '';
+
+						if (hour) timeString = `${hour} hour${hour > 1 ? 's' : ''}`;
+						if (minute > 0 && hour === 0) timeString = `${minute} minute${minute > 1 ? 's' : ''}`;
+						if (second > 0 && minute === 0 && hour === 0) timeString = 'Just now';
+
+						return message.channel.send(`**${target.name}** is currently AFK${target.reason ? `: *${target.reason}*` : '.'} **\`[${timeString}]\`**`);
+					}
+					else if (userArray.length > 1) return message.channel.send(`Two or more users you are mentioning are currently AFK.`);
+			}
 		}
 
 		// She starts listening if the message starts with a prefix or a direct mention.
@@ -44,7 +81,7 @@ module.exports = {
 			if (message.guild && !source.AllowedReplyOn.some(channelID => channelID === message.channel.id)) return;
 			else
 			{
-				message.content = functions.escapeRegExp(message.content);
+				message.content = functions.EscapeRegExp(message.content);
 				const args = message.content.slice(mentionID ? prefix.length + 1 : prefix.length).split(/ +/);
 				const CommandName = args.shift().toLowerCase();
 
@@ -153,7 +190,19 @@ module.exports = {
 					}
 
 					// NSFW commands
-					if (RequestedCommand.nsfw && message.channel.nsfw === false)
+					if (RequestedCommand.nsfw === 'partial' && message.channel.type !== 'dm')
+					{
+						if (source.AllowPartialNSFW === false) return message.channel.send('Please execute this command from an appropriate channel.').then(m => m.delete(3000));
+						const boolean = client.Channels.get(message.channel.id);
+						if (!boolean)
+						{
+							message.channel.send('This command is partial NSFW. You have been warned.');
+							client.Channels.set(message.channel.id, true);
+							setTimeout(() => client.Channels.delete(message.channel.id), 180000);
+						}
+						else;
+					}
+					if (RequestedCommand.nsfw === true && message.channel.type !== 'dm' && message.channel.nsfw === false)
 					{
 						if (message.deletable) message.delete();
 						return message.channel.send('Please execute this command from an appropriate channel.').then(m => m.delete(3000));
@@ -170,17 +219,15 @@ module.exports = {
 						{
 							RequestedCommand.reqPerms.forEach(permission => {
 								if (message.member.permissions.has(permission)) return;
-								else uConfirm = false;
+								uConfirm = false;
 							});
 
 							RequestedCommand.reqPerms.forEach(permission => {
 								if (message.guild.me.permissions.has(permission)) return;
-								else
-								{
-									required.push(permission);
-									array = true;
-									meConfirm = false;
-								}
+
+								required.push(permission);
+								array = true;
+								meConfirm = false;
 							});
 						}
 						else
@@ -199,7 +246,7 @@ module.exports = {
 						else RequestedCommand.onTrigger(message, client);
 					// Catch errors
 					} catch (error) {
-						log.error(`[Command Execution] An error has occured while executing "${RequestedCommand.name}": \n${error.message}`);
+						logger.error(`[Command Execution] An error has occured while executing "${RequestedCommand.name}": \n${error.message}`);
 						client.channels.cache.find(ch => ch.id === '630334027081056287').send(Embeds.error(message, error.message));
 						if (message.channel.type === 'text') return message.channel.send(functions.Randomized(responses.errors.command_errors));
 						else return message.reply(functions.Randomized(responses.errors.command_errors));

@@ -16,6 +16,8 @@ module.exports =  {
 			client.channels.cache.find(channel => channel.id === data.MessageLogChannel).send(embed.deleted);
 		}
 
+		if (message.embeds) message.content = message.embeds;
+
 		const History = data.MessageLog;
 		const LogHoldLimit = data.LogHoldLimit;
 

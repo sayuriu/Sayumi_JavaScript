@@ -8,8 +8,7 @@
     "parent": true,
     "parentName": "executables",
     "exe": [
-        "help.js (dev)",
-        "help.js"
+        "help.js (dev)"
     ],
     "unexec": 2,
     "empty": 0,

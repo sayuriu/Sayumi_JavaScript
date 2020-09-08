@@ -1,3 +1,5 @@
+'use strict';
+
 const FileSystem = require('fs');
 const responses = require('./responses.json');
 const chalk = require('chalk');
@@ -294,7 +296,21 @@ module.exports = class Functions  {
         return res;
     }
 
-    escapeRegExp(string)
+    TimestampToTime(timestamp)
+    {
+        if (typeof timestamp !== 'number') throw new TypeError('The input must be a number.');
+        if (timestamp > Date.now()) throw new RangeError('The timestamp must be smaller than present.');
+
+        const hours = Math.floor(timestamp / 3600000) % 24;
+        const minutes = Math.floor(timestamp / 60000) % 60;
+        const seconds = Math.floor(timestamp / 1000) % 60;
+
+        // timeEstimate?
+        // if (timeEstimate === true) this.TimeEstimate(hours, minutes, seconds);
+        return { hour: hours, minute: minutes, second: seconds };
+    }
+
+    EscapeRegExp(string)
     {
         return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&');
     }

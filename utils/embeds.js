@@ -139,6 +139,7 @@ module.exports = class EmbedConstructor {
             },
             content: 'n/a',
         };
+        if (message.embeds) message.content = 'type EMBED';
         const info = new discord.MessageEmbed()
                             .setColor('#ded181')
                             .setDescription(`Status: ${object.status ? `Enabled\n Inform channel: ${object.channelID === null || object.channelID === '' ? 'None' : `<#${object.channelID}>`}` : 'Disabled'} \nLog limit per user: \`${object.logLimit}\` (This can't be disabled)`)

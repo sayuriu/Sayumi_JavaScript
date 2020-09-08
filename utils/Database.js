@@ -13,7 +13,7 @@ module.exports = class Database {
 	 * @param {string} password The password associated with the username.
 	 * See {@link https://www.mongodb.com/ [MongoDB]}
 	 */
-	init(local, username, password)
+	Init(local, username, password)
 	{
 		if (local)
 		{
@@ -22,7 +22,7 @@ module.exports = class Database {
 				useUnifiedTopology: true,
 			});
 			const Connection = db.connection;
-			this.handleConnection(Connection, false);
+			this.HandleConnection(Connection, false);
 		}
 		else
 		{
@@ -32,7 +32,7 @@ module.exports = class Database {
 				family: 0,
 			});
 			const Connection = db.connection;
-			this.handleConnection(Connection, true, username);
+			this.HandleConnection(Connection, true, username);
 		}
 	}
 
@@ -41,7 +41,7 @@ module.exports = class Database {
 	 * @param {boolean} online If the connection is to local host, then use `false`.
 	 * @param {string} username The username for the remote database.
 	 */
-	handleConnection(connection, online, username)
+	HandleConnection(connection, online, username)
 	{
 		if (online)
 		{
@@ -51,7 +51,7 @@ module.exports = class Database {
 			connection.on('error', error => {
 				log.error(`[Remote Database > mongoDB] A connection error has occured. \n${error.message}`);
 				log.carrier('status: 500', 'This will use localhost instead.');
-				this.init(true);
+				this.Init(true);
 			});
 		}
 		else

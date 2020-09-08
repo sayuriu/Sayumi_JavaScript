@@ -14,7 +14,7 @@ module.exports = class Sayuri {
      * @param {object} client The client to pass in.
      * @param {string} token The token of the client. Refer to your app's page for more details.
      */
-    login(client, token)  {
+    Login(client, token)  {
         if (!client) throw new ReferenceError('[Sayuri > Client] Did you pass the client yet?');
         if (typeof client !== 'object') throw new TypeError('[Sayuri > Client] The client is not an object.');
         if (typeof token !== 'string') throw new TypeError('[Sayuri > Login] The token provided is not a string.');
@@ -25,7 +25,7 @@ module.exports = class Sayuri {
      * Initiates the event listener.
      * @param {object} client The client to pass in.
      */
-    eventListener(client)
+    EventListener(client)
     {
         if (!client) throw new ReferenceError('[Sayuri > Client] Did you pass the client yet?');
         if (typeof client !== 'object') throw new TypeError('[Sayuri > Client] The client is not an object.');
@@ -44,7 +44,7 @@ module.exports = class Sayuri {
     }
 
     /** This is for handing some additional runtime errors and events. */
-    handleProcessErrors()
+    HandleProcessErrors()
     {
         process.on("uncaughtException", error => {
             log.error(`[Uncaught Exception] ${error.message}\n${error.stack}`);

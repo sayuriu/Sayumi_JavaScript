@@ -5,7 +5,7 @@ module.exports = {
 	reqPerms: 'MANAGE_ROLES',
 	reqUser: 'Roles Manager',
 	group: ['Server Management', 'Utilities'],
-	stable: false,
+	stable: true,
 	guildOnly: true,
 	onTrigger: (message) => {
 		message.channel.permissionOverwrites.get(message.guild.id).delete()
