@@ -9,7 +9,7 @@ module.exports = {
 	reqPerms: 'MANAGE_GUILD',
 	reqUser: 'Guild Manager',
 	group: 'Settings',
-	usage: '[newPrefix]',
+	usage: '[newPrefix?]',
 	onTrigger: async (message, args) => {
 		const source = await guildActions.guildGet(message.guild);
 		const prefix = source.prefix;

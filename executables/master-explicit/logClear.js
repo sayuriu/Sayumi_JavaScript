@@ -5,7 +5,7 @@ module.exports = {
 	cooldown: 0,
 	master_explicit: true,
 	args: true,
-	usage: '[type?] , with \'type\' = [\'error\' | \'log\']',
+	usage: '[type?] , with type = [\'error\' | \'log\']',
 	group: 'Utilities',
 	onTrigger: (message, args) => {
 		const FileSystem = require('fs');
@@ -17,7 +17,7 @@ module.exports = {
 				FileSystem.writeFile('./logs/errors.log', '', (err) => {
 					if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
 				});
-				message.channel.send('Log cleared!');
+				message.channel.send('Log cleared!').then(m => m.delete(3000));
 				break;
 			}
 			case 'log':
@@ -25,7 +25,7 @@ module.exports = {
 				FileSystem.writeFile('./logs/log.log', '', (err) => {
 					if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
 				});
-				message.channel.send('Log cleared!');
+				message.channel.send('Log cleared!').then(m => m.delete(3000));
 				break;
 			}
 			default:
@@ -36,7 +36,7 @@ module.exports = {
 				FileSystem.writeFile('./logs/errors.log', '', (err) => {
 					if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
 				});
-				message.channel.send('Log cleared!');
+				message.channel.send('Log cleared!').then(m => m.delete(3000));
 				break;
 			}
 		}

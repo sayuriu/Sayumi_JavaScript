@@ -64,6 +64,12 @@ module.exports = class Functions  {
         }
     }
 
+    clean(string)
+    {
+        if (typeof (string) === "string") return string.replace(/`/g, "`" + String.fromCharCode(8203)).replace(/@/g, "@" + String.fromCharCode(8203));
+        else return string;
+    }
+
     /** Returns a file / folder's size.
      * @param {number} bytes The size to pass in.
      */
@@ -420,6 +426,35 @@ module.exports = class Functions  {
             }
             return this.Randomized(output);
         }
+    }
+
+    PermissionsCheck(TargetCommand, message)
+    {
+        let uConfirm = true;
+        let meConfirm = true;
+        let array = false;
+        const required = [];
+        if (Array.isArray(TargetCommand.reqPerms))
+        {
+            TargetCommand.reqPerms.forEach(permission => {
+                if (message.member.permissions.has(permission)) return;
+                uConfirm = false;
+            });
+
+            TargetCommand.reqPerms.forEach(permission => {
+                if (message.guild.me.permissions.has(permission)) return;
+
+                required.push(permission);
+                array = true;
+                meConfirm = false;
+            });
+        }
+        else
+        {
+            if (!message.member.permissions.has(TargetCommand.reqPerms)) uConfirm = false;
+            if (!message.guild.me.permissions.has(TargetCommand.reqPerms)) meConfirm = false;
+        }
+        return { clientPass: meConfirm, userPass: uConfirm, required: required, array: array };
     }
 
     /** A method that returns an element of the array by random.

@@ -7,27 +7,19 @@
         {
             "name": "guild-management",
             "files": [
-                "allowReplyConfig.js",
-                "falseCMDReply.js",
                 "guild-management.json",
-                "messageLogSettings.js",
-                "prefix.js",
                 "setNSFW.js"
             ],
             "subfolders": [],
             "parent": true,
             "parentName": "executables",
             "exe": [
-                "allowReplyConfig.js",
-                "falseCMDReply.js",
-                "messageLogSettings.js",
-                "prefix.js",
                 "setNSFW.js"
             ],
-            "unexec": 1,
+            "unexec": 0,
             "empty": 0,
             "dev": 0,
-            "size": "14.4 kB"
+            "size": "1.5 kB"
         },
         {
             "name": "infomation-requesting",
@@ -41,14 +33,15 @@
             "exe": [
                 "help.js (dev)"
             ],
-            "unexec": 2,
+            "unexec": 1,
             "empty": 0,
             "dev": 1,
-            "size": "6.2 kB"
+            "size": "7.1 kB"
         },
         {
             "name": "master-explicit",
             "files": [
+                "eval.js",
                 "logClear.js",
                 "master-explicit.json"
             ],
@@ -58,10 +51,35 @@
             "exe": [
                 "logClear.js"
             ],
-            "unexec": 1,
+            "unexec": 2,
             "empty": 0,
             "dev": 0,
-            "size": "1.5 kB"
+            "size": "1.8 kB"
+        },
+        {
+            "name": "sayumi-settings",
+            "files": [
+                "allowReplyConfig.js",
+                "falseCMDReply.js",
+                "messageLogSettings.js",
+                "prefix.js",
+                "sayumi-settings.json",
+                "settings.js"
+            ],
+            "subfolders": [],
+            "parent": true,
+            "parentName": "executables",
+            "exe": [
+                "allowReplyConfig.js",
+                "falseCMDReply.js",
+                "messageLogSettings.js",
+                "prefix.js",
+                "settings.js (dev)"
+            ],
+            "unexec": 1,
+            "empty": 0,
+            "dev": 1,
+            "size": "16.2 kB"
         },
         {
             "name": "utils",
@@ -85,16 +103,16 @@
                 "uptime.js",
                 "urban.js (dev)"
             ],
-            "unexec": 4,
+            "unexec": 3,
             "empty": 0,
             "dev": 3,
-            "size": "7.8 kB"
+            "size": "7.9 kB"
         }
     ],
     "parent": false,
     "exe": [],
-    "unexec": 1,
+    "unexec": 0,
     "empty": 0,
     "dev": 0,
-    "size": "7.8 kB"
+    "size": "7.9 kB"
 }

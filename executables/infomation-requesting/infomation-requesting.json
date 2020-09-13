@@ -10,8 +10,8 @@
     "exe": [
         "help.js (dev)"
     ],
-    "unexec": 2,
+    "unexec": 1,
     "empty": 0,
     "dev": 1,
-    "size": "6.2 kB"
+    "size": "7.1 kB"
 }

@@ -19,7 +19,7 @@ module.exports = {
 		let prefix = DefaultSettings.prefix;
 		let source;
 		const maid = client.user.id;
-		const mention = `<@!${maid}>`;
+		const mention_self = `<@!${maid}>`;
 
 		// Gets the prefix if the message is sent in a guild.
 		if (message.guild)
@@ -51,29 +51,29 @@ module.exports = {
 					if (userMention) userArray.push(userMention);
 				});
 				if (userArray.length === 1)
-					{
-						const target = userArray[0];
-						const { hour, minute, second } = functions.TimestampToTime(Date.now() - target.AFKTimeStamp);
-						let timeString = '';
+				{
+					const target = userArray[0];
+					const { hour, minute, second } = functions.TimestampToTime(Date.now() - target.AFKTimeStamp);
+					let timeString = '';
 
-						if (hour) timeString = `${hour} hour${hour > 1 ? 's' : ''}`;
-						if (minute > 0 && hour === 0) timeString = `${minute} minute${minute > 1 ? 's' : ''}`;
-						if (second > 0 && minute === 0 && hour === 0) timeString = 'Just now';
+					if (hour) timeString = `${hour} hour${hour > 1 ? 's' : ''}`;
+					if (minute > 0 && hour === 0) timeString = `${minute} minute${minute > 1 ? 's' : ''}`;
+					if (second > 0 && minute === 0 && hour === 0) timeString = 'Just now';
 
-						return message.channel.send(`**${target.name}** is currently AFK${target.reason ? `: *${target.reason}*` : '.'} **\`[${timeString}]\`**`);
-					}
-					else if (userArray.length > 1) return message.channel.send(`Two or more users you are mentioning are currently AFK.`);
+					return message.channel.send(`**${target.name}** is currently AFK${target.reason ? `: *${target.reason}*` : '.'} **\`[${timeString}]\`**`);
+				}
+				else if (userArray.length > 1) return message.channel.send(`Two or more users you are mentioning are currently AFK.`);
 			}
 		}
 
 		// She starts listening if the message starts with a prefix or a direct mention.
-		if (message.content.startsWith(prefix) || message.content.startsWith(mention))
+		if (message.content.startsWith(prefix) || message.content.startsWith(mention_self))
 		{
 			let mentionID = false;
 			if (message.author.bot) return;
-			if (message.content.startsWith(mention))
+			if (message.content.startsWith(mention_self))
 			{
-				prefix = mention;
+				prefix = mention_self;
 				mentionID = true;
 			}
 
