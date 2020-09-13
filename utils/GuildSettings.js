@@ -1,16 +1,237 @@
 // All Sayumi settings for guilds go here.
 const guildActions = new (require('./Database/Methods/guildActions'));
 const embeds = new (require('./embeds'));
+const functions = new (require('./functions'));
 const discord = require('discord.js');
+const settings = require('./SettingsObjects.json');
 
 
 module.exports = class Settings {
+
 	async allowReplyConfig(message, args)
 	{
-		const data = await guildActions.guildGet(message.guild);
-		if (args[0] !== undefined) args[0] = args[0].toLowerCase();
+		const SettingsObject = settings.active_channels;
 
-		if (!args.length || args.length < 1 || args[0] === 'info' || args[0] === 'status' || args[0] === null)
+		const { userPass } = functions.PermissionsCheck(SettingsObject, message);
+		if (userPass === false) return message.channel.send(`**${message.member.displayName}**, you are lacking permissions to change this settings.`);
+
+		const source = await guildActions.guildGet(message.guild);
+		const AllowedReplyOn = source.AllowedReplyOn;
+
+		const output = [];
+        for (let i = 0; i < AllowedReplyOn.length; i++)
+        {
+            output.push(`<#${AllowedReplyOn[i]}>`);
+        }
+		if (!args[1] || args.length < 2)
+		{
+			const embed = new discord.MessageEmbed()
+									.setColor('RANDOM')
+									.setDescription(`Currently enabled channels: \n${output.join('\n')}`)
+									.setFooter('Settings: Active channels');
+			return message.channel.send(embed);
+		}
+		if (args[1])
+		{
+			args[1] = args[1].toLowerCase();
+
+			switch(args[1])
+			{
+				case 'add':
+				{
+					let _id;
+					let confirm = false;
+					const channelID = args[2].match(/^<?#?(\d+)>?$/);
+					if (channelID !== null)
+					{
+						_id = channelID[1];
+						confirm = true;
+					}
+					else if (!channelID) _id = null;
+					const target = message.guild.channels.cache.find(ch => confirm ? ch.id === _id : ch.name === args[1]);
+					if (!target) return message.channel.send('Can\'t find the channel you specified.');
+
+					const index = AllowedReplyOn.indexOf(target.id);
+					if (index > -1) return message.channel.send('The channel is already existed in my list.');
+					else AllowedReplyOn.push(target.id);
+
+					guildActions.guildUpdate(message.guild, { AllowedReplyOn: AllowedReplyOn });
+
+					const embed = new discord.MessageEmbed()
+									.setColor('#3aeb34')
+									.setDescription(`Successfully added <#${target.id}> to the list.`);
+					message.channel.send(embed);
+					break;
+				}
+				case 'remove':
+				{
+					let _id;
+					let confirm = false;
+					const channelID = args[2].match(/^<?#?(\d+)>?$/);
+					if (channelID !== null)
+					{
+						_id = channelID[1];
+						confirm = true;
+					}
+					else if (!channelID) _id = null;
+					const target = message.guild.channels.cache.find(ch => confirm ? ch.id === _id : ch.name === args[1]);
+					if (!target) return message.channel.send('Can\'t find the channel you specified.');
+
+					const index = AllowedReplyOn.indexOf(target.id);
+					if (index > -1)
+					{
+						AllowedReplyOn.splice(index, 1);
+					} else return message.channel.send('The channel does not exist in my list.');
+
+					guildActions.guildUpdate(message.guild, { AllowedReplyOn: AllowedReplyOn });
+					const embed = new discord.MessageEmbed()
+									.setColor('#eb3434')
+									.setDescription(`Successfully removed <#${target.id}> from the list.`);
+					message.channel.send(embed);
+					break;
+				}
+				case 'list':
+				{
+					const embed = new discord.MessageEmbed()
+								.setColor('RANDOM')
+								.setDescription(`Currently enabled channels: \n${output.join('\n')}`);
+					message.channel.send(embed);
+					break;
+				}
+				default:
+				{
+					return message.channel.send(`Please provide a valid option (either \`list\`, \`add\` or \`remove\`).`);
+				}
+			}
+		}
+	}
+
+	async UnknownCMDReply(message, args)
+	{
+		const SettingsObject = settings.unknown_replies;
+
+		const { userPass } = functions.PermissionsCheck(SettingsObject, message);
+		if (userPass === false) return message.channel.send(`**${message.member.displayName}**, you are lacking permissions to change this settings.`);
+
+		const source = await guildActions.guildGet(message.guild);
+		const AllowedReplyOn = source.AllowedReplyOn;
+		const FalseCMDReply = source.FalseCMDReply;
+
+		const output = [];
+        if (FalseCMDReply.length > 0) {
+			for (let i = 0; i < FalseCMDReply.length; i++)
+			{
+				output.push(`<#${FalseCMDReply[i]}>`);
+			}
+		}
+
+		if (args[1] !== undefined) args[1] = args[1].toLowerCase();
+
+		if (!args[1] || args.length < 2 || args[1] === 'info' || args[1] === 'status' || args[1] === null)
+		{
+			if (AllowedReplyOn.length === FalseCMDReply.length) return message.channel.send('This setting is enabled globally.');
+			if (output.length > 0 && AllowedReplyOn.length !== FalseCMDReply.length)
+			{
+				const embed = new discord.MessageEmbed()
+						.setColor('RANDOM')
+						.setDescription(`Currently enabled channels: \n${output.join('\n')}`)
+						.setFooter('Settings: Unknown command response');
+				message.channel.send(embed);
+			}
+			else return message.channel.send('This setting is disabled globally.');
+		}
+		if (args.length)
+		{
+			switch (args[1])
+			{
+				case 'add':
+				{
+					let _id;
+					let confirm = false;
+					const channelID = args[2].match(/^<?#?(\d+)>?$/);
+					if (channelID !== null)
+					{
+						_id = channelID[1];
+						confirm = true;
+					}
+					else if (!channelID) _id = null;
+					const target = message.guild.channels.cache.find(ch => confirm ? ch.id === _id : ch.name === args[1]);
+					if (!target) return message.channel.send('Can\'t find the channel you specified.');
+
+					if (!AllowedReplyOn.some(chID => chID === target.id)) return message.channel.send('Make sure I can send messages in that channel before you type this command.');
+
+					const index = FalseCMDReply.indexOf(target.id);
+					if (index > -1) return message.channel.send('The target channel already has this setting enabled.');
+					else FalseCMDReply.push(target.id);
+
+					guildActions.guildUpdate(message.guild, { FalseCMDReply: FalseCMDReply });
+
+					const embed = new discord.MessageEmbed()
+									.setColor('#3aeb34')
+									.setDescription(`Successfully enabled unknown command replies in <#${target.id}>.`);
+					message.channel.send(embed);
+					break;
+				}
+				case 'remove':
+				{
+					let _id;
+					let confirm = false;
+					const channelID = args[2].match(/^<?#?(\d+)>?$/);
+
+					if (channelID !== null)
+					{
+						_id = channelID[1];
+						confirm = true;
+					}
+					else if (!channelID) _id = null;
+					const target = message.guild.channels.cache.find(ch => confirm ? ch.id === _id : ch.name === args[1]);
+					if (!target) return message.channel.send('Can\'t find the channel you specified.');
+
+					const index = FalseCMDReply.indexOf(target.id);
+					if (index > -1)
+					{
+						AllowedReplyOn.splice(index, 1);
+					} else return message.channel.send('This channel does not exist in my list.');
+
+					guildActions.guildUpdate(message.guild, { FalseCMDReply: FalseCMDReply });
+					const embed = new discord.MessageEmbed()
+									.setColor('#eb3434')
+									.setDescription(`Successfully disabled unknown command replies in <#${target.id}>.`);
+					message.channel.send(embed);
+					break;
+				}
+				case 'list':
+				{
+					if (output.length > 0)
+					{
+						const embed = new discord.MessageEmbed()
+								.setColor('RANDOM')
+								.setDescription(`Currently enabled channels: \n${output.join('\n')}`)
+								.setFooter('Setting: Unknown command response');
+						message.channel.send(embed);
+					}
+					else return message.channel.send('This setting is disabled globally.');
+					break;
+				}
+				default:
+				{
+					return message.channel.send(`Please provide a valid option (either \`list\`, \`add\` or \`remove\`).`);
+				}
+			}
+		}
+	}
+
+	async MessageLog(message, args)
+	{
+		const SettingsObject = settings.message_log;
+
+		const { userPass } = functions.PermissionsCheck(SettingsObject, message);
+		if (userPass === false) return message.channel.send(`**${message.member.displayName}**, you are lacking permissions to change this settings.`);
+
+		const data = await guildActions.guildGet(message.guild);
+		if (args[1] !== undefined) args[1] = args[1].toLowerCase();
+
+		if (!args.length || args.length < 1 || args[1] === 'info' || args[1] === 'status' || args[1] === null)
 		{
 			const info = {
 				status: data.MessageLogState,
@@ -22,7 +243,7 @@ module.exports = class Settings {
 		}
 		else
 		{
-			switch (args[0])
+			switch (args[1])
 			{
 				case 'enable':
 				{
@@ -49,7 +270,7 @@ module.exports = class Settings {
 				{
 					let _id;
 					let confirm = false;
-					const channelID = args[1].match(/^<?#?(\d+)>?$/);
+					const channelID = args[2].match(/^<?#?(\d+)>?$/);
 					if (channelID !== null)
 					{
 						_id = channelID[1];
@@ -82,8 +303,8 @@ module.exports = class Settings {
 				}
 				case 'setlimit':
 				{
-					if (isNaN(args[1])) return message.channel.send('The limit specified must be a number.');
-					const amount = parseInt(args[1]);
+					if (isNaN(args[2])) return message.channel.send('The limit specified must be a number.');
+					const amount = parseInt(args[2]);
 					if (amount < 1 || amount > 5) return message.channel.send('The limit specified must be between `1` and `5`.');
 					guildActions.guildUpdate(message.guild, { LogHoldLimit: amount });
 
@@ -96,9 +317,30 @@ module.exports = class Settings {
 				}
 				default:
 				{
-					return message.channel.send(`Invalid option.`);
+					message.channel.send('Invalid option.');
 				}
 			}
+		}
+	}
+
+	async Prefix(message, args)
+	{
+		const SettingsObject = settings.prefix;
+
+		const { userPass } = functions.PermissionsCheck(SettingsObject, message);
+		if (userPass === false) return message.channel.send(`**${message.member.displayName}**, you are lacking permissions to change this settings.`);
+
+		const source = await guildActions.guildGet(message.guild);
+		const prefix = source.prefix;
+		if (!args.length || args.length < 1)
+		{
+			return message.channel.send(`The current prefix is \`${prefix}\``);
+		}
+		if (args.length)
+		{
+			if (args[1].length > 3) return message.channel.send('The new prefix can not be longer than 3 characters. Please try again.');
+			guildActions.guildUpdate(message.guild, { prefix: args[1] });
+			return message.channel.send(`The prefix has been updated to \`${args[1]}\``);
 		}
 	}
 };

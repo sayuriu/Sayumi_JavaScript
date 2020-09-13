@@ -1,25 +1,17 @@
 {
     "name": "guild-management",
     "files": [
-        "allowReplyConfig.js",
-        "falseCMDReply.js",
         "guild-management.json",
-        "messageLogSettings.js",
-        "prefix.js",
         "setNSFW.js"
     ],
     "subfolders": [],
     "parent": true,
     "parentName": "executables",
     "exe": [
-        "allowReplyConfig.js",
-        "falseCMDReply.js",
-        "messageLogSettings.js",
-        "prefix.js",
         "setNSFW.js"
     ],
-    "unexec": 1,
+    "unexec": 0,
     "empty": 0,
     "dev": 0,
-    "size": "14.4 kB"
+    "size": "1.5 kB"
 }

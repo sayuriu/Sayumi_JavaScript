@@ -315,8 +315,8 @@ module.exports = class Loader {
                     client.CommandAliases.set(aliases, name);
                 }
             }
+            else object.unexec++;
         }
-        else object.unexec++;
     }
 
     /** Check events from a file and bind them to the `client` object.

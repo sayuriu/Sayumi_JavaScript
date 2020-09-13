@@ -26,6 +26,7 @@
     },
     "Settings": {
         "name": "Settings",
+        "special": true,
         "descriptions": "Internal settings for Sayumi.",
         "colorCode": "#d882fa",
         "keywords": [
