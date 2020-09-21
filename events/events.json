@@ -11,18 +11,20 @@
             "files": [
                 "guildAdd.js",
                 "guildEvents.json",
-                "guildLeave.js"
+                "guildLeave.js",
+                "guildMemberAdd.js"
             ],
             "subfolders": [],
             "parent": true,
             "parentName": "events",
             "evt": [
                 "guildAdd.js",
-                "guildLeave.js"
+                "guildLeave.js",
+                "guildMemberAdd.js"
             ],
             "dev": 0,
             "empty": 0,
-            "size": "1.1 kB"
+            "size": "1.4 kB"
         },
         {
             "name": "messageEvents",
@@ -42,7 +44,7 @@
             ],
             "dev": 0,
             "empty": 0,
-            "size": "13.6 kB"
+            "size": "13.7 kB"
         }
     ],
     "parent": false,
@@ -52,5 +54,5 @@
     ],
     "dev": 0,
     "empty": 0,
-    "size": "14.5 kB"
+    "size": "14.3 kB"
 }

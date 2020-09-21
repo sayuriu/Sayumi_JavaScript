@@ -1,5 +1,3 @@
-const guildActions = new (require('../../utils/Database/Methods/guildActions'));
-
 module.exports = {
 	name: 'afk',
 	description: 'Set AFK for yourself. Other users will be notified if they ping you.',
@@ -11,7 +9,7 @@ module.exports = {
 	usage: '',
 	cooldown: 0,
 	onTrigger: async (message, args, client) => {
-		const source = await guildActions.guildGet(message.guild);
+		const source = await client.GuildDatabase.get(message.guild);
 		if (source.AFKUsers === false) return message.channel.send(`AFK function is disabled in this server.`);
 
 		let reason;
@@ -32,8 +30,8 @@ module.exports = {
 		};
 
 		client.AFKUsers.set(message.author.id, userObject);
-		if (message.guild.me.permissions.has('MANAGE_NICKNAMES')) message.member.setNickname(`[AFK] ${userObject.name}`).catch(err => {message.channel.send('Hmph... Anyway.').then(m => m.delete(2500)); });
-		message.channel.send(`I have set your AFK${reason.length > 0 ? `: ${reason}` : '.'}`).then(m => m.delete(4000));
+		if (message.guild.me.permissions.has('MANAGE_NICKNAMES')) await message.member.setNickname(`[AFK] ${userObject.name}`).catch(err => {message.channel.send('Hmph... Anyway.').then(m => m.delete({ timeout: 2500 })); });
+		message.channel.send(`I have set your AFK${reason.length > 0 ? `: ${reason}` : '.'}`).then(m => m.delete({ timeout: 5000 }));
 		return;
 	},
 };

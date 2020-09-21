@@ -1,13 +1,6 @@
 const discord = require('discord.js');
-const guildActions = require('../../utils/Database/Methods/guildActions');
-const Functions = require('../../utils/Functions');
-const Logger = require('../../utils/Logger');
-const Embeds = new (require('../../utils/embeds'));
-const responses = require('../../utils/responses.json');
-const DefaultSettings = require('../../utils/DefaultGlobalSettings.json');
-const Guild = new guildActions;
-const functions = new Functions;
-const logger = new Logger;
+const responses = require('../../utils/json/responses.json');
+const DefaultSettings = require('../../utils/json/DefaultGlobalSettings.json');
 require('dotenv').config();
 const { master } = process.env;
 
@@ -24,7 +17,7 @@ module.exports = {
 		// Gets the prefix if the message is sent in a guild.
 		if (message.guild)
 		{
-			source = await Guild.guildGet(message.guild);
+			source = await client.GuildDatabase.get(message.guild);
 			prefix = source.prefix;
 		}
 
@@ -37,9 +30,9 @@ module.exports = {
 			const IfAFK = client.AFKUsers.get(message.author.id);
 			if (IfAFK)
 			{
-				if (message.guild.me.permissions.has('MANAGE_NICKNAMES')) message.member.setNickname(IfAFK.name).catch(err => {message.channel.send('...').then(m => m.delete(2500)); });
+				if (message.guild.me.permissions.has('MANAGE_NICKNAMES')) await message.member.setNickname(IfAFK.name).catch(err => {message.channel.send('...').then(m => m.delete({ timeout: 2500 })); });
 				client.AFKUsers.delete(message.author.id);
-				if (message.guild && source.AllowedReplyOn.some(channelID => channelID === IfAFK.lastChannel)) client.channels.cache.find(channel => channel.id === IfAFK.lastChannel).send(`Welcome back <@!${IfAFK.id}>, I have removed your AFK!`).then(m => m.delete(4000));
+				if (message.guild && source.AllowedReplyOn.some(channelID => channelID === IfAFK.lastChannel)) client.channels.cache.find(channel => channel.id === IfAFK.lastChannel).send(`Welcome back <@!${IfAFK.id}>, I have removed your AFK!`).then(m => m.delete({ timeout: 4000 }));
 				else;
 			}
 
@@ -53,7 +46,7 @@ module.exports = {
 				if (userArray.length === 1)
 				{
 					const target = userArray[0];
-					const { hour, minute, second } = functions.TimestampToTime(Date.now() - target.AFKTimeStamp);
+					const { hour, minute, second } = client.Methods.TimestampToTime(Date.now() - target.AFKTimeStamp);
 					let timeString = '';
 
 					if (hour) timeString = `${hour} hour${hour > 1 ? 's' : ''}`;
@@ -81,7 +74,7 @@ module.exports = {
 			if (message.guild && !source.AllowedReplyOn.some(channelID => channelID === message.channel.id)) return;
 			else
 			{
-				message.content = functions.EscapeRegExp(message.content);
+				// message.content = functions.EscapeRegExp(message.content);
 				const args = message.content.slice(mentionID ? prefix.length + 1 : prefix.length).split(/ +/);
 				const CommandName = args.shift().toLowerCase();
 
@@ -100,7 +93,7 @@ module.exports = {
 						`What is *${typo}*?`,
 						`If that is an unadded feature, consider typing \`${mentionID ? '@Sayumi' : prefix}feedback ${typo}\` if you want this feature/command added to my collection.`,
 					];
-					const res = functions.Randomized(NotACmd);
+					const res = client.Methods.Randomized(NotACmd);
 					if (message.channel.type === 'dm' || source.FalseCMDReply.some(chID => chID === message.channel.id))
 					{
 						// functions.Cooldown(client.Cooldowns, typo, 3, message.author.id, message);
@@ -115,7 +108,7 @@ module.exports = {
 					// Sending guild-only commands through DMs
 					if (RequestedCommand.guildOnly && message.channel.type === 'dm')
 					{
-						return message.reply(functions.Randomized(responses.commands.guild_only_invalid));
+						return message.reply(client.Methods.Randomized(responses.commands.guild_only_invalid));
 					}
 
 					// Cooldowns (throttling)
@@ -171,28 +164,29 @@ module.exports = {
 					if (RequestedCommand.args && RequestedCommand.reqArgs && !args.length)
 					{
 						// Eval command-explicit
-						if (RequestedCommand.terminal) return message.channel.send('Terminal standing by.').then(m => m.delete(4000));
+						if (RequestedCommand.terminal) return message.channel.send('Expressions expected.').then(m => m.delete({ timeout: 4000 }));
 						// For normal commands
 						else
 						{
 							let string;
+							if (RequestedCommand.prompt) return message.channel.send(RequestedCommand.prompt);
 							if (RequestedCommand.usage) string = `\nUsage: \`${prefix}${RequestedCommand.name} ${RequestedCommand.usage}\`.`;
-							return message.channel.send(`${functions.Randomized(responses.commands.empty_arguments)} ${string || ''}`);
+							return message.channel.send(`${client.Methods.Randomized(responses.commands.empty_arguments)} ${string || ''}`);
 						}
 					}
 
 					// Master-explicit commands
 					if (RequestedCommand.master_explicit && message.author.id !== master) {
 						return message.channel.send(`Sorry ${message.author}, but this command can be issued by my master only.`).then(msg => {
-							if (message.channel.name.includes('general')) return msg.delete(4000);
-							else return msg.delete(6000);
+							if (message.channel.name.includes('general')) return msg.delete({ timeout: 3000 });
+							else return msg.delete({ timeout: 5000 });
 						});
 					}
 
 					// NSFW commands
 					if (RequestedCommand.nsfw === 'partial' && message.channel.type !== 'dm')
 					{
-						if (source.AllowPartialNSFW === false) return message.channel.send('Please execute this command from an appropriate channel.').then(m => m.delete(3000));
+						if (source.AllowPartialNSFW === false) return message.channel.send('Please execute this command from an appropriate channel.').then(m => m.delete({ timeout: 3000 }));
 						const boolean = client.Channels.get(message.channel.id);
 						if (!boolean)
 						{
@@ -205,7 +199,7 @@ module.exports = {
 					if (RequestedCommand.nsfw === true && message.channel.type !== 'dm' && message.channel.nsfw === false)
 					{
 						if (message.deletable) message.delete();
-						return message.channel.send('Please execute this command from an appropriate channel.').then(m => m.delete(3000));
+						return message.channel.send('Please execute this command from an appropriate channel.').then(m => m.delete({ timeout: 3000 }));
 					}
 
 					// Perms checking
@@ -242,14 +236,15 @@ module.exports = {
 
 					// Try executing the command
 					try {
-						if (RequestedCommand.args) RequestedCommand.onTrigger(message, args, client);
-						else RequestedCommand.onTrigger(message, client);
+						if (RequestedCommand.terminal) return RequestedCommand.onTrigger (message, prefix, client);
+						if (RequestedCommand.args) return RequestedCommand.onTrigger(message, args, client);
+						else return RequestedCommand.onTrigger(message, client);
 					// Catch errors
 					} catch (error) {
-						logger.error(`[Command Execution] An error has occured while executing "${RequestedCommand.name}": \n${error.message}`);
-						client.channels.cache.find(ch => ch.id === '630334027081056287').send(Embeds.error(message, error.message));
-						if (message.channel.type === 'text') return message.channel.send(functions.Randomized(responses.errors.command_errors));
-						else return message.reply(functions.Randomized(responses.errors.command_errors));
+						client.Log.error(`[Command Execution] An error has occured while executing "${RequestedCommand.name}": \n${error.message}`);
+						client.channels.cache.find(ch => ch.id === '630334027081056287').send(client.Embeds.error(message, error.message));
+						if (message.channel.type === 'text') return message.channel.send(client.Methods.Randomized(responses.errors.command_errors));
+						else return message.reply(client.Methods.Randomized(responses.errors.command_errors));
 					}
 				}
 			}

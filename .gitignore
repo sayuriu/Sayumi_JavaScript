@@ -1,12 +1,8 @@
 .env
-log.txt
-db.txt
-GuildList.json
-ChannelStatus.json
 node_modules
-package-lock.json
 .eslintrc.json
 log.log
 errors.log
+tsconfig.json
+typings
 Playground.js
-CommandStructure.ts

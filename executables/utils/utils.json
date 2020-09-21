@@ -5,6 +5,7 @@
         "privateChannel-clear.js",
         "privateChannel-create.js",
         "privateChannel-setCurrent.js",
+        "say.js",
         "uptime.js",
         "urban.js",
         "utils.json"
@@ -17,11 +18,12 @@
         "privateChannel-clear.js",
         "privateChannel-create.js (dev)",
         "privateChannel-setCurrent.js (dev)",
+        "say.js (dev)",
         "uptime.js",
         "urban.js (dev)"
     ],
-    "unexec": 3,
+    "unexec": 4,
     "empty": 0,
-    "dev": 3,
-    "size": "7.9 kB"
+    "dev": 4,
+    "size": "8.7 kB"
 }

@@ -1,11 +1,20 @@
 const db = require('mongoose');
-const Logger = require('./Logger');
-const log = new Logger;
+const log = new (require('./Logger'));
 
-/** This module is dedicated to use on Mongoose only.
- * Provides basic actions and connect to MongoDB.
+/**
+ * Provides basic actions and connections to MongoDB.
+ * @param {object} data [Object] Contains `local (boolean)`, `username`, and `password`.
 */
 module.exports = class Database {
+	constructor(data)
+	{
+		const { local, dbUsername: username, dbPassword: password } = data;
+
+		/** Initiates the connection. */
+		this.Init = () => {
+			this.Connect(local, username, password);
+		};
+	}
 
 	/** Initiates the connection.
 	 * @param {boolean} local If this project decides to use local database (stored on this machine).
@@ -13,7 +22,7 @@ module.exports = class Database {
 	 * @param {string} password The password associated with the username.
 	 * See {@link https://www.mongodb.com/ [MongoDB]}
 	 */
-	Init(local, username, password)
+	Connect(local, username, password)
 	{
 		if (local)
 		{
@@ -22,7 +31,7 @@ module.exports = class Database {
 				useUnifiedTopology: true,
 			});
 			const Connection = db.connection;
-			this.HandleConnection(Connection, false);
+			this.HandleConnection(Connection, true);
 		}
 		else
 		{
@@ -32,39 +41,43 @@ module.exports = class Database {
 				family: 0,
 			});
 			const Connection = db.connection;
-			this.HandleConnection(Connection, true, username);
+			this.HandleConnection(Connection, false, username);
 		}
 	}
 
 	/** Handles basic events of a connection.
 	 * @param {*} connection The connection instance of MongoDB.
-	 * @param {boolean} online If the connection is to local host, then use `false`.
+	 * @param {boolean} local If the connection is to local host.
 	 * @param {string} username The username for the remote database.
 	 */
-	HandleConnection(connection, online, username)
+	HandleConnection(connection, local, username)
 	{
-		if (online)
+		const password = this.password;
+		let failedOnline = false;
+
+		if (local)
 		{
 			connection.once('open', () => {
-				log.carrier('status: > Remote Database', `Status 200: Connected as "${username}"`);
+				log.carrier('status: > Local Database', 'Using this machine as the host.');
 			});
 			connection.on('error', error => {
-				log.error(`[Remote Database > mongoDB] A connection error has occured. \n${error.message}`);
-				log.carrier('status: 500', 'This will use localhost instead.');
-				this.Init(true);
+				log.error(`[Local Database > mongoDB] A connection error has occured: \n"${error.message}"`);
 			});
 		}
 		else
 		{
 			connection.once('open', () => {
-				console.log('Connected! We are now using local host!');
+				if (!failedOnline) log.carrier('status: > Remote Database', `Status 200: Connected as "${username}"`);
 			});
 			connection.on('error', error => {
-				log.error(`[Local Database > mongoDB] A connection error has occured. \n${error.message}`);
+				log.error(`[Remote Database > mongoDB] A connection error has occured: \n"${error.message}"`);
+				log.carrier('status: 500', 'This will use localhost instead.');
+				failedOnline = true;
+				this.Init(true);
 			});
 		}
 		connection.on('disconnected', () => {
-			log.carrier('status: 0', `Disconnected from ${online ? 'remote database' : 'local database'}.`);
+			log.carrier('status: 0', `Disconnected from ${local ? 'local database' : 'remote database'}.`);
 		});
 	}
 };

@@ -11,8 +11,8 @@ module.exports = {
 	group: 'Settings',
 	notes: 'If no arguments are provided, that will display settings\' status instead.',
 	settings_explicit: true,
-	onTrigger: async (message, args) => {
-		const source = await guildActions.guildGet(message.guild);
+	onTrigger: async (message, args, client) => {
+		const source = await client.GuildDatabase.get(message.guild);
 
 		if (args[1] !== undefined) args[1] = args[1].toLowerCase();
 
@@ -29,7 +29,7 @@ module.exports = {
 
 			const SettingsObject = {
 				activeChannels: channelPush(source.AllowedReplyOn),
-				falseReply: channelPush(source.FalseCMDReply).length > 0 ? channelPush(source.FalseCMDReply) : 'Empty.',
+				falseReply: channelPush(source.FalseCMDReply).length > 0 ? channelPush(source.FalseCMDReply) : 'Disabled',
 				logState: source.MessageLogState,
 				logLimit: source.LogHoldLimit,
 				afk: source.AFKUsers,
@@ -38,8 +38,8 @@ module.exports = {
 									.setTitle('Settings')
 									.setDescription(`Now showing settings for guild [${message.guild.name}]`)
 									.setColor('#42e3f5')
-									.addField('Active channels', `*Note: Sayumi will only listen for commands on those channels.*\n${SettingsObject.activeChannels.length > 15 ? `${SettingsObject.activeChannels.length} channels` : SettingsObject.activeChannels.join(' ')}`)
-									.addField('Unknown command replies', `*Responses to unknown commands.*\n${SettingsObject.falseReply.length > 15 ? `${SettingsObject.falseReply.length} channels` : `${Array.isArray(SettingsObject.falseReply) ? `${SettingsObject.falseReply.join(' ')}` : `${SettingsObject.falseReply}`}`}`)
+									.addField(`Active channels (${SettingsObject.activeChannels.length})`, `*Note: Sayumi will only listen for commands on those channels.*\n${SettingsObject.activeChannels.length > 15 ? `${SettingsObject.activeChannels.length} channels` : SettingsObject.activeChannels.join(' ')}`)
+									.addField('Unknown command replies', `${SettingsObject.falseReply.length > 15 ? `${SettingsObject.falseReply.length} channels` : `${Array.isArray(SettingsObject.falseReply) ? `${SettingsObject.falseReply.join(' ')}` : `${SettingsObject.falseReply}`}`}`)
 									.addFields([
 										{ name: 'Edit / deleted message logging', value: `${SettingsObject.logState ? 'Enabled' : 'Disabled'} \`| ${SettingsObject.logLimit}\``, inline: true },
 										{ name: 'AFK users settings', value: `${SettingsObject.afk ? 'Enabled' : 'Disabled'}`, inline: true },
@@ -55,7 +55,7 @@ module.exports = {
 			{
 				case 'replyon':
 				{
-					settings.allowReplyConfig(message, args);
+					settings.AllowReplyConfig(message, args);
 					break;
 				}
 				case msglog.some(i => i === args[0]):
@@ -66,6 +66,11 @@ module.exports = {
 				case 'unknowncmd':
 				{
 					settings.UnknownCMDReply(message, args);
+					break;
+				}
+				case 'afk':
+				{
+					settings.AFKUsers(message, args);
 					break;
 				}
 				default: return message.channel.send('Invalid option name.');

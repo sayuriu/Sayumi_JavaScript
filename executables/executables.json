@@ -36,7 +36,7 @@
             "unexec": 1,
             "empty": 0,
             "dev": 1,
-            "size": "7.1 kB"
+            "size": "10.6 kB"
         },
         {
             "name": "master-explicit",
@@ -49,19 +49,51 @@
             "parent": true,
             "parentName": "executables",
             "exe": [
+                "eval.js",
                 "logClear.js"
             ],
-            "unexec": 2,
+            "unexec": 0,
             "empty": 0,
             "dev": 0,
-            "size": "1.8 kB"
+            "size": "3.3 kB"
+        },
+        {
+            "name": "moderation",
+            "files": [
+                "moderation.json",
+                "prune.js"
+            ],
+            "subfolders": [],
+            "parent": true,
+            "parentName": "executables",
+            "exe": [
+                "prune.js"
+            ],
+            "unexec": 0,
+            "empty": 0,
+            "dev": 0,
+            "size": "1.2 kB"
+        },
+        {
+            "name": "nasa",
+            "files": [
+                "apod.js",
+                "nasa.json"
+            ],
+            "subfolders": [],
+            "parent": true,
+            "parentName": "executables",
+            "exe": [
+                "apod.js"
+            ],
+            "unexec": 0,
+            "empty": 0,
+            "dev": 0,
+            "size": "2.4 kB"
         },
         {
             "name": "sayumi-settings",
             "files": [
-                "allowReplyConfig.js",
-                "falseCMDReply.js",
-                "messageLogSettings.js",
                 "prefix.js",
                 "sayumi-settings.json",
                 "settings.js"
@@ -70,16 +102,13 @@
             "parent": true,
             "parentName": "executables",
             "exe": [
-                "allowReplyConfig.js",
-                "falseCMDReply.js",
-                "messageLogSettings.js",
                 "prefix.js",
                 "settings.js (dev)"
             ],
             "unexec": 1,
             "empty": 0,
             "dev": 1,
-            "size": "16.2 kB"
+            "size": "4.2 kB"
         },
         {
             "name": "utils",
@@ -88,6 +117,7 @@
                 "privateChannel-clear.js",
                 "privateChannel-create.js",
                 "privateChannel-setCurrent.js",
+                "say.js",
                 "uptime.js",
                 "urban.js",
                 "utils.json"
@@ -100,13 +130,14 @@
                 "privateChannel-clear.js",
                 "privateChannel-create.js (dev)",
                 "privateChannel-setCurrent.js (dev)",
+                "say.js (dev)",
                 "uptime.js",
                 "urban.js (dev)"
             ],
-            "unexec": 3,
+            "unexec": 4,
             "empty": 0,
-            "dev": 3,
-            "size": "7.9 kB"
+            "dev": 4,
+            "size": "8.7 kB"
         }
     ],
     "parent": false,
@@ -114,5 +145,5 @@
     "unexec": 0,
     "empty": 0,
     "dev": 0,
-    "size": "7.9 kB"
+    "size": "8.7 kB"
 }

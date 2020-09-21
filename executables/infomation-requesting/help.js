@@ -1,21 +1,27 @@
 const { MessageEmbed: EmbedConstructor, Collection } = require('discord.js');
-const guildActions = new (require('../../utils/Database/Methods/guildActions'));
-const functions = new (require('../../utils/Functions'));
-const responses = require('../../utils/Responses.json');
-const ArrayOrString = functions.ArrayOrString;
-const Randomized = functions.Randomized;
+const responses = require('../../utils/json/Responses.json');
+const settingsList = require('../../utils/json/SettingsObjects.json');
 
 module.exports = {
 	name: 'help',
 	aliases: ["holp", "helps", "?"],
 	args: true,
 	description: 'A help command for those in need.',
-	group: ['Information'],
+	group: ['Information', 'Utilities'],
 	cooldown: 10,
 	usage: '[category? command]',
 	onTrigger: async (message, args, client) => {
-		const source = await guildActions.guildGet(message.guild);
+		const ArrayOrString = client.Methods.ArrayOrString;
+		const Randomized = client.Methods.Randomized;
+
+		const source = await client.GuildDatabase.get(message.guild);
 		const prefix = source.prefix;
+		const settingsOptions = new Collection();
+
+		for (const key in settingsList)
+		{
+			settingsOptions.set(settingsList[key].name, settingsList[key]);
+		}
 
 		if (!args.length)
 		{
@@ -25,10 +31,16 @@ module.exports = {
 									.setTitle("Help [Cagetories]")
 									.setDescription(`*To see commands in a specified cagetory, type \`${prefix}help <cagetoryName>\` for more info.*`);
 
+			const settings = client.CommandCategories.find(i => i.keywords.some(e => e === 'settings'));
+			client.CommandCategories.delete(settings.name);
+			client.CommandCategories.set(settings.name, settings);
+
 			client.CommandCategories.forEach(category => {
-				const CategoryKeywords = category.keywords[0];
+				const CategoryKeyword = category.keywords[0];
 				const length = category.commands.length;
-				embed.addField(`${category.name} \`${CategoryKeywords}\``, `${length > 0 ? `contains ${length} command${length > 1 ? 's' : ''}` : 'No command found.'}`, true);
+
+				if (CategoryKeyword === 'settings') return embed.addField(`Internal Settings \`${CategoryKeyword}\``, `${settingsOptions.size} available setting${settingsOptions.size > 1 ? 's' : ''}`);
+				embed.addField(`${category.name} \`${CategoryKeyword}\``, `${length > 0 ? `contains ${length} command${length > 1 ? 's' : ''}` : 'No command found.'}`, true);
 			});
 
 			const tips = Randomized(responses.tips);
@@ -39,11 +51,12 @@ module.exports = {
 		if (args[0])
 		{
 			let allCategories = [];
+			let target;
+			let onCategory = false;
+
 			client.CommandCategories.forEach(t => {
 				allCategories = allCategories.concat(t.keywords);
 			});
-			let target;
-			let onCategory = false;
 			args[0] = args[0].toLowerCase();
 
 			if (allCategories.some(i => i === args[0]))
@@ -56,30 +69,119 @@ module.exports = {
 			// If category
 			if (target !== undefined && onCategory === true)
 			{
+
+				// Settings
 				if (target.keywords.some(keyword => keyword === 'settings'))
 				{
-					const settingsOptions = new Collection();
-					const settingsList = require('../../utils/SettingsObjects.json');
-
-					for (const key in settingsList)
-					{
-						settingsOptions.set(settingsList[key].name, settingsList[key]);
-					}
-
 					// first Embed constructor
 					const embed = new EmbedConstructor()
 											.setTitle('Help: Settings [Internal]')
-											.setDescription(`You can change how Sayumi behaves in your server. \nType \`${prefix}\`help settings`)
-											.setFooter();
+											.setDescription(`You can change how Sayumi behaves in your server. \nType the option that you want to check.`)
+											.setFooter('Type one of the settings above for more info or \'cancel\' to cancel this command.\nTimeout: 20 seconds');
 
 					let string = '';
+
 					settingsOptions.forEach(settings => {
-						string += `\`${settings.name}\` [${settings.reqUser}]\n *${settings.description}*\n `;
+						string += `${settings.title} \`${settings.name}\`\n> *${settings.description}*\n\n`;
 					});
 					embed.addField('List', string);
-					return message.channel.send(embed);
-				}
+					const info = await message.channel.send(embed);
 
+					// Await responses for options
+					let response;
+					let check = true;
+
+					// Timeout
+					const now = Date.now();
+					let user = client.Timestamps.get(message.author.id);
+					if (!user)
+					{
+						client.Timestamps.set(message.author.id, { timeout: now + 20000, id: message.author.id });
+						user = client.Timestamps.get(message.author.id);
+						setTimeout(() => client.Timestamps.delete(message.author.id), 20000);
+					}
+
+					// Functions
+					const timeOutOptions = async (msg, time) => {
+						try {
+							const List = [];
+							settingsOptions.forEach(option => {
+								List.push(option.name);
+							});
+
+							const timeLeft = time - Date.now();
+							const options = List.concat(['cancel']);
+							response = await msg.channel.awaitMessages(
+								m => {
+									if (options.some(item => item === m.content.toLowerCase()) && m.author.id === user.id) return m.content;
+									return null;
+								},
+								{
+									max: 1,
+									maxProcessed: 1,
+									time: timeLeft,
+									errors: ['time'],
+								},
+							);
+
+						} catch (error) {
+							message.channel.send('Times up!').then(m => m.delete({ timeout: 3000 }));
+							return check = false;
+						}
+					};
+
+					// Send the embed
+					const send = async () => {
+						if (response === undefined) return;
+						if (response.size > 0)
+						{
+							if (response.first().content.toLowerCase() === 'cancel')
+							{
+								message.channel.send('Cancelled!').then(m => m.delete({ timeout: 5000 }));
+								return setTimeout(() => info.delete(), 5000);
+							}
+							const selectedSettings = settingsOptions.get(response.first().content);
+							let usageIsArray = false;
+							let usage = selectedSettings.usage;
+							const name = selectedSettings.name;
+
+							if (Array.isArray(usage))
+							{
+								const usageArray = [];
+								selectedSettings.usage.forEach(i => {
+									usageArray.push(`\`${prefix}settings ${name} ${i}\``);
+								});
+								if (usageArray.length === 1) usage = usageArray[0];
+								else
+								{
+									usage = usageArray;
+									usageIsArray = true;
+								}
+							}
+
+							const toSend = new EmbedConstructor()
+													.setTitle(`Settings: ${selectedSettings.title}`)
+													.setColor('RANDOM')
+													.setDescription(`**Permitted:** [${selectedSettings.reqUser}]\n *${selectedSettings.description}*`)
+													.addField('Usage:', `${usageIsArray ? usage.join('\n') : `\`${prefix}settings ${name} ${usage}\``}`);
+
+							if (selectedSettings.notes) toSend.setFooter(selectedSettings.notes.replace(/{prefix}/g, prefix));
+							return await message.channel.send(toSend);
+						}
+
+						// Keep listening to user's input if the input is invalid, until time expires
+						if (response.size === 0 && user.timeout - now > 0 && check === true)
+						{
+							await timeOutOptions(message, user.timeout);
+							await send();
+						}
+						return;
+					};
+					await timeOutOptions(message, user.timeout);
+					await send();
+
+					return;
+				}
 				else
 				{
 					const embed = new EmbedConstructor()
@@ -164,11 +266,11 @@ module.exports = {
 				.setColor('RANDOM')
 				.setTitle(`[${Array.isArray(group) ? `${group.join(', ')}` : group}] ` + `\`${name}\``)
 				.setDescription(`*${desc}${perms.length > 0 ? `\n${permsString}*` : '*'}`);
-				if (aliases) embed.addField(`${Randomized(responses.commands.command_aliases)}`, `${Array.isArray(aliases) ? aliases.join(', ') : aliases}`);
+				if (aliases !== 'None') embed.addField(`${Randomized(responses.commands.command_aliases)}`, `${Array.isArray(aliases) ? aliases.join(', ') : aliases}`);
 
-				embed.addField('Usage:', `${usageIsArray ? usage.join('\n') : `\`${prefix + usage}\``}` + `${notes.length > 0 ? `\n${noteIsArray ? `**Extra notes:**\n*${notes.join('\n')}*` : `**Extra notes:** *${notes}*`}` : ''}`)
+				embed.addField('Usage:', `${usageIsArray ? usage.join('\n') : `\`${prefix + name} ${usage}\``}` + `${notes.length > 0 ? `\n${noteIsArray ? `**Extra notes:**\n*${notes.join('\n')}*` : `**Extra notes:** *${notes}*`}` : ''}`)
 							.addField('Command availability:', `${master_explicit ? 'Master dedicated ~' : `${guildOnly ? `${user.length > 0 ? `[Guild only] ${userIsArray ? user.join(', ') : user}` : 'Guild only.'}` : 'Everywhere, expect voice.'}`}`, true)
-							.addField('Cooldown', `${cooldown ? `${cooldown > 0 ? `${cooldown} second${cooldown > 1 ? 's' : ''}` : 'None'}` : '3 seconds'}${guildCooldown ? ', guild' : ''}`, true)
+							.addField('Cooldown', `${cooldown > 0 ? `${cooldown ? `${cooldown} second${cooldown > 1 ? 's' : ''}` : 'None'}` : 'None'}${guildCooldown ? ', guild' : ''}`, true)
 							.setFooter(`[] means optional (or none), <> means required. \nCurrent prefix: ${prefix}`);
 
 				return message.channel.send(embed);

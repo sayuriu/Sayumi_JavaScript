@@ -37,7 +37,7 @@ module.exports = {
 					allow: ['VIEW_CHANNEL'],
 				},
 			])
-			.then(() => message.channel.send(`Successfully created a private ${channelType} channel.`).then(m => m.delete(4000)))
+			.then(() => message.channel.send(`Successfully created a private ${channelType} channel.`).then(m => m.delete({ timeout: 4000 })))
 			.catch(console.error);
 		}
 	},

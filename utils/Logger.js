@@ -1,6 +1,5 @@
 /** The global logger module. */
 module.exports = class Logger {
-
 	// In case you want to do status message, you might wanna call the carrier itself.
 
 	/** Inform time!
@@ -42,8 +41,7 @@ module.exports = class Logger {
         const Winston = require('winston');
         const chalk = require('chalk');
         const FileSystem = require('fs');
-		const Functions = require('./Functions');
-        const functions = new Functions;
+        const methods = new (require('./Methods'));
         const logDir = `${__dirname}/../logs/`;
         let obj;
 
@@ -63,7 +61,7 @@ module.exports = class Logger {
             }
             else logMessage = `${logMessage}`;
         }
-        const { dateID, hrs, min, sec, GMT } = functions.DateTime();
+        const { dateID, hrs, min, sec, GMT } = methods.DateTime();
         const Timestamp = `(${dateID} - ${hrs}:${min}:${sec}) <${GMT}>`;
         let startPoint = '>';
         let outputLevel;

@@ -1,19 +1,17 @@
 {
-    "name": "master-explicit",
+    "name": "nasa",
     "files": [
-        "eval.js",
-        "logClear.js",
-        "master-explicit.json"
+        "apod.js",
+        "nasa.json"
     ],
     "subfolders": [],
     "parent": true,
     "parentName": "executables",
     "exe": [
-        "eval.js",
-        "logClear.js"
+        "apod.js"
     ],
     "unexec": 0,
     "empty": 0,
     "dev": 0,
-    "size": "3.3 kB"
+    "size": "2.4 kB"
 }

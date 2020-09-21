@@ -1,12 +1,9 @@
-const discord = require('discord.js');
-const Functions = require('./Functions');
+const { MessageEmbed } = require('discord.js');
+const methods = new (require('./Methods'));
 
-const functions = new Functions;
-const { date, month, year } = functions.DateTime();
-
-const channelCheck = functions.channelCheck;
-const convertDate = functions.convertDate;
-const currentDate = convertDate(date, month, year);
+const { date, month, year } = methods.DateTime();
+const currentDate = methods.convertDate(date, month, year);
+const channelCheck = methods.channelCheck;
 
 module.exports = class EmbedConstructor {
     /**
@@ -19,7 +16,7 @@ module.exports = class EmbedConstructor {
     update(header, message)
     {
         const ver = require('../package.json').version;
-        const updateReport = new discord.MessageEmbed()
+        const updateReport = new MessageEmbed()
                 .setTitle('Update | Patch ' + `${ver}` + `[\`${currentDate}\`]`)
                 .setColor('42e3f5')
                 .addField(header, message)
@@ -30,7 +27,7 @@ module.exports = class EmbedConstructor {
 
     bugReport(user, message)
     {
-        const bugReport = new discord.MessageEmbed()
+        const bugReport = new MessageEmbed()
                                     .setTitle('Bug Reports')
                                     .setColor('f0ff19')
                                     .setTimestamp()
@@ -43,7 +40,7 @@ module.exports = class EmbedConstructor {
     {
         const res = channelCheck(message.channel);
         if (errorMsg === null) errorMsg = 'null';
-        const errorReport = new discord.MessageEmbed()
+        const errorReport = new MessageEmbed()
                                         .setTitle('An error has occured.')
                                         .setDescription(`${res.message}\nExecuted by ${message.author.tag}`)
                                         .setColor('ff0000')
@@ -55,13 +52,13 @@ module.exports = class EmbedConstructor {
     // Moderation
     ban(message, target, duration, reason)
     {
-        const banReport = new discord.MessageEmbed()
+        const banReport = new MessageEmbed()
                                      .setTitle(`${target.tag} has been banned.`)
                                      .setColor('b5001b')
                                      .setDescription(`*Banned by ${message.author.tag} for \`${duration}\`*`)
                                      .addField('Provided reasons', `*${reason}*`)
                                      .setTimestamp();
-        const banReport_Short = new discord.MessageEmbed()
+        const banReport_Short = new MessageEmbed()
                                         .setDescription(`**${target.tag}** \`ID${target.id}\` **has been banned**\n${reason}`)
                                         .setColor('b5001b')
                                         .setTimestamp();
@@ -74,13 +71,13 @@ module.exports = class EmbedConstructor {
 
     kick(message, target, reason)
     {
-        const kickReport = new discord.MessageEmbed()
+        const kickReport = new MessageEmbed()
                                      .setTitle(`${target.tag} \`UserID :${target.id}\` has been kicked.`)
                                      .setColor('bf001d')
                                      .setDescription(`*By ${message.author.tag}* [\`ID${message.author.id}\`]`)
                                      .addField('Provided reasons', `*${reason}*`)
                                      .setTimestamp();
-        const kickReport_Short = new discord.MessageEmbed()
+        const kickReport_Short = new MessageEmbed()
                                      .setDescription(`**${target.tag}** \`ID${target.id}\` **has been kicked**\n${reason}`)
                                      .setColor('bf001d')
                                      .setTimestamp();
@@ -93,13 +90,13 @@ module.exports = class EmbedConstructor {
 
     mute(message, target, duration, reason)
     {
-        const muteReport = new discord.MessageEmbed()
+        const muteReport = new MessageEmbed()
                                     .setTitle(`${target.tag} has been muted.`)
                                     .setColor('f6ff00')
                                     .setDescription(`*By ${message.author.tag}, for \`${duration}\`*`)
                                     .addField('Provided reasons', `*${reason}*`)
                                     .setTimestamp();
-        const muteReport_Short = new discord.MessageEmbed()
+        const muteReport_Short = new MessageEmbed()
                                     .setColor('f6ff00')
                                     .setDescription(`**${target.tag}** \`ID${target.id}\` **has been muted**\n${reason}`)
                                     .setTimestamp();
@@ -139,17 +136,17 @@ module.exports = class EmbedConstructor {
             },
             content: 'n/a',
         };
-        if (message.embeds) message.content = 'type EMBED';
-        const info = new discord.MessageEmbed()
+        if (message.embeds.length > 0) message.content = 'type EMBED';
+        const info = new MessageEmbed()
                             .setColor('#ded181')
                             .setDescription(`Status: ${object.status ? `Enabled\n Inform channel: ${object.channelID === null || object.channelID === '' ? 'None' : `<#${object.channelID}>`}` : 'Disabled'} \nLog limit per user: \`${object.logLimit}\` (This can't be disabled)`)
                             .setFooter(`Settings: Message changes`);
-        const deleted = new discord.MessageEmbed()
+        const deleted = new MessageEmbed()
                                 .setColor('#fa1933')
                                 .setTitle(`Deleted message (${message.author.tag})`)
                                 .setDescription(`\`${message.content}\``)
                                 .setFooter(`Message timestamp: ${message.createdAt}`);
-        const updated = new discord.MessageEmbed()
+        const updated = new MessageEmbed()
                                 .setTitle('Edited message')
                                 .setDescription(`Author: ${oldMsg.author.tag}\`\nID: ${oldMsg.author.id}\``)
                                 .setColor('#f7700f')
@@ -162,5 +159,31 @@ module.exports = class EmbedConstructor {
             updated: updated,
         };
         return res;
+    }
+
+    // NASA
+    nasa_apod(res, err)
+    {
+        let embed = 'n/a';
+        let error = null;
+
+        if (typeof res === 'object')
+        {
+            embed = new MessageEmbed()
+                .setColor("#0033FF")
+                .setTitle(res.title)
+                .setDescription(`*by* **${res.copyright}** || "Unknown"}**, on ${res.date}:\n \n${res.explanation} \n(Image link)[${res.hdurl}]`)
+                .setFooter('From NASA')
+                .setImage(res.hdurl);
+        }
+
+        if (typeof err === 'object')
+        {
+            error = new MessageEmbed()
+                .setColor('red')
+                .setTitle('Error')
+                .setDescription(`*Encountered an error of code [${err.code}]:* \n${err.message}`);
+        }
+        return { response: embed, error: error };
     }
 };

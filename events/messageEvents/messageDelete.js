@@ -1,22 +1,24 @@
-const guildActions = new (require('../../utils/Database/Methods/guildActions'));
-const embeds = new (require('../../utils/embeds'));
-
 module.exports =  {
 	name: 'messageDelete',
 	stable: true,
 	onEmit: async (client, message) => {
 		// We will just ignore DMs for now.
-		if (message.channel.type === 'dm') return;
+		if (message.channel.type === 'dm' || message.author.id === client.user.id) return;
+
+		// If the message is prompted in commands
+		const messageFlag = await client.Messages.find(msg => msg.msgID && msg.msgID === message.id);
+		if(messageFlag && messageFlag.flagNoDelete) return client.Messages.delete(message.id);
 
 		// Get database...
-		const data = await guildActions.guildGet(message.guild);
+		const data = await client.GuildDatabase.get(message.guild);
+
 		if (data.MessageLogState && data.MessageLogChannel !== '')
 		{
-			const embed = embeds.messageLog(message);
+			const embed = client.Embeds.messageLog(message);
 			client.channels.cache.find(channel => channel.id === data.MessageLogChannel).send(embed.deleted);
 		}
 
-		if (message.embeds) message.content = message.embeds;
+		if (message.embeds.length > 0) message.content = message.embeds;
 
 		const History = data.MessageLog;
 		const LogHoldLimit = data.LogHoldLimit;
@@ -79,6 +81,7 @@ module.exports =  {
 		User.deletedMessages = DeletedHistory;
 
 		History.set(User.id, User);
-		guildActions.guildUpdate(message.guild, { MessageLog: History });
+		client.GuildDatabase.update(message.guild, { MessageLog: History });
+		client.Messages.delete(message.id);
 	},
 };

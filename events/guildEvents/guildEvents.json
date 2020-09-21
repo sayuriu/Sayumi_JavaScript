@@ -3,16 +3,18 @@
     "files": [
         "guildAdd.js",
         "guildEvents.json",
-        "guildLeave.js"
+        "guildLeave.js",
+        "guildMemberAdd.js"
     ],
     "subfolders": [],
     "parent": true,
     "parentName": "events",
     "evt": [
         "guildAdd.js",
-        "guildLeave.js"
+        "guildLeave.js",
+        "guildMemberAdd.js"
     ],
     "dev": 0,
     "empty": 0,
-    "size": "1.1 kB"
+    "size": "1.4 kB"
 }

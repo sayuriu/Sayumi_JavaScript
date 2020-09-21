@@ -1,5 +1,5 @@
 const Database = require("mongoose");
-const DefaultSettings = require("../../DefaultGlobalSettings.json");
+const DefaultSettings = require("../../json/DefaultGlobalSettings.json");
 
 const Guilds = new Database.Schema({
     _id: Database.Schema.Types.ObjectId,
@@ -47,7 +47,7 @@ const Guilds = new Database.Schema({
     AFKUsers: {
         type: Boolean,
         default: false,
-    }
+    },
 }, {
     collection: 'GuildList',
 });

@@ -42,5 +42,28 @@
             "utils",
             "utilities"
         ]
+    },
+    "Emotes": {
+        "name": "Emotes",
+        "descriptions": "",
+        "colorCode": "#000000",
+        "keywords": [
+            "emotes"
+        ]
+    },
+    "Moderation": {
+        "name": "Moderation",
+        "descriptions": "",
+        "colorCode": "#000000",
+        "keywords": [
+            "mod",
+            "moderation"
+        ]
+    },
+    "NASA": {
+        "name": "NASA",
+        "descriptions": "",
+        "colorCode": "#000000",
+        "keywords": []
     }
 }

@@ -1,5 +1,3 @@
-const guildActions = new (require('../../utils/Database/Methods/guildActions'));
-
 module.exports = {
 	name: 'prefix',
 	guildOnly: true,
@@ -10,8 +8,8 @@ module.exports = {
 	reqUser: 'Guild Manager',
 	group: 'Settings',
 	usage: '[newPrefix?]',
-	onTrigger: async (message, args) => {
-		const source = await guildActions.guildGet(message.guild);
+	onTrigger: async (message, args, client) => {
+		const source = await client.GuildDatabase.get(message.guild);
 		const prefix = source.prefix;
 		if (!args.length || args.length < 1)
 		{
@@ -20,7 +18,7 @@ module.exports = {
 		if (args.length)
 		{
 			if (args[0].length > 3) return message.channel.send('The new prefix can not be longer than 3 characters. Please try again.');
-			guildActions.guildUpdate(message.guild, { prefix: args[0] });
+			client.GuildDatabase.update(message.guild, { prefix: args[0] });
 			return message.channel.send(`The prefix has been updated to \`${args[0]}\``);
 		}
 	},

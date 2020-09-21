@@ -1,13 +1,11 @@
 const GuildSchema = require('../Models/guild');
-const Logger = require('../../Logger');
 const Database = require('mongoose');
-const DefaultSettings = require('../../../utils/DefaultGlobalSettings.json');
-
-const log = new Logger;
+const DefaultSettings = require('../../../utils/json/DefaultGlobalSettings.json');
+const log = new (require('../../Logger'));
 
 module.exports = class GuildDatabase {
 
-	async guildAdd(guild)
+	async add(guild)
 	{
 		const GuildObject = {
 			_id: Database.Types.ObjectId(),
@@ -21,7 +19,7 @@ module.exports = class GuildDatabase {
 		});
 	}
 
-	async guildDelete(guild)
+	async delete(guild)
 	{
 		try {
 			await GuildSchema.findOneAndDelete({ guildID: guild.id });
@@ -30,21 +28,21 @@ module.exports = class GuildDatabase {
 		}
 	}
 
-	async guildGet(guild)
+	async get(guild)
 	{
 		const data = await GuildSchema.findOne({ guildID: guild.id });
 		if (data) return data;
 		else if (!data)
 		{
-			this.guildAdd(guild);
+			this.add(guild);
 			return DefaultSettings;
 		}
 	}
 
-	async guildUpdate(guild, settings)
+	async update(guild, settings)
 	{
 		if (typeof settings !== 'object') return log.error('[Guild Update] The setting passed in is not an object.');
-		const data = await this.guildGet(guild);
+		const data = await this.get(guild);
 		for (const key in settings)
 		{
 			if (Object.prototype.hasOwnProperty.call(settings, key))

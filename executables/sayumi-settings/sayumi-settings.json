@@ -1,9 +1,6 @@
 {
     "name": "sayumi-settings",
     "files": [
-        "allowReplyConfig.js",
-        "falseCMDReply.js",
-        "messageLogSettings.js",
         "prefix.js",
         "sayumi-settings.json",
         "settings.js"
@@ -12,14 +9,11 @@
     "parent": true,
     "parentName": "executables",
     "exe": [
-        "allowReplyConfig.js",
-        "falseCMDReply.js",
-        "messageLogSettings.js",
         "prefix.js",
         "settings.js (dev)"
     ],
     "unexec": 1,
     "empty": 0,
     "dev": 1,
-    "size": "16.2 kB"
+    "size": "4.2 kB"
 }

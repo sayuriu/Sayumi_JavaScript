@@ -1,14 +1,10 @@
-'use strict';
-
 const FileSystem = require('fs');
-const responses = require('./responses.json');
+const responses = require('./json/responses.json');
+const logger = new (require('./Logger'));
 const chalk = require('chalk');
-const discord = require('discord.js');
-const Logger = require('./Logger');
-const logger = new Logger;
 require('dotenv').config();
 
-module.exports = class Functions  {
+module.exports = class Methods  {
 
     // Some methods are dedicated to a specific command or class, but here you go.
 
@@ -71,7 +67,7 @@ module.exports = class Functions  {
     }
 
     /** Returns a file / folder's size.
-     * @param {number} bytes The size to pass in.
+     * @param {number} bytes
      */
     convertBytes(bytes)
     {
@@ -91,9 +87,9 @@ module.exports = class Functions  {
     }
 
     /** Gets the date input and returns a 6-digit number. Useful for patch numbers.
-     * @param {string} date
-     * @param {string} month
-     * @param {string} year
+     * @param {string | number} date
+     * @param {string | number} month
+     * @param {string | number} year
      * @see procedure `Functions.DateTime` (Function.js)
      */
     convertDate(date, month, year)
@@ -243,6 +239,7 @@ module.exports = class Functions  {
             console.log(Header);
             if (log.length > 0) console.log(this.joinArrayString(log));
         }
+        return void {};
     }
 
     /** Checks an array and returns warnings if duplications are found.
@@ -294,7 +291,7 @@ module.exports = class Functions  {
             dateID: `${Math.floor(Date.now() / 86400000)}`,
             month: `${month < 10 ? '0' : ''}${month}`,
             GMT: date.toString().substr(28, 5),
-            year: date.getFullYear(),
+            year: date.getFullYear().toString(),
             hrs: time.substr(0, 2),
             min: time.substr(3, 2),
             sec: time.substr(6, 2),
@@ -302,6 +299,9 @@ module.exports = class Functions  {
         return res;
     }
 
+    /** Convert the timestamp to human-readable time.
+     * @param {number} timestamp
+    */
     TimestampToTime(timestamp)
     {
         if (typeof timestamp !== 'number') throw new TypeError('The input must be a number.');
@@ -388,7 +388,7 @@ module.exports = class Functions  {
     /** (miscellaneous method) Greets you in the terminal everytime you boot the program. */
     Greetings()
     {
-        const greetings = require('./responses.json').greetings;
+        const greetings = responses.greetings;
         const { hrs, min, sec } = this.DateTime();
         const time = parseInt(hrs) + parseInt(min) / 60 + parseInt(sec) / 3600;
         let output;
@@ -428,6 +428,10 @@ module.exports = class Functions  {
         }
     }
 
+    /** Check for permissions required before proceeding a command (both user and client side)
+     * @param {object} TargetCommand The command to be executed
+     * @param {object} message The message object.
+     */
     PermissionsCheck(TargetCommand, message)
     {
         let uConfirm = true;
@@ -466,6 +470,11 @@ module.exports = class Functions  {
         if (!input.length || input.length < 1) return logger.error(`[Global Functions > Responses] ${this.Randomized(responses.errors.functions_responses)}`);
         const output = input[Math.floor(Math.random() * input.length)];
         return output;
+    }
+
+    ShiftToLast(array, callback)
+    {
+        return array =  array.push(array.splice(array.findIndex(callback), 1)[0]);
     }
 
     /** Updates this program's version and rewrites `package.json`.
@@ -520,4 +529,5 @@ module.exports = class Functions  {
 
         return FileSystem.writeFileSync(path, JSON.stringify(Package, null, 4));
     }
+
 };

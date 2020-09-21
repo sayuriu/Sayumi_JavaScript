@@ -1,15 +1,17 @@
 {
     "name": "sayumi",
-    "version": "1.19.25",
+    "version": "1.22.0",
     "author": "Sayuri",
     "license": "MIT",
     "description": "Not yet.",
+    "main": "Main",
     "scripts": {
-        "start": "node main"
+        "start": "node ."
     },
     "dependencies": {
         "@discordjs/opus": "^0.3.2",
         "@discordjs/uws": "^11.149.1",
+        "beautify": "0.0.8",
         "bufferutil": "^4.0.1",
         "chalk": "^4.1.0",
         "discord.js": "^12.2.0",

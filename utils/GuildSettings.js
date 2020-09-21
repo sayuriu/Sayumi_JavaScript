@@ -1,21 +1,52 @@
 // All Sayumi settings for guilds go here.
-const guildActions = new (require('./Database/Methods/guildActions'));
-const embeds = new (require('./embeds'));
-const functions = new (require('./functions'));
 const discord = require('discord.js');
-const settings = require('./SettingsObjects.json');
-
+const settings = require('./json/SettingsObjects.json');
+const { Methods, GuildDatabase } = require('../MainModules');
 
 module.exports = class Settings {
 
-	async allowReplyConfig(message, args)
+	async AFKUsers(message, args)
+	{
+		const SettingsObject = settings.afk_users;
+
+		const { userPass } = Methods.PermissionsCheck(SettingsObject, message);
+		if (userPass === false) return message.channel.send(`**${message.member.displayName}**, you are lacking permissions to change this settings.`);
+
+		const source = await GuildDatabase.get(message.guild);
+		const status = source.AFKUsers;
+
+		if (!args[1]) return message.channel.send(status ? 'This settings is enabled.' : 'This setting is disabled.');
+
+		args[1] = args[1].toLowerCase();
+		switch (args[1])
+		{
+			case 'enable':
+			{
+				if (status === true) return message.channel.send('This settings is already enabled.');
+
+				GuildDatabase.update(message.guild, { AFKUsers: true });
+				message.channel.send('Successfully enabled this settings.');
+				break;
+			}
+			case 'disable':
+			{
+				if (status === true) return message.channel.send('This settings is already disabled.');
+
+				GuildDatabase.update(message.guild, { AFKUsers: false });
+				message.channel.send('Successfully enabled this settings.');
+				break;
+			}
+		}
+	}
+
+	async AllowReplyConfig(message, args)
 	{
 		const SettingsObject = settings.active_channels;
 
-		const { userPass } = functions.PermissionsCheck(SettingsObject, message);
+		const { userPass } = Methods.PermissionsCheck(SettingsObject, message);
 		if (userPass === false) return message.channel.send(`**${message.member.displayName}**, you are lacking permissions to change this settings.`);
 
-		const source = await guildActions.guildGet(message.guild);
+		const source = await GuildDatabase.get(message.guild);
 		const AllowedReplyOn = source.AllowedReplyOn;
 
 		const output = [];
@@ -31,7 +62,7 @@ module.exports = class Settings {
 									.setFooter('Settings: Active channels');
 			return message.channel.send(embed);
 		}
-		if (args[1])
+		else
 		{
 			args[1] = args[1].toLowerCase();
 
@@ -55,7 +86,7 @@ module.exports = class Settings {
 					if (index > -1) return message.channel.send('The channel is already existed in my list.');
 					else AllowedReplyOn.push(target.id);
 
-					guildActions.guildUpdate(message.guild, { AllowedReplyOn: AllowedReplyOn });
+					GuildDatabase.update(message.guild, { AllowedReplyOn: AllowedReplyOn });
 
 					const embed = new discord.MessageEmbed()
 									.setColor('#3aeb34')
@@ -83,7 +114,7 @@ module.exports = class Settings {
 						AllowedReplyOn.splice(index, 1);
 					} else return message.channel.send('The channel does not exist in my list.');
 
-					guildActions.guildUpdate(message.guild, { AllowedReplyOn: AllowedReplyOn });
+					GuildDatabase.update(message.guild, { AllowedReplyOn: AllowedReplyOn });
 					const embed = new discord.MessageEmbed()
 									.setColor('#eb3434')
 									.setDescription(`Successfully removed <#${target.id}> from the list.`);
@@ -110,10 +141,10 @@ module.exports = class Settings {
 	{
 		const SettingsObject = settings.unknown_replies;
 
-		const { userPass } = functions.PermissionsCheck(SettingsObject, message);
+		const { userPass } = Methods.PermissionsCheck(SettingsObject, message);
 		if (userPass === false) return message.channel.send(`**${message.member.displayName}**, you are lacking permissions to change this settings.`);
 
-		const source = await guildActions.guildGet(message.guild);
+		const source = await GuildDatabase.get(message.guild);
 		const AllowedReplyOn = source.AllowedReplyOn;
 		const FalseCMDReply = source.FalseCMDReply;
 
@@ -140,7 +171,7 @@ module.exports = class Settings {
 			}
 			else return message.channel.send('This setting is disabled globally.');
 		}
-		if (args.length)
+		else
 		{
 			switch (args[1])
 			{
@@ -164,7 +195,7 @@ module.exports = class Settings {
 					if (index > -1) return message.channel.send('The target channel already has this setting enabled.');
 					else FalseCMDReply.push(target.id);
 
-					guildActions.guildUpdate(message.guild, { FalseCMDReply: FalseCMDReply });
+					GuildDatabase.update(message.guild, { FalseCMDReply: FalseCMDReply });
 
 					const embed = new discord.MessageEmbed()
 									.setColor('#3aeb34')
@@ -193,7 +224,7 @@ module.exports = class Settings {
 						AllowedReplyOn.splice(index, 1);
 					} else return message.channel.send('This channel does not exist in my list.');
 
-					guildActions.guildUpdate(message.guild, { FalseCMDReply: FalseCMDReply });
+					GuildDatabase.update(message.guild, { FalseCMDReply: FalseCMDReply });
 					const embed = new discord.MessageEmbed()
 									.setColor('#eb3434')
 									.setDescription(`Successfully disabled unknown command replies in <#${target.id}>.`);
@@ -225,10 +256,10 @@ module.exports = class Settings {
 	{
 		const SettingsObject = settings.message_log;
 
-		const { userPass } = functions.PermissionsCheck(SettingsObject, message);
+		const { userPass } = Methods.PermissionsCheck(SettingsObject, message);
 		if (userPass === false) return message.channel.send(`**${message.member.displayName}**, you are lacking permissions to change this settings.`);
 
-		const data = await guildActions.guildGet(message.guild);
+		const data = await GuildDatabase.get(message.guild);
 		if (args[1] !== undefined) args[1] = args[1].toLowerCase();
 
 		if (!args.length || args.length < 1 || args[1] === 'info' || args[1] === 'status' || args[1] === null)
@@ -238,7 +269,7 @@ module.exports = class Settings {
 				channelID: data.MessageLogChannel,
 				logLimit: data.LogHoldLimit,
 			};
-			const embed = embeds.messageLog(null, info);
+			const embed = this.Embeds.messageLog(null, info);
 			return message.channel.send(embed.info);
 		}
 		else
@@ -248,7 +279,7 @@ module.exports = class Settings {
 				case 'enable':
 				{
 					if (data.MessageLogState === true) return message.channel.send('This setting is already enabled.');
-					guildActions.guildUpdate(message.guild, { MessageLogState: true });
+					GuildDatabase.update(message.guild, { MessageLogState: true });
 					const embed = new discord.MessageEmbed()
 										.setColor('#3aeb34')
 										.setDescription(`Successfully enabled this setting.`);
@@ -259,7 +290,7 @@ module.exports = class Settings {
 				case 'disable':
 				{
 					if (data.MessageLogState === false) return message.channel.send('This setting is already disabled.');
-					guildActions.guildUpdate(message.guild, { MessageLogState: false });
+					GuildDatabase.update(message.guild, { MessageLogState: false });
 					const embed = new discord.MessageEmbed()
 										.setColor('#757574')
 										.setDescription(`Successfully disabled this setting.`);
@@ -283,7 +314,7 @@ module.exports = class Settings {
 					if (!data.AllowedReplyOn.some(chID => chID === target.id)) return message.channel.send('Make sure I can send messages in that channel before you type this command.');
 					if (target.id === data.MessageLogChannel) return message.channel.send('Already using that channel.');
 
-					guildActions.guildUpdate(message.guild, { MessageLogChannel: target.id });
+					GuildDatabase.update(message.guild, { MessageLogChannel: target.id });
 					const embed = new discord.MessageEmbed()
 										.setColor('#eb3434')
 										.setDescription(`Successfully set <#${target.id}> as inform channel.`)
@@ -294,7 +325,7 @@ module.exports = class Settings {
 				}
 				case 'clear':
 				{
-					guildActions.guildUpdate(message.guild, { MessageLogChannel: null });
+					GuildDatabase.update(message.guild, { MessageLogChannel: null });
 					const embed = new discord.MessageEmbed()
 										.setColor('#757574')
 										.setDescription(`Successfully cleared inform channel.`);
@@ -306,7 +337,7 @@ module.exports = class Settings {
 					if (isNaN(args[2])) return message.channel.send('The limit specified must be a number.');
 					const amount = parseInt(args[2]);
 					if (amount < 1 || amount > 5) return message.channel.send('The limit specified must be between `1` and `5`.');
-					guildActions.guildUpdate(message.guild, { LogHoldLimit: amount });
+					GuildDatabase.update(message.guild, { LogHoldLimit: amount });
 
 					const embed = new discord.MessageEmbed()
 										.setColor('#3aeb34')
@@ -327,19 +358,19 @@ module.exports = class Settings {
 	{
 		const SettingsObject = settings.prefix;
 
-		const { userPass } = functions.PermissionsCheck(SettingsObject, message);
+		const { userPass } = Methods.PermissionsCheck(SettingsObject, message);
 		if (userPass === false) return message.channel.send(`**${message.member.displayName}**, you are lacking permissions to change this settings.`);
 
-		const source = await guildActions.guildGet(message.guild);
+		const source = await GuildDatabase.get(message.guild);
 		const prefix = source.prefix;
-		if (!args.length || args.length < 1)
+		if (!args.length || args.length < 2)
 		{
 			return message.channel.send(`The current prefix is \`${prefix}\``);
 		}
-		if (args.length)
+		if (args[1])
 		{
 			if (args[1].length > 3) return message.channel.send('The new prefix can not be longer than 3 characters. Please try again.');
-			guildActions.guildUpdate(message.guild, { prefix: args[1] });
+			GuildDatabase.update(message.guild, { prefix: args[1] });
 			return message.channel.send(`The prefix has been updated to \`${args[1]}\``);
 		}
 	}

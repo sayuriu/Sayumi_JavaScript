@@ -1,19 +1,17 @@
 {
-    "name": "master-explicit",
+    "name": "moderation",
     "files": [
-        "eval.js",
-        "logClear.js",
-        "master-explicit.json"
+        "moderation.json",
+        "prune.js"
     ],
     "subfolders": [],
     "parent": true,
     "parentName": "executables",
     "exe": [
-        "eval.js",
-        "logClear.js"
+        "prune.js"
     ],
     "unexec": 0,
     "empty": 0,
     "dev": 0,
-    "size": "3.3 kB"
+    "size": "1.2 kB"
 }

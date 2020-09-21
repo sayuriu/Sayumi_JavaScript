@@ -1,8 +1,4 @@
-const responses = require('../utils/responses.json');
-const Functions = require('../utils/Functions');
-const Logger = require('../utils/Logger');
-const functions = new Functions;
-const log = new Logger;
+const responses = require('../utils/json/responses.json');
 
 module.exports = {
 	name: 'ready',
@@ -11,9 +7,9 @@ module.exports = {
 	onEmit: (client) => {
 		setInterval(() => {
 			try {
-				client.user.setActivity(functions.Randomized(responses.statuses), { type: 'WATCHING' });
+				client.user.setActivity(client.Methods.Randomized(responses.statuses), { type: 'WATCHING' });
 			} catch (error) {
-				return log.error(`[Discord > ClientPresence] \n${error.message}`);
+				return client.Log.error(`[Discord > ClientPresence] \n${error.message}`);
 			}
 		}, 900000);
 	},

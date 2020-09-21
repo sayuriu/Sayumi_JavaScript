@@ -17,7 +17,7 @@ module.exports = {
 				FileSystem.writeFile('./logs/errors.log', '', (err) => {
 					if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
 				});
-				message.channel.send('Log cleared!').then(m => m.delete(3000));
+				message.channel.send('Log cleared!').then(m => m.delete({ timeout: 3000 }));
 				break;
 			}
 			case 'log':
@@ -25,7 +25,7 @@ module.exports = {
 				FileSystem.writeFile('./logs/log.log', '', (err) => {
 					if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
 				});
-				message.channel.send('Log cleared!').then(m => m.delete(3000));
+				message.channel.send('Log cleared!').then(m => m.delete({ timeout: 3000 }));
 				break;
 			}
 			default:
@@ -36,7 +36,7 @@ module.exports = {
 				FileSystem.writeFile('./logs/errors.log', '', (err) => {
 					if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
 				});
-				message.channel.send('Log cleared!').then(m => m.delete(3000));
+				message.channel.send('Log cleared!').then(m => m.delete({ timeout: 3000 }));
 				break;
 			}
 		}
