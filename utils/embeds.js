@@ -162,28 +162,66 @@ module.exports = class EmbedConstructor {
     }
 
     // NASA
+    /**
+     *
+     * @param {object?} res
+     * @param {object?} err
+     */
     nasa_apod(res, err)
     {
+        const props = require('./json/Props.json').nasa;
         let embed = 'n/a';
         let error = null;
+        let edited = null;
 
-        if (typeof res === 'object')
+        if (typeof res === 'object' && res !== null)
         {
-            embed = new MessageEmbed()
+            const { title, copyright, date: capturedDate, hdurl, media_type, url } = res;
+            if (media_type === 'image')
+            {
+                embed = new MessageEmbed()
                 .setColor("#0033FF")
-                .setTitle(res.title)
-                .setDescription(`*by* **${res.copyright}** || "Unknown"}**, on ${res.date}:\n \n${res.explanation} \n(Image link)[${res.hdurl}]`)
-                .setFooter('From NASA')
-                .setImage(res.hdurl);
+                .setTitle(title)
+                .setThumbnail(props.icon)
+                .setDescription(`[Image link](${hdurl} 'Full-resolution link of the image.')`)
+                .setImage(hdurl)
+                .setFooter(`${copyright || 'Unknown'} | ${capturedDate}\nReact to the emoji below to display image's description.`);
+
+                edited = embed.setFooter(`${copyright ? copyright : 'Unknown'} | ${capturedDate}\nThis message is now inactive.`);
+            }
+            else if (media_type === 'video')
+            {
+                const id = url.slice(30, 41);
+
+                embed = new MessageEmbed()
+                .setColor("#0033FF")
+                .setTitle(title)
+                .setThumbnail(props.icon)
+                .setDescription('Click on the title to wat')
+                .setImage(`https://img.youtube.com/vi/${id}/hqdefault.jpg`)
+                .setURL(url)
+                .setFooter(`${copyright ? copyright : 'Unknown'} | ${capturedDate}\nReact to the emoji below to display video's description.`);
+
+                edited = embed.setFooter(`${copyright} | ${capturedDate}\nThis message is now inactive.`);
+            }
         }
 
-        if (typeof err === 'object')
+        let errorShort;
+        if (typeof err === 'object' && err !== null)
         {
+            const { status, statusText, code, message } = err;
             error = new MessageEmbed()
                 .setColor('red')
                 .setTitle('Error')
-                .setDescription(`*Encountered an error of code [${err.code}]:* \n${err.message}`);
+                .setDescription(`*Encountered an error of code \`[${code}]\`:* \n${message}`)
+                .setFooter(`${status}: ${statusText}`);
+
+            // If short request
+            errorShort = new MessageEmbed()
+                    .setColor('red')
+                    .setTitle('Error')
+                    .setDescription(`Request errored: code \`${status}: ${statusText}\``);
         }
-        return { response: embed, error: error };
+        return { response: embed, edited: edited, error: error, errorShort: errorShort };
     }
 };

@@ -6,13 +6,15 @@ const Database = require('./utils/Database');
 const GlobalFunctions = require('./utils/Methods');
 const GuildDatabase = require('./utils/Database/Methods/guildActions');
 
+const Props = require('./utils/json/Props.json');
+
 require('dotenv').config();
 
 module.exports = {
 	/** The host for Discord client.
 	 * @param {object} data Must contain the client object and token.
 	*/
-	ClientActions: Client,
+	Client: Client,
 	/**
 	 * Provides basic actions and connections to MongoDB.
 	 * @param {object} data [Object] Contains `local (boolean)`, `username`, and `password`.
@@ -48,4 +50,6 @@ module.exports = {
 		nasa: process.env.nasaAPI,
 		youtube: process.env.youtubeAPI,
 	},
+
+	Props: Props,
 };
