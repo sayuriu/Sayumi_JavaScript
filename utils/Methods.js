@@ -1,5 +1,5 @@
 const FileSystem = require('fs');
-const responses = require('./json/responses.json');
+const responses = require('./json/Responses.json');
 const logger = new (require('./Logger'));
 const chalk = require('chalk');
 require('dotenv').config();

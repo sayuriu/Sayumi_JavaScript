@@ -1,5 +1,5 @@
 const discord = require('discord.js');
-const responses = require('../../utils/json/responses.json');
+const responses = require('../../utils/json/Responses.json');
 const DefaultSettings = require('../../utils/json/DefaultGlobalSettings.json');
 require('dotenv').config();
 const { master } = process.env;
