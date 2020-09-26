@@ -1,4 +1,4 @@
-const responses = require('../utils/json/responses.json');
+const responses = require('../utils/json/Responses.json');
 
 module.exports = {
 	name: 'ready',

@@ -378,7 +378,7 @@ module.exports = class Loader {
     BindCategory(client)
     {
         const groupArray = [];
-        const object = require('./json/categories.json');
+        const object = require('./json/Categories.json');
         const discord = require('discord.js');
         client.CategoryCompare = new discord.Collection();
 

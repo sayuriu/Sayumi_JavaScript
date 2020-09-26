@@ -37,9 +37,9 @@ module.exports = {
 	GuildDatabase: new GuildDatabase,
 
 	// Database side
-	local: true,
-	dbUsername: process.env.dbUsername,
-	dbPassword: process.env.dbPassword,
+	local: false,
+	dbUsername: process.env.databaseUsername,
+	dbPassword: process.env.databasePassword,
 
 	token: process.env.TOKEN,
 	master: process.env.master,

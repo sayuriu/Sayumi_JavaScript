@@ -1,6 +1,9 @@
 const db = require('mongoose');
 const log = new (require('./Logger'));
 
+let failedOnline = false;
+let failedLocal = false;
+
 /**
  * Provides basic actions and connections to MongoDB.
  * @param {object} data [Object] Contains `local (boolean)`, `username`, and `password`.
@@ -13,6 +16,12 @@ module.exports = class Database {
 		/** Initiates the connection. */
 		this.Init = () => {
 			this.Connect(local, username, password);
+		};
+
+		/** If failed to connect, use local. */
+		this.onRefusedConnection = (fail) =>
+		{
+			if (fail) return this.Connect(true);
 		};
 	}
 
@@ -52,9 +61,6 @@ module.exports = class Database {
 	 */
 	HandleConnection(connection, local, username)
 	{
-		const password = this.password;
-		let failedOnline = false;
-
 		if (local)
 		{
 			connection.once('open', () => {
@@ -72,8 +78,15 @@ module.exports = class Database {
 			connection.on('error', error => {
 				log.error(`[Remote Database > mongoDB] A connection error has occured: \n"${error.message}"`);
 				log.carrier('status: 500', 'This will use localhost instead.');
+
+				if (failedOnline) return this.onRefusedConnection(true);
 				failedOnline = true;
-				this.Init(true);
+
+				if (local && failedLocal) return;
+				if (local) log.warn('[Local Database] Failed to connect to localhost. Incoming connection errors will be ignored.');
+				failedLocal = true;
+
+				return this.Init();
 			});
 		}
 		connection.on('disconnected', () => {
