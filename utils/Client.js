@@ -1,6 +1,7 @@
 // Shorten stage of requiring class
 const loader = new (require('./Loader'));
 const log = new (require('./Logger'));
+const http = require('http');
 
 /**
  * Yes.
@@ -8,13 +9,14 @@ const log = new (require('./Logger'));
 module.exports = class Sayuri {
     constructor(data)
     {
-        const { client, token } = data;
+        const { client, token, App: app } = data;
         /** Initiates this client instance. */
         this.Init = () => {
             this.Login(client, token);
             this.EventListener(client);
             this.CommandInit(client);
             this.HandleProcessErrors();
+            this.KeepAlive(app);
         };
     }
 
@@ -64,5 +66,17 @@ module.exports = class Sayuri {
         process.on('exit', code => {
             log.carrier(`status: ${code}`, `Process instance has exited with code ${code}.`);
         });
+    }
+
+    KeepAlive(app)
+    {
+        app.Express.get('/', (req, res) => {
+            res.sendStatus(200);
+        });
+        app.Express.listen(process.env.PORT || 3000);
+        setInterval(() => {
+            http.get(`${process.env.PROJECT_DOMAIN}.glitch.me`);
+            // http.get(app.link);
+        }, 280000);
     }
 };

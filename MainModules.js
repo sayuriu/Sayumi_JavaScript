@@ -1,4 +1,5 @@
 const { Collection } = require('discord.js');
+const express = require('express');
 const Client = require("./utils/Client");
 const EmbedConstructor = require("./utils/Embeds");
 const Logger = require('./utils/Logger');
@@ -51,5 +52,9 @@ module.exports = {
 		youtube: process.env.youtubeAPI,
 	},
 
+	App: {
+		Express: express(),
+		link: process.env.ProjLink,
+	},
 	Props: Props,
 };
