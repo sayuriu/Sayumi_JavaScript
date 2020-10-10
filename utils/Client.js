@@ -1,5 +1,5 @@
 // Shorten stage of requiring class
-const loader = new (require('./Loader'));
+const loader = require('./Loader');
 const log = new (require('./Logger'));
 const http = require('http');
 
@@ -16,7 +16,7 @@ module.exports = class Sayuri {
             this.EventListener(client);
             this.CommandInit(client);
             this.HandleProcessErrors();
-            this.KeepAlive(app);
+            this.KeepAlive(app, true);
         };
     }
 
@@ -40,7 +40,8 @@ module.exports = class Sayuri {
     {
         if (!client) throw new ReferenceError('[Sayuri > Client] Did you pass the client yet?');
         if (typeof client !== 'object') throw new TypeError('[Sayuri > Client] The client is not an object.');
-        loader.EventLoader('events', client, '../');
+        const request = { type: 'events', client: client, root: '../' };
+        new loader(request).LoadEvents();
     }
 
     /**
@@ -51,7 +52,8 @@ module.exports = class Sayuri {
     {
         if (!client) throw new ReferenceError('[Sayuri > Client] Did you pass the client yet?');
         if (typeof client !== 'object') throw new TypeError('[Sayuri > Client] The client is not an object.');
-        loader.ExeLoader('executables', client, '../');
+        const request = { type: 'executables', client: client, root: '../' };
+        new loader(request).LoadCommands();
     }
 
     /** This is for handing some additional runtime errors and events. */
@@ -68,15 +70,15 @@ module.exports = class Sayuri {
         });
     }
 
-    KeepAlive(app)
+    KeepAlive(app, thisHost)
     {
         app.Express.get('/', (req, res) => {
             res.sendStatus(200);
         });
         app.Express.listen(process.env.PORT || 3000);
         setInterval(() => {
-            http.get(`${process.env.PROJECT_DOMAIN}.glitch.me`);
-            // http.get(app.link);
+            if (thisHost) http.get(app.link);
+            else http.get(`${process.env.PROJECT_DOMAIN}.glitch.me`);
         }, 280000);
     }
 };

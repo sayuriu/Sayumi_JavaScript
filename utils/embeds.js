@@ -224,4 +224,23 @@ module.exports = class EmbedConstructor {
         }
         return { response: embed, edited: edited, error: error, errorShort: errorShort };
     }
+
+    serverInfo(server)
+    {
+        const regions = new (require('./json/Regions.json'));
+
+        const embed = new MessageEmbed()
+        .setTitle(server.name)
+        .setColor("RANDOM")
+        .setThumbnail(server.iconURL)
+        .setDescription(`*GID: ${server.id}, region ${regions[server.region]}*`)
+        .addField('Onwer', server.owner)
+        .addField()
+        .addField()
+        .addField()
+        .addField()
+        .addField()
+        .addField()
+        .setFooter();
+    }
 };

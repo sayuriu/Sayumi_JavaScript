@@ -1,7 +1,23 @@
 const FileSystem = require('fs');
 const Path = require('path');
 
+/**
+ * @param options
+ */
 module.exports = class Loader {
+    constructor(options)
+    {
+        // if (typeof options === 'object') throw new Error('[Loader] The options must be an object.');
+
+        if (!options.root || options.root === null) options.root = './';
+        if (options.root === '..') options.root = '../';
+
+       this.Validate(options);
+
+       const { client, type, root } = options;
+       this.LoadEvents = () => this.EventLoader(type, client, root);
+       this.LoadCommands = () => this.ExeLoader(type, client, root);
+    }
 
     /** Loads the executable from specified directory and pass onto the `client` object.
      * @param {string} pathName The name of the folder that you wanna scan.
@@ -16,7 +32,6 @@ module.exports = class Loader {
         if (subfolder === undefined || subfolder === null) subfolder = false;
         if (typeof subfolder !== 'boolean') throw new Error('[CommandLoader] The last parameter if specified must a boolean.');
         const AliasesArray = [];
-        if (!Root || Root === null) Root = './';
         const hostFolder = {
             name: pathName,
             files: [],
@@ -28,7 +43,6 @@ module.exports = class Loader {
             dev: 0,
             size: 'n/a',
         };
-        if (Root === '..') Root = '../';
         if (typeof pathName !== 'string' || typeof Root !== 'string') throw new Error('[CommandLoader] pathName or Root provided is not a string.');
         const { files, folders } = hostFolder;
 
@@ -136,7 +150,6 @@ module.exports = class Loader {
         client.Log.carrier('status: SCAN', `[Loader] Checking "${pathName}"...`);
         if (subfolder === undefined || subfolder === null) subfolder = false;
         if (typeof subfolder !== 'boolean') throw new Error('[CommandLoader] The last parameter if specified must a boolean.');
-        if (!Root || Root === null) Root = './';
         const hostFolder = {
             name: pathName,
             files: [],
@@ -147,7 +160,6 @@ module.exports = class Loader {
             empty: 0,
             size: 'n/a',
         };
-        if (Root === '..') Root = '../';
         if (typeof pathName !== 'string' || typeof Root !== 'string') throw new Error('[EventLoader] pathName or Root provided is not a string.');
         const { files, folders } = hostFolder;
 
@@ -461,5 +473,13 @@ module.exports = class Loader {
         });
 
         FileSystem.writeFileSync('./utils/json/Categories.json', JSON.stringify(object, null, 4));
+    }
+
+    Validate(data)
+    {
+        const { client, type, root: folder } = data;
+        if (typeof type !== 'string') throw new Error('[Loader] type: The type specified is not a string.');
+        if (typeof client !== 'object') throw new Error('[Loader] client: The client specified is not an object.');
+        if (typeof folder !== 'string') throw new Error('[Loader] folder: The directory specified is not a string.');
     }
 };

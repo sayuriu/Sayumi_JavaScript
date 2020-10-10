@@ -35,16 +35,16 @@ module.exports = {
 				const embed = client.Embeds.nasa_apod(data, null).response;
 
 				message.channel.send(embed).then(async m => {
-					m.react('🌎');
+					await m.react('🌎');
 					await m.awaitReactions(filter, { max: 1, time: 45000, errors: ['time'] })
-						.then(received => {
-							const reaction = received.first();
+						.then(async received => {
+							const reaction = await received.first();
 							if (reaction)
 							{
 								const edited = client.Embeds.nasa_apod(data, null).response;
 								if (data.media_type === 'image') edited.setDescription(`*${data.explanation}*\n\n[Image link](${data.hdurl} 'Full-resolution link of the image.')`);
 								else if (data.media_type === 'video') edited.setDescription(`*${data.explanation}*`);
-								m.edit(edited);
+								await m.edit(edited);
 							}
 						})
 						.catch(i => {
