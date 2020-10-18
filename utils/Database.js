@@ -1,5 +1,5 @@
 const db = require('mongoose');
-const log = new (require('./Logger'));
+const log = require('./Logger');
 let failedOnline = false;
 let failedLocal = false;
 

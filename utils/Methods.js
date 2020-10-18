@@ -1,6 +1,6 @@
 const FileSystem = require('fs');
 const responses = require('./json/Responses.json');
-const logger = new (require('./Logger'));
+const logger = require('./Logger');
 const chalk = require('chalk');
 require('dotenv').config();
 
@@ -8,7 +8,7 @@ module.exports = class Methods  {
 
     // Some methods are dedicated to a specific command or class, but here you go.
 
-    ArrayEqualityCheck(Array1, Array2)
+    static ArrayEqualityCheck(Array1, Array2)
     {
         if (!Array.isArray(Array1) || !Array.isArray(Array2) || Array1.length !== Array2.length)
         return false;
@@ -25,7 +25,7 @@ module.exports = class Methods  {
         return true;
     }
 
-    ArrayOrString(input)
+    static ArrayOrString(input)
     {
         if (Array.isArray(input))
         {
@@ -40,7 +40,7 @@ module.exports = class Methods  {
         else return { output: input, boolean: false };
     }
 
-    channelCheck(channel)
+    static channelCheck(channel)
     {
         if (channel.type === 'dm') return 'In DM';
         else
@@ -60,7 +60,7 @@ module.exports = class Methods  {
         }
     }
 
-    clean(string)
+    static clean(string)
     {
         if (typeof (string) === "string") return string.replace(/`/g, "`" + String.fromCharCode(8203)).replace(/@/g, "@" + String.fromCharCode(8203));
         else return string;
@@ -69,7 +69,7 @@ module.exports = class Methods  {
     /** Returns a file / folder's size.
      * @param {number} bytes
      */
-    convertBytes(bytes)
+    static convertBytes(bytes)
     {
         const sizes = ["Bytes", "kB", "MB", "GB", "TB"];
 
@@ -92,7 +92,7 @@ module.exports = class Methods  {
      * @param {string | number} year
      * @see procedure `Functions.DateTime` (Function.js)
      */
-    convertDate(date, month, year)
+    static convertDate(date, month, year)
     {
         if (
             typeof (date, month, year) !== 'string' &&
@@ -106,7 +106,7 @@ module.exports = class Methods  {
         return `${month}${date}${year.substr(2, 2)}`;
     }
 
-    CompareObjects(target, source)
+    static CompareObjects(target, source)
     {
         if (typeof target !== 'object') throw new TypeError('[Global Functions > Object Comparison] The target must be an object.');
         if (typeof source !== 'object') throw new TypeError('[Global Functions > Object Comparison] The source must be an object.');
@@ -125,7 +125,7 @@ module.exports = class Methods  {
      * @param {string} type The type of data you want to inspect. For Discord, it's reduced to commands, events and database models. This will be added more in the future.
      * @see method `Loader.ExeLoader` and `Loader.EventLoader` (Loader.js)
      */
-    Counter(dirObject, type)
+    static Counter(dirObject, type)
     {
         if (typeof dirObject !== 'object') return logger.error('[Global Functions > File Counter] Directory given is not an object.');
         if (typeof type !== 'string') return logger.error('[Global Functions > File Counter] The type specified is not a string.');
@@ -247,7 +247,7 @@ module.exports = class Methods  {
      * @param {array?} WarnArray (optional) The array used for warn logs. `null` if not specified.
      * @param {string?} type The type of data you want to filter. `item` if not specified.
      */
-    duplicationCheck(array, type, WarnArray)
+    static duplicationCheck(array, type, WarnArray)
     {
         if (!WarnArray || WarnArray === undefined) WarnArray = null;
         if (!type || type === undefined) type = 'Item';
@@ -281,7 +281,7 @@ module.exports = class Methods  {
     }
 
     /** Returns a time object. */
-    DateTime()
+    static DateTime()
     {
         const date = new Date();
         const time = date.toTimeString();
@@ -302,7 +302,7 @@ module.exports = class Methods  {
     /** Convert the timestamp to human-readable time.
      * @param {number} timestamp
     */
-    TimestampToTime(timestamp)
+   static TimestampToTime(timestamp)
     {
         if (typeof timestamp !== 'number') throw new TypeError('The input must be a number.');
         if (timestamp > Date.now()) throw new RangeError('The timestamp must be smaller than present.');
@@ -316,7 +316,24 @@ module.exports = class Methods  {
         return { hour: hours, minute: minutes, second: seconds };
     }
 
-    EscapeRegExp(string)
+    static daysAgo(date) {
+        const diff = (new Date()).getTime() - date.getTime();
+        const days = Math.floor(diff / 86400000);
+
+        const yearsRaw = days / 365.25;
+        const years = Math.floor(days / 365.25);
+        const month = Math.floor(12 * (yearsRaw - years));
+        const day = Math.floor(days - 365.25 * years);
+
+        let output;
+
+        if (years > 0) output += years + `year${years > 1 ? 's' : ''}`;
+        if (month > 6) output += 'a half';
+
+        return { daysRaw: days, years: years, month: month, day: day };
+    }
+
+    static EscapeRegExp(string)
     {
         return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&');
     }
@@ -324,7 +341,7 @@ module.exports = class Methods  {
     /** (ecessive method) Gets a file's last extension.
      * @param {string} filename The file's name.
      */
-    getExtension(filename)
+    static getExtension(filename)
     {
         if (typeof filename !== 'string') throw new TypeError('The filename is not a string.');
         const i = filename.lastIndexOf('.');
@@ -334,7 +351,7 @@ module.exports = class Methods  {
     /** Loads all files from target directory and returns them in array.
      * @param {string} path The directory you need to scan.
      */
-    getAllFiles(path)
+    static getAllFiles(path)
     {
         const Path = require('path');
         const files = FileSystem.readdirSync(path);
@@ -356,7 +373,7 @@ module.exports = class Methods  {
     /** Calculates total file sizes from a given array of file paths.
      * @param {string} path The directory you need to scan.
      */
-    getTotalSize(path)
+    static getTotalSize(path)
     {
         const arrayOfFiles = this.getAllFiles(path);
 
@@ -372,7 +389,7 @@ module.exports = class Methods  {
     /** (miscellaneous method) Used for logging.
      * @param {array} stringArray The array to pass in.
      */
-    joinArrayString(stringArray)
+    static joinArrayString(stringArray)
     {
         if (stringArray === null || stringArray === undefined) return false;
         if (stringArray.length < 1) return logger.warn('ArrayString has no item.');
@@ -386,7 +403,7 @@ module.exports = class Methods  {
     }
 
     /** (miscellaneous method) Greets you in the terminal everytime you boot the program. */
-    Greetings()
+    static Greetings()
     {
         const greetings = responses.greetings;
         const { hrs, min, sec } = this.DateTime();
@@ -432,7 +449,7 @@ module.exports = class Methods  {
      * @param {object} TargetCommand The command to be executed
      * @param {object} message The message object.
      */
-    PermissionsCheck(TargetCommand, message)
+    static PermissionsCheck(TargetCommand, message)
     {
         let uConfirm = true;
         let meConfirm = true;
@@ -464,7 +481,7 @@ module.exports = class Methods  {
     /** A method that returns an element of the array by random.
      * @param input The array to pass in.
      */
-    Randomized(input)
+    static Randomized(input)
     {
         if (!input) return logger.error('[Global Functions > Responses] The input is undefined!');
         if (!input.length || input.length < 1) return logger.error(`[Global Functions > Responses] ${this.Randomized(responses.errors.functions_responses)}`);
@@ -472,7 +489,7 @@ module.exports = class Methods  {
         return output;
     }
 
-    ShiftToLast(array, callback)
+    static ShiftToLast(array, callback)
     {
         return array =  array.push(array.splice(array.findIndex(callback), 1)[0]);
     }
@@ -483,7 +500,7 @@ module.exports = class Methods  {
      * @param {string?} patchNumber Patch number of the update. If `updateCode` is `0` then this parameter is not being used.
      * @param {boolean?} pushOnMinor Decides whether should you push the update onto the Minor section per 1000 patches.
      */
-    UpdatePush(path, updateCode, patchNumber, pushOnMinor)
+    static UpdatePush(path, updateCode, patchNumber, pushOnMinor)
     {
         const Package = require(path);
         if (pushOnMinor === null || pushOnMinor === undefined) pushOnMinor = false;

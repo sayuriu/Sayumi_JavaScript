@@ -32,13 +32,13 @@ module.exports = {
 	AFKUsers: new Collection(),
 	Timestamps: new Collection(),
 
-	Embeds: new EmbedConstructor,
-	Methods: new GlobalFunctions,
-	Log: new Logger,
-	GuildDatabase: new GuildDatabase,
+	Embeds:  EmbedConstructor,
+	Methods: GlobalFunctions,
+	Log: Logger,
+	GuildDatabase: GuildDatabase,
 
 	// Database side
-	local: false,
+	local: true,
 	dbUsername: process.env.databaseUsername,
 	dbPassword: process.env.databasePassword,
 

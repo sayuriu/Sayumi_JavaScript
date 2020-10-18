@@ -1,11 +1,11 @@
 const GuildSchema = require('../Models/guild');
 const Database = require('mongoose');
 const DefaultSettings = require('../../../utils/json/DefaultGlobalSettings.json');
-const log = new (require('../../Logger'));
+const log = require('../../Logger');
 
 module.exports = class GuildDatabase {
 
-	async add(guild)
+	static async add(guild)
 	{
 		const GuildObject = {
 			_id: Database.Types.ObjectId(),
@@ -19,7 +19,7 @@ module.exports = class GuildDatabase {
 		});
 	}
 
-	async delete(guild)
+	static async delete(guild)
 	{
 		try {
 			await GuildSchema.findOneAndDelete({ guildID: guild.id });
@@ -28,7 +28,7 @@ module.exports = class GuildDatabase {
 		}
 	}
 
-	async get(guild)
+	static async get(guild)
 	{
 		const data = await GuildSchema.findOne({ guildID: guild.id });
 		if (data) return data;
@@ -39,7 +39,7 @@ module.exports = class GuildDatabase {
 		}
 	}
 
-	async update(guild, settings)
+	static async update(guild, settings)
 	{
 		if (typeof settings !== 'object') return log.error('[Guild Update] The setting passed in is not an object.');
 		const data = await this.get(guild);

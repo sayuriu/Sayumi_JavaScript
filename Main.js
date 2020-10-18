@@ -11,3 +11,9 @@ const Sayuri = Object.assign(new Client(), modules);
 new Sayuri.Database(Sayuri).Init();
 new Sayuri.Client(Object.assign(Sayuri, { client: Sayuri })).Init();
 // #endregion
+
+// TODO: Add static methods.
+
+Sayuri.on('message', message => {
+	message.guild.channels.cache.filter
+})

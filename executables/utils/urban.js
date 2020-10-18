@@ -1,5 +1,4 @@
-const embeds = new (require('../../utils/Embeds'));
-const discord = require('discord.js');
+const { MessageEmbed } = require('discord.js');
 const fetch = require('node-fetch');
 
 module.exports = {
@@ -24,7 +23,7 @@ module.exports = {
             const jsonResponse = await response.json();
             const res = jsonResponse.list[0];
             if (!res) return message.channel.send("No result found.");
-            const embed = new discord.MessageEmbed()
+            const embed = new MessageEmbed()
                 .setColor('RANDOM')
                 .setTitle(`${res.word}`)
                 .setDescription(`Written by ${res.author || "unknown"}\n[Permalink](${res.permalink})`)

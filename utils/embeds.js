@@ -1,9 +1,9 @@
 const { MessageEmbed } = require('discord.js');
-const methods = new (require('./Methods'));
+const Methods = require('./Methods');
 
-const { date, month, year } = methods.DateTime();
-const currentDate = methods.convertDate(date, month, year);
-const channelCheck = methods.channelCheck;
+const { date, month, year } = Methods.DateTime();
+const currentDate = Methods.convertDate(date, month, year);
+const channelCheck = Methods.channelCheck;
 
 module.exports = class EmbedConstructor {
     /**
@@ -13,7 +13,7 @@ module.exports = class EmbedConstructor {
      * @param {number} versionNumber The current version of this unit.
      * @param {number?} updateCode  `0: major | 1: minor | 2: patches`
      */
-    update(header, message)
+    static update(header, message)
     {
         const ver = require('../package.json').version;
         const updateReport = new MessageEmbed()
@@ -25,7 +25,7 @@ module.exports = class EmbedConstructor {
         return updateReport;
     }
 
-    bugReport(user, message)
+    static bugReport(user, message)
     {
         const bugReport = new MessageEmbed()
                                     .setTitle('Bug Reports')
@@ -36,7 +36,7 @@ module.exports = class EmbedConstructor {
         return bugReport;
     }
 
-    error(message, errorMsg)
+    static error(message, errorMsg)
     {
         const res = channelCheck(message.channel);
         if (errorMsg === null) errorMsg = 'null';
@@ -50,7 +50,7 @@ module.exports = class EmbedConstructor {
     }
 
     // Moderation
-    ban(message, target, duration, reason)
+    static ban(message, target, duration, reason)
     {
         const banReport = new MessageEmbed()
                                      .setTitle(`${target.tag} has been banned.`)
@@ -69,7 +69,7 @@ module.exports = class EmbedConstructor {
         return ban;
     }
 
-    kick(message, target, reason)
+    static kick(message, target, reason)
     {
         const kickReport = new MessageEmbed()
                                      .setTitle(`${target.tag} \`UserID :${target.id}\` has been kicked.`)
@@ -88,7 +88,7 @@ module.exports = class EmbedConstructor {
         return kick;
     }
 
-    mute(message, target, duration, reason)
+    static mute(message, target, duration, reason)
     {
         const muteReport = new MessageEmbed()
                                     .setTitle(`${target.tag} has been muted.`)
@@ -108,7 +108,7 @@ module.exports = class EmbedConstructor {
     }
 
     // Utilities
-    messageLog(message, object, oldMsg, newMsg)
+    static messageLog(message, object, oldMsg, newMsg)
     {
         if (message === null) message = {
             author: {
@@ -136,7 +136,7 @@ module.exports = class EmbedConstructor {
             },
             content: 'n/a',
         };
-        if (message.embeds.length > 0) message.content = 'type EMBED';
+        if (message.embeds) message.content = 'type EMBED';
         const info = new MessageEmbed()
                             .setColor('#ded181')
                             .setDescription(`Status: ${object.status ? `Enabled\n Inform channel: ${object.channelID === null || object.channelID === '' ? 'None' : `<#${object.channelID}>`}` : 'Disabled'} \nLog limit per user: \`${object.logLimit}\` (This can't be disabled)`)
@@ -167,7 +167,7 @@ module.exports = class EmbedConstructor {
      * @param {object?} res
      * @param {object?} err
      */
-    nasa_apod(res, err)
+    static nasa_apod(res, err)
     {
         const props = require('./json/Props.json').nasa;
         let embed = 'n/a';
@@ -225,22 +225,40 @@ module.exports = class EmbedConstructor {
         return { response: embed, edited: edited, error: error, errorShort: errorShort };
     }
 
-    serverInfo(server)
+    static async serverInfo(message)
     {
-        const regions = new (require('./json/Regions.json'));
+        const regions = require('./json/Regions.json');
+        const verifLevels = require('./json/VerifLevels.json');
 
-        const embed = new MessageEmbed()
-        .setTitle(server.name)
-        .setColor("RANDOM")
-        .setThumbnail(server.iconURL)
-        .setDescription(`*GID: ${server.id}, region ${regions[server.region]}*`)
-        .addField('Onwer', server.owner)
-        .addField()
-        .addField()
-        .addField()
-        .addField()
-        .addField()
-        .addField()
-        .setFooter();
+        const server = message.guild;
+
+        const onlineCount = await server.members.fetch().then(members => { return members.filter(member => member.presence.status === 'online'); });
+        const vcCount = server.channels.cache.filter(channel => channel.type === 'voice').size;
+
+        const verifLevel = verifLevels[server.verificationLevel];
+        const joinDate = message.member.joinedAt.toUTCString().substr(0, 16);
+
+        const memberCount = server.members.cache.size;
+        const humanCount = server.members.cache.filter(member => !member.user.bot).size;
+        const botCount = server.members.cache.filter(member => member.user.bot).size;
+
+        const channelCount = server.channels.cache.size;
+        const rolesCount = server.roles.cache.size;
+
+        const createdAt = server.createdAt;
+
+        return new MessageEmbed()
+            .setTitle(server.name)
+            .setColor("RANDOM")
+            .setThumbnail(server.iconURL)
+            .setDescription(`*GID: ${server.id}, region ${regions[server.region]}*`)
+            .addField('Owner', server.owner)
+            .addField('Verification level', verifLevel, true)
+            .addField('Your join date', joinDate, true)
+            .addField("Amount of dwellers", `\`All: ${memberCount} | Humans: ${humanCount} (${onlineCount.size} online) | Bots: ${botCount}\``)
+            .addField('Channel count', `\`All: ${channelCount} | Text: ${channelCount - vcCount} | Voice: ${vcCount}\``, true)
+            .addField('Roles count', rolesCount, true)
+            .setFooter(`Created date: ${createdAt.toUTCString().substr(0, 16)} (${Methods.daysAgo(createdAt)})`);
+        // });
     }
 };

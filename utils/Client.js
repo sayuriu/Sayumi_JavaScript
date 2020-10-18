@@ -1,6 +1,6 @@
 // Shorten stage of requiring class
 const loader = require('./Loader');
-const log = new (require('./Logger'));
+const log = require('./Logger');
 const http = require('http');
 
 /**

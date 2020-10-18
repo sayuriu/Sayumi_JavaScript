@@ -1,5 +1,4 @@
-const guildActions = new (require('../../utils/Database/Methods/guildActions'));
-const settings = new (require('../../utils/GuildSettings'));
+const settings = require('../../utils/GuildSettings');
 const discord = require('discord.js');
 
 module.exports = {

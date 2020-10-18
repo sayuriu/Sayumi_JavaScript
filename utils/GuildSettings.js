@@ -5,7 +5,7 @@ const { Methods, GuildDatabase } = require('../MainModules');
 
 module.exports = class Settings {
 
-	async AFKUsers(message, args)
+	static async AFKUsers(message, args)
 	{
 		const SettingsObject = settings.afk_users;
 
@@ -39,7 +39,7 @@ module.exports = class Settings {
 		}
 	}
 
-	async AllowReplyConfig(message, args)
+	static async AllowReplyConfig(message, args)
 	{
 		const SettingsObject = settings.active_channels;
 
@@ -137,7 +137,7 @@ module.exports = class Settings {
 		}
 	}
 
-	async UnknownCMDReply(message, args)
+	static async UnknownCMDReply(message, args)
 	{
 		const SettingsObject = settings.unknown_replies;
 
@@ -252,7 +252,7 @@ module.exports = class Settings {
 		}
 	}
 
-	async MessageLog(message, args)
+	static async MessageLog(message, args)
 	{
 		const SettingsObject = settings.message_log;
 
@@ -354,7 +354,7 @@ module.exports = class Settings {
 		}
 	}
 
-	async Prefix(message, args)
+	static async Prefix(message, args)
 	{
 		const SettingsObject = settings.prefix;
 

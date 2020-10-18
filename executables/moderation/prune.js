@@ -1,4 +1,4 @@
-const log = new (require('../../utils/Logger'));
+const log = (require('../../utils/Logger'));
 
 module.exports = {
 	name: "prune",

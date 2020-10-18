@@ -25,18 +25,20 @@
             "name": "infomation-requesting",
             "files": [
                 "help.js",
-                "infomation-requesting.json"
+                "infomation-requesting.json",
+                "server.js"
             ],
             "subfolders": [],
             "parent": true,
             "parentName": "executables",
             "exe": [
-                "help.js (dev)"
+                "help.js (dev)",
+                "server.js (dev)"
             ],
-            "unexec": 1,
+            "unexec": 2,
             "empty": 0,
-            "dev": 1,
-            "size": "10.6 kB"
+            "dev": 2,
+            "size": "10.9 kB"
         },
         {
             "name": "master-explicit",
@@ -108,7 +110,7 @@
             "unexec": 1,
             "empty": 0,
             "dev": 1,
-            "size": "4.2 kB"
+            "size": "4.1 kB"
         },
         {
             "name": "utils",
@@ -137,7 +139,7 @@
             "unexec": 4,
             "empty": 0,
             "dev": 4,
-            "size": "8.7 kB"
+            "size": "8.6 kB"
         }
     ],
     "parent": false,
@@ -145,5 +147,5 @@
     "unexec": 0,
     "empty": 0,
     "dev": 0,
-    "size": "8.7 kB"
+    "size": "8.6 kB"
 }

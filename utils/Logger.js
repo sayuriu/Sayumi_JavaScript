@@ -5,28 +5,28 @@ module.exports = class Logger {
 	/** Inform time!
 	 * @param {string} message The message to pass in.
 	 */
-	info(message)
+	static info(message)
     {
         return this.carrier('info', message);
 	}
 	/** Gives out a warning.
 	 * @param {string} message The message to pass in.
 	 */
-    warn(message)
+    static warn(message)
     {
         return this.carrier('warn', message);
 	}
 	/** Push out an error when something goes wrong.
 	 * @param {string} message The message to pass in.
 	 */
-	error(message)
+	static error(message)
 	{
 		return this.carrier('error', message);
 	}
 	/** If you need to debug...
 	 * @param {string} message The message to pass in.
 	 */
-	debug(message)
+	static debug(message)
 	{
 		return this.carrier('debug', message);
 	}
@@ -36,12 +36,12 @@ module.exports = class Logger {
      * @param {string} logLevel The level of the log. `info | warn | error | debug | verbose | silly`. `status: StatusMessage` by default won't log to file.
      * @param {string} logMessage The message to pass in.
      */
-    carrier(logLevel, logMessage)
+    static carrier(logLevel, logMessage)
     {
         const Winston = require('winston');
         const chalk = require('chalk');
         const FileSystem = require('fs');
-        const methods = new (require('./Methods'));
+        const methods = (require('./Methods'));
         const logDir = `${__dirname}/../logs/`;
         let obj;
 
