@@ -246,6 +246,7 @@ module.exports = class EmbedConstructor {
         const rolesCount = server.roles.cache.size;
 
         const createdAt = server.createdAt;
+        const timeBefore = Methods.daysAgo(createdAt).message;
 
         return new MessageEmbed()
             .setTitle(server.name)
@@ -257,8 +258,8 @@ module.exports = class EmbedConstructor {
             .addField('Your join date', joinDate, true)
             .addField("Amount of dwellers", `\`All: ${memberCount} | Humans: ${humanCount} (${onlineCount.size} online) | Bots: ${botCount}\``)
             .addField('Channel count', `\`All: ${channelCount} | Text: ${channelCount - vcCount} | Voice: ${vcCount}\``, true)
-            .addField('Roles count', rolesCount, true)
-            .setFooter(`Created date: ${createdAt.toUTCString().substr(0, 16)} (${Methods.daysAgo(createdAt)})`);
+            .addField('Roles count', `\`${rolesCount}\``, true)
+            .setFooter(`Created date: ${createdAt.toUTCString().substr(0, 16)} (Around ${timeBefore} ago)`);
         // });
     }
 };
