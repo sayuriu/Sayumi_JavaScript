@@ -3,17 +3,19 @@
     "files": [
         "help.js",
         "infomation-requesting.json",
-        "server.js"
+        "server.js",
+        "whois.js"
     ],
     "subfolders": [],
     "parent": true,
     "parentName": "executables",
     "exe": [
         "help.js (dev)",
-        "server.js (dev)"
+        "server.js (dev)",
+        "whois.js (dev)"
     ],
-    "unexec": 2,
+    "unexec": 3,
     "empty": 0,
-    "dev": 2,
-    "size": "10.9 kB"
+    "dev": 3,
+    "size": "11.7 kB"
 }

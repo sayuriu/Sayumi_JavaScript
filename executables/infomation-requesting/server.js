@@ -1,7 +1,8 @@
 module.exports = {
 	name: 'server',
-	description: '',
+	description: 'Get the info of the current server.',
 	guildOnly: true,
+	gruop: ['Information'],
 	cooldown: 60,
 	onTrigger: async (message, client) => {
 		const embed = await client.Embeds.serverInfo(message);

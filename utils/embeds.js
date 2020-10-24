@@ -262,4 +262,75 @@ module.exports = class EmbedConstructor {
             .setFooter(`Created date: ${createdAt.toUTCString().substr(0, 16)} (Around ${timeBefore} ago)`);
         // });
     }
+
+    // TODO: Under construction.
+    static async userInfo(message, member)
+    {
+        const activityType = require('./json/ActivityType.json');
+        const ctx = canvas.getContext('2d');
+
+        const activities = member.presence.activities;
+        const clientDevice = member.presence.clientStatus;
+        const clientStatus = member.presence.status;
+
+        // Avatar design
+        const canvas = require('canvas');
+        const userAvatar = await canvas.loadImage(member.user.avatarURL());
+
+        const embed = new MessageEmbed()
+                                .setTitle(`${member.user.username}#${member.user.discriminator}${member.nickname ? `, aka. ${member.nickname}` : ''}`)
+                                .setDescription(`\`| ID <${member.id}>\``)
+                                .setThumbnail(member.user.avatarURL())
+                                .addField("Join Dates", `Discord: at ${member.user.createdAt.toUTCString().substr(0, 16)} \n This server: at ${message.member.joinedAt.toUTCString().substr(0, 16)}`, true)
+                                .setTimestamp()
+                                .setColor('RANDOM');
+
+        // Activity
+        if (activities.length > 0)
+        {
+            let activityString = '';
+            let index = 0;
+            activities.forEach(activity => {
+                index++;
+
+                const name = activity.name;
+                const emoji = activity.emoji;
+                const type = activity.type;
+                const url = activity.url;
+                const details = activity.details;
+                const state = activity.state;
+                const appID = activity.applicationID;
+                const timestamps = activity.timestamps;
+                const party = activity.party;
+                const assets = activity.assets;
+                const createdTimestamp = activity.createdTimestamp;
+
+                if (activity.type === 'CUSTOM_STATUS')
+                {
+                    const userString = `\`| ID <${member.id}>\`\n${emoji ? emoji.name : ''}*"${state}"*`;
+                    return embed.setDescription(userString);
+                }
+                else
+                {
+                    const header = `(${activityType[type]}) \`${name}${state ? `: ${state}` : ''}\``;
+                    const body = `${details ? `> ${details}` : ''}${assets ? `\n${assets.largeText}` : ''}`;
+
+                    if (assets && assets.largeImage) embed.setFooter(`>`, assets.largeImageURL());
+
+                    if (index === 0) activityString += `${header}\n${body}`;
+                    else activityString += `\n${header}\n${body}`;
+                }
+
+            });
+            embed.addField('Current Activities', `${activityString}`);
+        }
+
+        // Roles
+        const roles = member.roles.cache;
+        embed.addField(`Roles \`${roles.size}\``, roles.map(role => `<@&${role.id}>`));
+        return embed;
+
+        // Channels
+
+    }
 };
