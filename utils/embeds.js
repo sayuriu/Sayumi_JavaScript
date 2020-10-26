@@ -1,4 +1,5 @@
 const { MessageEmbed } = require('discord.js');
+const request = require('request');
 const Methods = require('./Methods');
 
 const { date, month, year } = Methods.DateTime();
@@ -266,21 +267,29 @@ module.exports = class EmbedConstructor {
     // TODO: Under construction.
     static async userInfo(message, member)
     {
+        // Props
         const activityType = require('./json/ActivityType.json');
-        const ctx = canvas.getContext('2d');
+        const userStatus = require('./json/UserStatus.json');
+
+        const Renderers = require('./Renderers');
+        const imgur = require('./https/imgur');
 
         const activities = member.presence.activities;
         const clientDevice = member.presence.clientStatus;
-        const clientStatus = member.presence.status;
+        const status = member.presence.status;
 
         // Avatar design
         const canvas = require('canvas');
-        const userAvatar = await canvas.loadImage(member.user.avatarURL());
+
+        const mainCanvas = canvas.createCanvas(130, 130);
+        const context = mainCanvas.getContext('2d');
+
+        const avatar = await canvas.loadImage(Renderers.getUserAvatar(member.user));
+        context.drawImage(avatar, 0, 0, 128, 128);
 
         const embed = new MessageEmbed()
                                 .setTitle(`${member.user.username}#${member.user.discriminator}${member.nickname ? `, aka. ${member.nickname}` : ''}`)
                                 .setDescription(`\`| ID <${member.id}>\``)
-                                .setThumbnail(member.user.avatarURL())
                                 .addField("Join Dates", `Discord: at ${member.user.createdAt.toUTCString().substr(0, 16)} \n This server: at ${message.member.joinedAt.toUTCString().substr(0, 16)}`, true)
                                 .setTimestamp()
                                 .setColor('RANDOM');
@@ -305,9 +314,10 @@ module.exports = class EmbedConstructor {
                 const assets = activity.assets;
                 const createdTimestamp = activity.createdTimestamp;
 
+
                 if (activity.type === 'CUSTOM_STATUS')
                 {
-                    const userString = `\`| ID <${member.id}>\`\n${emoji ? emoji.name : ''}*"${state}"*`;
+                    const userString = `\`| ID <${member.id}> |\`${userStatus[status]} \`\`\n${emoji ? emoji.name : ''}*"${state}"*`;
                     return embed.setDescription(userString);
                 }
                 else
@@ -315,7 +325,22 @@ module.exports = class EmbedConstructor {
                     const header = `(${activityType[type]}) \`${name}${state ? `: ${state}` : ''}\``;
                     const body = `${details ? `> ${details}` : ''}${assets ? `\n${assets.largeText}` : ''}`;
 
-                    if (assets && assets.largeImage) embed.setFooter(`>`, assets.largeImageURL());
+                    if (assets.largeImage || assets.smallImage)
+                    {
+                        canvas.loadImage(Renderers.getPresenceAssets(assets)).then(img =>  context.drawImage(img, 90, 90, 38, 38));
+                        request(imgur.Post(mainCanvas.toBuffer()), (err, res) => {
+                            if (err !== null)
+                            {
+                                message.client.Log.carrier('error', `[Imgur API: Error] ${err.name}\n${err.message}`);
+                                embed.setThumbnail(member.user.avatarURL());
+                            }
+                            if (res !== null)
+                            {
+                                const data = JSON.parse(res.body);
+                                embed.setThumbnail(data.link);
+                            }
+                        });
+                    }
 
                     if (index === 0) activityString += `${header}\n${body}`;
                     else activityString += `\n${header}\n${body}`;

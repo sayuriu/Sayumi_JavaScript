@@ -1,7 +1,7 @@
 module.exports = {
 	name: 'whois',
 	description: '',
-	group: [],
+	group: ['Information'],
 	guildOnly: true,
 	cooldown: 10,
 	args: true,
@@ -23,6 +23,7 @@ module.exports = {
 
 		if (!target) return message.channel.send('No such user matches your request.');
 
-		return message.channel.send(client.Embeds.userInfo(message, target));
+		const embed = await client.Embeds.userInfo(message, target);
+		return message.channel.send(embed);
 	},
 };

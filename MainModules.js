@@ -50,6 +50,11 @@ module.exports = {
 	{
 		nasa: process.env.nasaAPI,
 		youtube: process.env.youtubeAPI,
+		imgur:
+		{
+			clientID: process.env.imgurClientID,
+			clientSecret: process.env.imgurClientSecret,
+		},
 	},
 
 	App: {

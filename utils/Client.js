@@ -18,6 +18,7 @@ module.exports = class Sayuri {
             this.HandleProcessErrors();
             this.KeepAlive(app, true);
         };
+        this.Refresh = () => this.Reload(client);
     }
 
     /**
@@ -80,5 +81,11 @@ module.exports = class Sayuri {
             if (thisHost) http.get(app.link);
             else http.get(`${process.env.PROJECT_DOMAIN}.glitch.me`);
         }, 280000);
+    }
+
+    static Reload(client)
+    {
+        const request = { type: 'executables', client: client, root: '../' };
+        return new loader(request).LoadCommands();
     }
 };

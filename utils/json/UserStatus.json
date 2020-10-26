@@ -1,0 +1,6 @@
+{
+	"online": ":green_circle:",
+	"idle": ":yellow_circle:",
+	"dnd": ":red_circle:",
+	"offline": ":white_circle:"
+}

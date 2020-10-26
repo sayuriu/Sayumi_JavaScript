@@ -1,7 +1,8 @@
 {
     "name": "executables",
     "files": [
-        "executables.json"
+        "executables.json",
+        "test.js"
     ],
     "folders": [
         {
@@ -145,7 +146,9 @@
         }
     ],
     "parent": false,
-    "exe": [],
+    "exe": [
+        "test.js"
+    ],
     "unexec": 0,
     "empty": 0,
     "dev": 0,
