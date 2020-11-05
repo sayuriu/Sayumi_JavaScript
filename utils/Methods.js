@@ -4,7 +4,8 @@ const logger = require('./Logger');
 const chalk = require('chalk');
 require('dotenv').config();
 
-module.exports = class Methods  {
+module.exports = class Methods
+{
 
     // Some methods are dedicated to a specific command or class, but here you go.
 
@@ -60,10 +61,10 @@ module.exports = class Methods  {
         }
     }
 
-    static clean(string)
+    static clean(input)
     {
-        if (typeof (string) === "string") return string.replace(/`/g, "`" + String.fromCharCode(8203)).replace(/@/g, "@" + String.fromCharCode(8203));
-        else return string;
+        if (typeof (input) === "string") return input.replace(/`/g, "`" + String.fromCharCode(8203)).replace(/@/g, "@" + String.fromCharCode(8203));
+        else return input;
     }
 
     /** Returns a file / folder's size.
@@ -121,13 +122,13 @@ module.exports = class Methods  {
     }
 
     /** Stating files in the console output.
-     * @param {object} dirObject The directory object to pass in. Usually it's taken from the loader.
+     * @param {object} dir The directory object to pass in. Usually it's taken from the loader.
      * @param {string} type The type of data you want to inspect. For Discord, it's reduced to commands, events and database models. This will be added more in the future.
      * @see method `Loader.ExeLoader` and `Loader.EventLoader` (Loader.js)
      */
-    static Counter(dirObject, type)
+    static Counter(dir, type)
     {
-        if (typeof dirObject !== 'object') return logger.error('[Global Functions > File Counter] Directory given is not an object.');
+        if (typeof dir !== 'object') return logger.error('[Global Functions > File Counter] Directory given is not an object.');
         if (typeof type !== 'string') return logger.error('[Global Functions > File Counter] The type specified is not a string.');
         const inspector = type.toLowerCase();
 
@@ -137,7 +138,7 @@ module.exports = class Methods  {
         // If commands
         if (inspector === 'executables' || inspector === 'commands' || inspector === 'cmd')
         {
-            const { name, files, folders, subfolders, exe, unexec, parent, parentName, empty, dev, size } = dirObject;
+            const { name, files, folders, subfolders, exe, unexec, parent, parentName, empty, dev, size } = dir;
             let Header = chalk.hex('#83cc04')(`${parent ? 'Subfolder | ' : 'Parent | '}${parent ? `${parentName} > ${name}` : `"${name}"`} `);
             const log = [];
 
@@ -190,7 +191,7 @@ module.exports = class Methods  {
         // If events
         if (inspector === 'event' || inspector === 'evt')
         {
-            const { name, files, folders, subfolders, evt, parent, parentName, empty, dev, size } = dirObject;
+            const { name, files, folders, subfolders, evt, parent, parentName, empty, dev, size } = dir;
             let Header = chalk.hex('#83cc04')(`${parent ? 'Subfolder | ' : 'Parent | '}${parent ? `${parentName} > ${name}` : `"${name}"`} `);
             const log = [];
 

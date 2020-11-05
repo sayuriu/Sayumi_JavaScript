@@ -12,10 +12,10 @@
     "exe": [
         "help.js (dev)",
         "server.js (dev)",
-        "whois.js (dev)"
+        "whois.js"
     ],
-    "unexec": 3,
+    "unexec": 2,
     "empty": 0,
-    "dev": 3,
-    "size": "11.7 kB"
+    "dev": 2,
+    "size": "17.5 kB"
 }

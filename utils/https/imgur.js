@@ -21,7 +21,7 @@ module.exports = class Imgur
 		return options;
 	}
 
-	static Post(imageBuffer, respsonse)
+	static Post(imageBuffer)
 	{
 		// Request data
 		const options = {

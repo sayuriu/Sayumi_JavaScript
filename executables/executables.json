@@ -36,12 +36,12 @@
             "exe": [
                 "help.js (dev)",
                 "server.js (dev)",
-                "whois.js (dev)"
+                "whois.js"
             ],
-            "unexec": 3,
+            "unexec": 2,
             "empty": 0,
-            "dev": 3,
-            "size": "11.7 kB"
+            "dev": 2,
+            "size": "17.5 kB"
         },
         {
             "name": "master-explicit",
@@ -60,7 +60,7 @@
             "unexec": 0,
             "empty": 0,
             "dev": 0,
-            "size": "3.3 kB"
+            "size": "3.9 kB"
         },
         {
             "name": "moderation",

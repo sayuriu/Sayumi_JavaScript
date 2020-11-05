@@ -19,6 +19,12 @@ module.exports = {
 		{
 			source = await client.GuildDatabase.get(message.guild);
 			prefix = source.prefix;
+
+			if (message.guild['newGuild'] === true)
+			{
+				// Setup message ...
+				message.guild['newGuild'] = false;
+			}
 		}
 
 		// AFK section

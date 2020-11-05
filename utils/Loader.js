@@ -26,10 +26,9 @@ module.exports = class Loader {
      * @param {boolean} subfolder If the file which called this method is located in a subfolder to Root.
      * @param {boolean?} subfolder If the file which called this method is located in a subfolder to Root. `false`by default.
     */
-    ExeLoader(pathName, client, Root, subfolder)
+    ExeLoader(pathName, client, Root, subfolder = false)
     {
         client.Log.carrier('status: SCAN', `[Loader] Checking "${pathName}"...`);
-        if (subfolder === undefined || subfolder === null) subfolder = false;
         if (typeof subfolder !== 'boolean') throw new Error('[CommandLoader] The last parameter if specified must a boolean.');
         const AliasesArray = [];
         const hostFolder = {
@@ -145,10 +144,9 @@ module.exports = class Loader {
      * @param {string?} Root Root directory located from this file's location. `./` if it's not specified.
      * @returns `object`
     */
-    EventLoader(pathName, client, Root, subfolder)
+    EventLoader(pathName, client, Root, subfolder = false)
     {
         client.Log.carrier('status: SCAN', `[Loader] Checking "${pathName}"...`);
-        if (subfolder === undefined || subfolder === null) subfolder = false;
         if (typeof subfolder !== 'boolean') throw new Error('[CommandLoader] The last parameter if specified must a boolean.');
         const hostFolder = {
             name: pathName,
@@ -265,9 +263,8 @@ module.exports = class Loader {
      * @param {boolean?} subfolder If the file which called this method is located in a subfolder to Root. `false`by default.
      * @see method `Loader.ExeLoader` ('Loader.js')
      */
-    CommandCheck(file, AliasesArray, path, client, object, warnArray, Root, subfolder)
+    CommandCheck(file, AliasesArray, path, client, object, warnArray, Root, subfolder =  false)
     {
-        if (subfolder === undefined || subfolder === null) subfolder = false;
         if (typeof subfolder !== 'boolean') throw new Error('[CommandCheck] The last parameter if specified must a boolean.');
         if (FileSystem.lstatSync(path).isDirectory()) return object.subfolders.push(file);
         if (object.parent) object.files.push(file);
@@ -336,7 +333,7 @@ module.exports = class Loader {
      * @param {string?} Root The root directory located from this method. This may get removed in future optimizations.
      * @see method `Loader.EventLoader` ('Loader.js')
      */
-    EventCheck(file, path, client, object, warnArray, Root)
+    EventCheck(file, path, client, object, warnArray, Root = null)
     {
         if (FileSystem.lstatSync(path).isDirectory()) return object.subfolders.push(file);
         if (object.parent) object.files.push(file);
@@ -345,7 +342,7 @@ module.exports = class Loader {
             let availablity = true;
             let EventFile;
             if (Root) EventFile = require(Root + path);
-            if (!Root || Root === null || Root === undefined) EventFile = require(path);
+            if (Root === null) EventFile = require(path);
 
             let { stable } = EventFile;
             const { name, onEmit, once } = EventFile;

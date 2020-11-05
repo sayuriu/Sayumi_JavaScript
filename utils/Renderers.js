@@ -21,6 +21,10 @@ module.exports = class Renderers
 	{
 		const assetConvas = canvas.createCanvas(128, 128);
 		const context = assetConvas.getContext('2d');
+
+		let largePresenceImage;
+		let smallPresenceImage;
+
 		if (assets.smallImage !== null)
 		{
 			const src = await canvas.loadImage(assets.smallImageURL({ format: 'jpg' }));
@@ -29,7 +33,7 @@ module.exports = class Renderers
 			context.clip();
 			context.drawImage(src, 0, 0);
 
-			return assetConvas.toBuffer();
+			largePresenceImage = assetConvas.toBuffer();
 		}
 		else if (assets.largeImage !== null)
 		{
@@ -39,8 +43,8 @@ module.exports = class Renderers
 			context.clip();
 			context.drawImage(src, 0, 0);
 
-			return assetConvas.toBuffer();
+			smallPresenceImage = assetConvas.toBuffer();
 		}
-		else return null;
+		return { large: largePresenceImage | null, small: smallPresenceImage | null };
 	}
 };
