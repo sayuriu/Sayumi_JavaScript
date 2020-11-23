@@ -445,6 +445,8 @@ module.exports = class Loader {
         groupArray.forEach(group => {
             if (Array.isArray(group)) return;
             const commandArray = [];
+            const underDevArray = [];
+
             client.CommandList.forEach(cmd => {
                 let affectedCommand;
                 if (Array.isArray(cmd.group))
@@ -456,7 +458,11 @@ module.exports = class Loader {
                     if (!cmd.group) cmd.group = 'Unassigned';
                     affectedCommand = cmd.group === group;
                 }
-                if (affectedCommand) commandArray.push(cmd.name);
+                if (affectedCommand)
+                {
+                    commandArray.push(cmd.name);
+                    if (cmd.flags && cmd.flags.some(i => i === 'Under Developement')) underDevArray.push(cmd.name);
+                }
             });
 
             const groupObject = {
@@ -464,6 +470,7 @@ module.exports = class Loader {
                 descriptions: object[group].descriptions,
                 colorCode: object[group].colorCode,
                 commands: commandArray,
+                underDev: underDevArray,
                 keywords: client.CategoryCompare.get(group),
             };
             client.CommandCategories.set(group, groupObject);

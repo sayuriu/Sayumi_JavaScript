@@ -5,7 +5,10 @@ const request = require('request');
 
 module.exports = {
 	name: 'test',
+	flags: ['Under Developement'],
 	stable: true,
+	usage: 'ooooooaaa <ab> [cd?]',
+	usageSyntax: 'oooooooooooaaa |<ab: AB>| |[cd: CD]|',
 	onTrigger: async (message, client) => {
 
 		const redSource = await canvas.loadImage(message.member.user.avatarURL({ format: 'jpg' }));

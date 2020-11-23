@@ -317,8 +317,8 @@ module.exports = class Methods
         return { hour: hours, minute: minutes, second: seconds };
     }
 
-    static daysAgo(date) {
-        const diff = (new Date()).getTime() - date.getTime();
+    static daysAgo(date, compare = new Date()) {
+        const diff = compare.getTime() - date.getTime();
         const days = Math.floor(diff / 86400000);
 
         const yearsRaw = days / 365.25;
@@ -512,6 +512,20 @@ module.exports = class Methods
     static ShiftToLast(array, callback)
     {
         return array =  array.push(array.splice(array.findIndex(callback), 1)[0]);
+    }
+
+    static StringSearch(regEx, string)
+    {
+        // regEx = new RegExp(regEx.replace(/([\\.+*?\\[^\\]$(){}=!<>|:])/g, '\\$1'));
+
+        const indice = [];
+        let res = [];
+        while ((res = regEx.exec(string)))
+        {
+            indice.push(res.index);
+        }
+
+        return indice;
     }
 
     /** Updates this program's version and rewrites `package.json`.

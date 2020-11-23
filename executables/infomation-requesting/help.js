@@ -170,7 +170,7 @@ module.exports = {
 						}
 
 						// Keep listening to user's input if the input is invalid, until time expires
-						if (response.size === 0 && user.timeout - now > 0 && check === true)
+						if (response.size === 0 && user.timeout - now > 0 && check)
 						{
 							await timeOutOptions(message, user.timeout);
 							await send();
@@ -205,7 +205,7 @@ module.exports = {
 					{
 						target.commands.forEach(command => {
 							const cmd = client.CommandList.get(command);
-							descString += `\n \`${cmd.name}\`\n- ${cmd.description}`;
+							descString += `\n \`${cmd.name}\` ${target.underDev.some(n => n === cmd.name) ? '`| Under Developement*`' : ''}\n- ${cmd.description || 'No description provided. Kinda shady...'}`;
 						});
 					}
 
@@ -223,6 +223,7 @@ module.exports = {
 				const name = target.name;
 				const aliases = target.aliases || 'None';
 				const desc = target.description && target.description.length > 0 ? target.description : 'No description available, yet!';
+				const flags = target.flags;
 				const cooldown = target.cooldown;
 				const group = target.group;
 				const guildOnly = target.guildOnly || false;
@@ -230,21 +231,48 @@ module.exports = {
 				const master_explicit = target.master_explicit;
 
 				// Usage
-				let usage = target.usage || 'Passive | No input needed.';
-				let usageIsArray = false;
-				if (Array.isArray(usage))
-				{
-					const usageArray = [];
-					target.usage.forEach(i => {
-						usageArray.push(`\`${prefix}${name} ${i}\``);
-					});
-					if (usageArray.length === 1) usage = usageArray[0];
-					else
-					{
-						usage = usageArray;
-						usageIsArray = true;
-					}
-				}
+				const usage = target.usage || '`Passive | No input needed.`';
+				const detailedUsage = target.usageSyntax || null;
+				// let usageIsArray = false;
+				// if (Array.isArray(usage))
+				// {
+				// 	const usageArray = [];
+				// 	target.usage.forEach(i => {
+				// 		usageArray.push(`\`${prefix}${name} ${i}\`${flags ? `\`| ${client.Methods.joinArrayString(flags)}\`` : ''}`);
+				// 	});
+				// 	if (usageArray.length === 1) usage = usageArray[0];
+				// 	else
+				// 	{
+				// 		usage = usageArray;
+				// 		usageIsArray = true;
+				// 	}
+				// }
+				// const usageString = usageIsArray ? usage.join('\n') : `\`${prefix + name} ${usage}\``;
+				const usageString = toUsageString(usage, prefix, name, flags, client);
+				const usageStringWithSyntax = toUsageString(detailedUsage, prefix, name, flags, client);
+
+				// Experimental: Usage parameters
+				const reqPLeft = message.client.Methods.StringSearch(/\|</g, usageStringWithSyntax);
+				const optPLeft = message.client.Methods.StringSearch(/\|\[/g, usageStringWithSyntax);
+				const reqPRight = message.client.Methods.StringSearch(/>\|/g, usageStringWithSyntax);
+				const optPRight = message.client.Methods.StringSearch(/]\|/g, usageStringWithSyntax);
+
+				const requiredParams = [];
+				const optionalParams = [];
+
+				reqPLeft.forEach(i => {
+					requiredParams.push(usageStringWithSyntax.substr(i + 2, reqPRight[reqPLeft.indexOf(i)] - i - 2));
+				});
+
+				optPLeft.forEach(i => {
+					optionalParams.push(usageStringWithSyntax.substr(i + 2, optPRight[optPLeft.indexOf(i)] - i - 2));
+				});
+
+				// // Usage footer
+				// let usageFooterString = '';
+				// if (optionalParams.length > 0 && requiredParams.length > 0) usageFooterString = '[]: optional (or none), <>: required. \n';
+				// else if (optionalParams.length > 0 && requiredParams.length < 1) usageFooterString = '[]: optional parameters \n';
+				// else if (optionalParams.length < 1 && requiredParams.length > 0) usageFooterString = '<>: required parameters \n';
 
 				// Perms
 				const permSet = ArrayOrString(target.reqPerms || '');
@@ -253,7 +281,7 @@ module.exports = {
 				const permsString = `Required permissions: \`${permIsArray ? `${perms.join(', ')}` : perms}\``;
 
 				// User
-				const userSet = ArrayOrString(target.reqUser);
+				const userSet = ArrayOrString(target.reqUser || '');
 				const user = userSet.output;
 				const userIsArray = userSet.boolean;
 
@@ -265,13 +293,14 @@ module.exports = {
 				const embed = new EmbedConstructor()
 				.setColor('RANDOM')
 				.setTitle(`[${Array.isArray(group) ? `${group.join(', ')}` : group}] ` + `\`${name}\``)
-				.setDescription(`*${desc}${perms.length > 0 ? `\n${permsString}*` : '*'}`);
+				.setDescription(`${flags.some(n => n === 'Under Developement') ? '**[Under Development!]** __This command may not running as expected.__' : ''}\n*${desc}${perms.length > 0 ? `\n${permsString}*` : '*'}`);
 				if (aliases !== 'None') embed.addField(`${Randomized(responses.commands.command_aliases)}`, `${Array.isArray(aliases) ? aliases.join(', ') : aliases}`);
 
-				embed.addField('Usage:', `${usageIsArray ? usage.join('\n') : `\`${prefix + name} ${usage}\``}` + `${notes.length > 0 ? `\n${noteIsArray ? `**Extra notes:**\n*${notes.join('\n')}*` : `**Extra notes:** *${notes}*`}` : ''}`)
-							.addField('Command availability:', `${master_explicit ? 'Master dedicated ~' : `${guildOnly ? `${user.length > 0 ? `[Guild only] ${userIsArray ? user.join(', ') : user}` : 'Guild only.'}` : 'Everywhere, expect voice.'}`}`, true)
+				embed.addField(`Usage ${requiredParams.length > 0  ? `${optionalParams.length > 0 ? '`| <> required parameters' : '`| <> required parameters`'}` : ''}${optionalParams.length > 0 ? `${requiredParams.length > 0 ? ', [] optional parameters`' : '`| [] optional parameters`'}` : ''}`, `${target.usage ? `${usageString}` : usage}` + `${requiredParams.length > 0  ? `\n\`<> ${requiredParams.join(', ')}\`` : ''}${optionalParams.length > 0 ? `\n\`[] ${optionalParams.join(', ')}\`` : ''}` + `${notes.length > 0 ? `\n${noteIsArray ? `**Extra notes:**\n*${notes.join('\n')}*` : `**Extra notes:** *${notes}*`}` : ''}`)
+							.addField('Command availability:', `${master_explicit ? 'Master dedicated ~' : `${guildOnly ? `${user.length > 0 ? `[Guild only] ${userIsArray ? user.join(', ') : user}` : 'Guild only.'}` : client.Methods.Randomized(responses.commands.command_availability)}`}`, true)
 							.addField('Cooldown', `${cooldown > 0 ? `${cooldown ? `${cooldown} second${cooldown > 1 ? 's' : ''}` : 'None'}` : 'None'}${guildCooldown ? ', guild' : ''}`, true)
-							.setFooter(`[] means optional (or none), <> means required. \nCurrent prefix: ${prefix}`);
+							.setFooter(`Current prefix: ${prefix}`);
+							// .setFooter(`${target.usage ? `${usageFooterString}` : ''}Current prefix: ${prefix}`);
 
 				return message.channel.send(embed);
 			}
@@ -279,3 +308,22 @@ module.exports = {
 		}
 	},
 };
+
+function toUsageString(usage, prefix, name, flags, client)
+{
+	let usageIsArray = false;
+	if (Array.isArray(usage))
+	{
+		const usageArray = [];
+		usage.forEach(i => {
+			usageArray.push(`\`${prefix}${name} ${i}\`${flags ? `\`| ${client.Methods.joinArrayString(flags)}\`` : ''}`);
+		});
+		if (usageArray.length === 1) usage = usageArray[0];
+		else
+		{
+			usage = usageArray;
+			usageIsArray = true;
+		}
+	}
+	return usageIsArray ? usage.join('\n') : `\`${prefix + name} ${usage}\``;
+}

@@ -41,26 +41,26 @@
             "unexec": 2,
             "empty": 0,
             "dev": 2,
-            "size": "17.5 kB"
+            "size": "20.4 kB"
         },
         {
             "name": "master-explicit",
             "files": [
+                "clear.js",
                 "eval.js",
-                "logClear.js",
                 "master-explicit.json"
             ],
             "subfolders": [],
             "parent": true,
             "parentName": "executables",
             "exe": [
-                "eval.js",
-                "logClear.js"
+                "clear.js",
+                "eval.js"
             ],
             "unexec": 0,
             "empty": 0,
             "dev": 0,
-            "size": "3.9 kB"
+            "size": "8.2 kB"
         },
         {
             "name": "moderation",

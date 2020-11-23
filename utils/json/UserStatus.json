@@ -1,17 +1,20 @@
 {
-	"emojis":
+	"status":
 	{
-		"online": ":green_circle:",
-		"idle": ":yellow_circle:",
-		"dnd": ":red_circle:",
-		"offline": ":white_circle:"
-	},
-	"text":
-	{
-		"online": "Online",
-		"idle": "AFK / Idle",
-		"dnd": "Do not Disturb",
-		"offline": "Invisible"
+		"emojis":
+		{
+			"online": ":green_circle:",
+			"idle": ":yellow_circle:",
+			"dnd": ":red_circle:",
+			"offline": ":white_circle:"
+		},
+		"text":
+		{
+			"online": "Online",
+			"idle": "AFK / Idle",
+			"dnd": "Do not Disturb",
+			"offline": "Invisible"
+		}
 	},
 	"images":
 	{
@@ -26,5 +29,14 @@
 		"idle": "#e3c24b",
 		"dnd": "#de3e41",
 		"offline": "#adadad"
+	},
+	"devices":
+	{
+		"icons":
+		{
+			"desktop": ":desktop:",
+			"mobile": ":mobile_phone:",
+			"web": ":globe_with_meridians:"
+		}
 	}
 }

@@ -57,7 +57,7 @@ module.exports = class Sayuri {
         new loader(request).LoadCommands();
     }
 
-    /** This is for handing some additional runtime errors and events. */
+    /** This is for handling some additional runtime errors and events. */
     HandleProcessErrors()
     {
         process.on("uncaughtException", error => {

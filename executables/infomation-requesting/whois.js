@@ -12,6 +12,7 @@ module.exports = {
 	name: 'whois',
 	description: '',
 	group: ['Information'],
+	flags: ['Under Developement'],
 	stable: true,
 	guildOnly: true,
 	cooldown: 10,
@@ -36,25 +37,21 @@ module.exports = {
 		let target;
 
 		if (_id) target = await message.guild.members.fetch({ user: _id, force: true });
-
-		// if (!target) target = message.guild.members.cache.find(member => member.nickname === args[0]);
 		if (!target) target = await message.guild.members.fetch({ query: args[0], limit: 1 });
 
 		if (target.size < 1) return message.channel.send('No such user matches your request.');
-
 		if (confirm === false) target = target.first();
-		const activities = target.presence.activities;
-        const clientDevice = target.presence.clientStatus;
-		const status = target.presence.status;
+		const { activities, clientStatus: clientDevice, status } = target.presence;
 
 		let largePresenceImage = null;
 		let smallPresenceImage = null;
 
 		// Generate embed (1)
 		const embed = new MessageEmbed()
-								.setTitle(`${target.user.username}#${target.user.discriminator}${target.nickname ? `, aka. ${target .nickname}` : ''}`)
-								.setDescription(`\`| ID <${target .id}>\``)
+								.setTitle(`${target.user.username}#${target.user.discriminator}${target.nickname ? `, aka. ${target.nickname}` : ''}`)
+								.setDescription(`\`| ID <${target.id}>\` ${userStatus.status.emojis[status]} \`${userStatus.status.text[status]}${clientDevice ? `, Client:\` ${userStatus.devices.icons[Object.keys(clientDevice)[0]]}` : '`'}`)
 								.setTimestamp()
+								.setThumbnail(target.user.avatarURL())
                                 .setColor('RANDOM');
 
 		// Get presence data
@@ -80,7 +77,7 @@ module.exports = {
 
 				if (type === 'CUSTOM_STATUS')
 				{
-					const userString = `\`| ID <${target.id}> |\` ${userStatus.emojis[status]} \`${userStatus.text[status]}\`\n${emoji ? emoji.name : ''}*"${state}"*`;
+					const userString = `\`| ID <${target.id}> |\` ${userStatus.status.emojis[status]} \`${userStatus.status.text[status]}${clientDevice ? `, Client:\` ${userStatus.devices.icons[Object.keys(clientDevice)[0]]}` : '`'}\n${emoji ? emoji.name : ''}*"${state}"*`;
 					return embed.setDescription(userString);
 				}
 				else
@@ -93,8 +90,11 @@ module.exports = {
 					if (index > 0) activityString += `\n${header}\n${body}`;
 
 					// Grab data
-					if (assets !== null && assets.largeImage !== null) largePresenceImage = assets.largeImageURL({ format: 'jpg' });
-					if (assets !== null && assets.smallImage !== null) smallPresenceImage = assets.smallImageURL({ format: 'jpg' });
+					if (assets)
+					{
+						if (assets.largeImage) largePresenceImage = { link: assets.largeImageURL({ format: 'jpg' }) };
+						if (assets.smallImage) smallPresenceImage = { link: assets.smallImageURL({ format: 'jpg' }) };
+					}
 				}
 			});
 		}
@@ -113,6 +113,11 @@ module.exports = {
 			avatarContext.beginPath();
 			avatarContext.arc(64, 64, 64, 0, Math.PI * 2);
 			avatarContext.clip();
+
+			// avatarContext.beginPath();
+			// avatarContext.arc(92, 92, 23, 0, Math.PI * 1.5);
+			// avatarContext.clip();
+
 			avatarContext.drawImage(avatarImage, 0, 0);
 
 			// Render the avatar first
@@ -120,45 +125,35 @@ module.exports = {
 			mainContext.drawImage(avatar, 0, 0);
 
 			// Presence data
-			if (largePresenceImage !== null)
+			if (largePresenceImage)
 			{
 				const LICanvas = canvas.createCanvas(128, 128);
 				const LIcontext = LICanvas.getContext('2d');
 
-				const src = await canvas.loadImage(largePresenceImage);
+				const src = await canvas.loadImage(largePresenceImage.link);
 
-				LIcontext.beginPath();
-				LIcontext.arc(64, 64, 64, 0, Math.PI * 2);
-				LIcontext.clip();
-				LIcontext.drawImage(src, 0, 0);
-
-				largePresenceImage = LICanvas.toBuffer();
+				largePresenceImage.data = Renderers.PresenceAssets(src, LICanvas, LIcontext);
 			}
 
-			if (smallPresenceImage !== null)
+			if (smallPresenceImage)
 			{
 				const SICanvas = canvas.createCanvas(128, 128);
 				const SIcontext = SICanvas.getContext('2d');
 
-				const src = await canvas.loadImage(smallPresenceImage);
+				const src = await canvas.loadImage(smallPresenceImage.link);
 
-				SIcontext.beginPath();
-				SIcontext.arc(64, 64, 64, 0, Math.PI * 2);
-				SIcontext.clip();
-				SIcontext.drawImage(src, 0, 0);
-
-				smallPresenceImage = SICanvas.toBuffer();
+				smallPresenceImage.data = Renderers.PresenceAssets(src, SICanvas, SIcontext);
 			}
 
 		// Render on Main
-		if (smallPresenceImage !== null)
+		if (smallPresenceImage)
 		{
-			const SI = await canvas.loadImage(smallPresenceImage);
+			const SI = await canvas.loadImage(smallPresenceImage.data);
 			mainContext.drawImage(SI, 92, 92, 36, 36);
 		}
-		else if (largePresenceImage !== null)
+		else if (largePresenceImage)
 		{
-			const LI = await canvas.loadImage(largePresenceImage);
+			const LI = await canvas.loadImage(largePresenceImage.data);
 			mainContext.drawImage(LI, 92, 92, 36, 36);
 		}
 
@@ -182,24 +177,15 @@ module.exports = {
 		// Pull request as you upload the picture
 		let data = null;
 
-		// Request data
-		const options = {
-			method: 'POST',
-			url: 'https://api.imgur.com/3/image',
-			headers: {
-				Authorization: `Client-ID ${client.APIs.imgur.clientID}`,
-			},
-			formData: {
-				image: Buffer.from(mainCanvas.toBuffer()).toString('base64'),
-			},
-		};
-
 		// Roles
         const roles = target.roles.cache;
 		embed.addField(`Roles \`${roles.size}\``, roles.map(role => `<@&${role.id}>`));
 
+		// Join dates
+		embed.addField('Dates', `Created on \`${target.user.createdAt.toUTCString().substr(0, 16)}\`\nJoined on \`${target.joinedAt.toUTCString().substr(0, 16)}\``);
+
 		// Request (last)
-		request(options, async (err, res) => {
+		request(imgur.Post(mainCanvas.toBuffer()), async (err, res) => {
 
 			if (err) message.client.Log.carrier('error', `[Imgur API: Error] ${err.name}\n${err.message}`);
 
@@ -208,8 +194,8 @@ module.exports = {
 				data = await JSON.parse(res.body);
 
 				// Generate the embed (2)
-				embed.setThumbnail(target.user.avatarURL());
 				if (data !== null) embed.setThumbnail(data.data.link);
+				if (smallPresenceImage && largePresenceImage !== null) embed.setFooter(null, largePresenceImage.link);
 				return message.channel.send(embed).catch(err => console.error(err));
 			}
 		});

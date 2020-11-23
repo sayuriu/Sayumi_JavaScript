@@ -91,15 +91,14 @@ module.exports = {
 				// If the command doesn't exist
 				if (!RequestedCommand) {
 					const typo = CommandName;
-					const NotACmd = [
-						"This is not a vaild command for me.",
-						`Perhaps a typo, ${message.guild ? message.member.displayName : message.author.username}?`,
-						"I can't issue this.",
-						`Use \`${prefix}help\` for a help list if you are confused.`,
-						`What is *${typo}*?`,
-						`If that is an unadded feature, consider typing \`${mentionID ? '@Sayumi' : prefix}feedback ${typo}\` if you want this feature/command added to my collection.`,
-					];
-					const res = client.Methods.Randomized(NotACmd);
+
+					// 	`If that is an unadded feature, consider typing \`${mentionID ? '@Sayumi' : prefix}feedback ${typo}\` if you want this feature/command added to my collection.`
+					const NotACmd = responses.errors.command_invalid;
+					const res = client.Methods.Randomized(NotACmd)
+										.replace(/\${typo}/g, typo)
+										.replace(/\${memberName}/g, message.guild ? message.member.displayName : message.author.username)
+										.replace(/\${thisPrefix}/g, prefix);
+
 					if (message.channel.type === 'dm' || source.FalseCMDReply.some(chID => chID === message.channel.id))
 					{
 						// functions.Cooldown(client.Cooldowns, typo, 3, message.author.id, message);

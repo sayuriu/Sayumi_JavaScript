@@ -37,6 +37,13 @@
 		"command_errors": [
 			"The command you're trying to issue is not being issued due to some errors. Please try again later.",
       		"Oops, looks like I've encountered an error. Error is being reported, I'm trying to fix this as soon as possible."
+		],
+		"command_invalid": [
+			"This is not a vaild command for me.",
+			"Perhaps a typo, ${memberName}",
+			"I can't issue this.",
+			"Use `${thisPrefix}help` for a help list if you are confused.",
+			"What is *${typo}*?"
 		]
 	},
 	"statuses": [
@@ -69,11 +76,18 @@
 		"command_aliases": [
 			"Other ways to call this command:",
 			"Aliases:"
+		],
+		"command_availability":
+		[
+			"Here?",
+			"Anywhere, except voice channels.",
+			"Any text channel would do."
 		]
 	},
 	"tips": [
 		"Do you know mentioning me directly also works as the prefix?",
 		"Is this even a tip?",
+		"It the best to use commands in a dedicated channel.",
 		""
 	]
 }
