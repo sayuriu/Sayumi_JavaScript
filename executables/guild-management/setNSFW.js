@@ -9,7 +9,8 @@ module.exports = {
 	reqUser: 'Channel Manager',
 	group: ['Server Management'],
 	usage: '[boolean?]',
-	notes: 'Actually you can just type this command without the args to toggle the setting.',
+	usageSyntax: '|[boolean: true | false]|',
+	notes: 'Actually you can just type this command without the args to toggle this setting.',
 	onTrigger: (message, args) => {
 		if (!args[0])
 		{

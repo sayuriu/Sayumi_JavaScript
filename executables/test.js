@@ -8,7 +8,7 @@ module.exports = {
 	flags: ['Under Developement'],
 	stable: true,
 	usage: 'ooooooaaa <ab> [cd?]',
-	usageSyntax: 'oooooooooooaaa |<ab: AB>| |[cd: CD]|',
+	usageSyntax: 'wooqawowoaoaod |<this: THIS>|[that: THAT]|<eiowieowew>||[12]|',
 	onTrigger: async (message, client) => {
 
 		const redSource = await canvas.loadImage(message.member.user.avatarURL({ format: 'jpg' }));

@@ -108,60 +108,6 @@ module.exports = class EmbedConstructor {
         return mute;
     }
 
-    // Utilities
-    static messageLog(message, object, oldMsg, newMsg)
-    {
-        if (message === null) message = {
-            author: {
-                username: null,
-            },
-            createdAt: 'n/a',
-            editedAt: 'n/a',
-        };
-        if (object === null || object === undefined) object = {
-            status: null,
-            channelID: null,
-            logLimit: null,
-        };
-        if (oldMsg === null || oldMsg === undefined) oldMsg = {
-            author: {
-                tag: null,
-                id: null,
-            },
-            content: 'n/a',
-        };
-        if (newMsg === null || newMsg === undefined) newMsg = {
-            author: {
-                tag: null,
-                id: null,
-            },
-            content: 'n/a',
-        };
-        if (message.embeds) message.content = 'type EMBED';
-        const info = new MessageEmbed()
-                            .setColor('#ded181')
-                            .setDescription(`Status: ${object.status ? `Enabled\n Inform channel: ${object.channelID === null || object.channelID === '' ? 'None' : `<#${object.channelID}>`}` : 'Disabled'} \nLog limit per user: \`${object.logLimit}\` (This can't be disabled)`)
-                            .setFooter(`Settings: Message changes`);
-        const deleted = new MessageEmbed()
-                                .setColor('#fa1933')
-                                .setTitle(`Deleted message (${message.author.tag})`)
-                                .setDescription(`\`${message.content}\``)
-                                .setFooter(`Message timestamp: ${message.createdAt}`);
-        const updated = new MessageEmbed()
-                                .setTitle('Edited message')
-                                .setDescription(`Author: ${oldMsg.author.tag}\`\nID: ${oldMsg.author.id}\``)
-                                .setColor('#f7700f')
-                                .addField('Orginal', `\`${oldMsg.content}\``)
-                                .addField('Edited:', `\`${newMsg.content}\``)
-                                .setTimestamp();
-        const res = {
-            info: info,
-            deleted: deleted,
-            updated: updated,
-        };
-        return res;
-    }
-
     // NASA
     /**
      *

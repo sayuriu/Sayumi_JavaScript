@@ -509,6 +509,12 @@ module.exports = class Methods
         return output;
     }
 
+    static SelfMessageDelete(message, options = {})
+    {
+        message = Object.assign(message, { Sayumi: true });
+        return message.delete(options);
+    }
+
     static ShiftToLast(array, callback)
     {
         return array =  array.push(array.splice(array.findIndex(callback), 1)[0]);

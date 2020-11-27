@@ -50,6 +50,13 @@ module.exports = {
 
 		if (args[0])
 		{
+			args[0] = args[0].toLowerCase();
+
+			if (args[0].startsWith('help'))
+			{
+				return client.emit('message', Object.assign(message, { content: `${prefix}help` }));
+			}
+
 			let allCategories = [];
 			let target;
 			let onCategory = false;
@@ -57,7 +64,6 @@ module.exports = {
 			client.CommandCategories.forEach(t => {
 				allCategories = allCategories.concat(t.keywords);
 			});
-			args[0] = args[0].toLowerCase();
 
 			if (allCategories.some(i => i === args[0]))
 			{
@@ -223,7 +229,7 @@ module.exports = {
 				const name = target.name;
 				const aliases = target.aliases || 'None';
 				const desc = target.description && target.description.length > 0 ? target.description : 'No description available, yet!';
-				const flags = target.flags;
+				const flags = target.flags || [];
 				const cooldown = target.cooldown;
 				const group = target.group;
 				const guildOnly = target.guildOnly || false;
@@ -233,25 +239,11 @@ module.exports = {
 				// Usage
 				const usage = target.usage || '`Passive | No input needed.`';
 				const detailedUsage = target.usageSyntax || null;
-				// let usageIsArray = false;
-				// if (Array.isArray(usage))
-				// {
-				// 	const usageArray = [];
-				// 	target.usage.forEach(i => {
-				// 		usageArray.push(`\`${prefix}${name} ${i}\`${flags ? `\`| ${client.Methods.joinArrayString(flags)}\`` : ''}`);
-				// 	});
-				// 	if (usageArray.length === 1) usage = usageArray[0];
-				// 	else
-				// 	{
-				// 		usage = usageArray;
-				// 		usageIsArray = true;
-				// 	}
-				// }
-				// const usageString = usageIsArray ? usage.join('\n') : `\`${prefix + name} ${usage}\``;
 				const usageString = toUsageString(usage, prefix, name, flags, client);
-				const usageStringWithSyntax = toUsageString(detailedUsage, prefix, name, flags, client);
+				let usageStringWithSyntax = toUsageString(detailedUsage, prefix, name, flags, client);
+				if (usageStringWithSyntax.length < usageString.length) usageStringWithSyntax = usageString;
 
-				// Experimental: Usage parameters
+				// Usage parameters
 				const reqPLeft = message.client.Methods.StringSearch(/\|</g, usageStringWithSyntax);
 				const optPLeft = message.client.Methods.StringSearch(/\|\[/g, usageStringWithSyntax);
 				const reqPRight = message.client.Methods.StringSearch(/>\|/g, usageStringWithSyntax);
@@ -267,12 +259,6 @@ module.exports = {
 				optPLeft.forEach(i => {
 					optionalParams.push(usageStringWithSyntax.substr(i + 2, optPRight[optPLeft.indexOf(i)] - i - 2));
 				});
-
-				// // Usage footer
-				// let usageFooterString = '';
-				// if (optionalParams.length > 0 && requiredParams.length > 0) usageFooterString = '[]: optional (or none), <>: required. \n';
-				// else if (optionalParams.length > 0 && requiredParams.length < 1) usageFooterString = '[]: optional parameters \n';
-				// else if (optionalParams.length < 1 && requiredParams.length > 0) usageFooterString = '<>: required parameters \n';
 
 				// Perms
 				const permSet = ArrayOrString(target.reqPerms || '');
@@ -294,13 +280,12 @@ module.exports = {
 				.setColor('RANDOM')
 				.setTitle(`[${Array.isArray(group) ? `${group.join(', ')}` : group}] ` + `\`${name}\``)
 				.setDescription(`${flags.some(n => n === 'Under Developement') ? '**[Under Development!]** __This command may not running as expected.__' : ''}\n*${desc}${perms.length > 0 ? `\n${permsString}*` : '*'}`);
-				if (aliases !== 'None') embed.addField(`${Randomized(responses.commands.command_aliases)}`, `${Array.isArray(aliases) ? aliases.join(', ') : aliases}`);
+				if (aliases !== 'None') embed.addField(`${Randomized(responses.commands.command_aliases)}`, `\`${Array.isArray(aliases) ? aliases.join(', ') : aliases}\``);
 
-				embed.addField(`Usage ${requiredParams.length > 0  ? `${optionalParams.length > 0 ? '`| <> required parameters' : '`| <> required parameters`'}` : ''}${optionalParams.length > 0 ? `${requiredParams.length > 0 ? ', [] optional parameters`' : '`| [] optional parameters`'}` : ''}`, `${target.usage ? `${usageString}` : usage}` + `${requiredParams.length > 0  ? `\n\`<> ${requiredParams.join(', ')}\`` : ''}${optionalParams.length > 0 ? `\n\`[] ${optionalParams.join(', ')}\`` : ''}` + `${notes.length > 0 ? `\n${noteIsArray ? `**Extra notes:**\n*${notes.join('\n')}*` : `**Extra notes:** *${notes}*`}` : ''}`)
+				embed.addField(`Usage`, `${target.usage ? `${usageString}` : usage}` + `${requiredParams.length > 0  ? `\n\`<> ${requiredParams.join(', ')}\`` : ''}${optionalParams.length > 0 ? `\n\`[] ${optionalParams.join(', ')}\`` : ''}` + `${notes.length > 0 ? `\n${noteIsArray ? `**Extra notes:**\n*${notes.join('\n')}*` : `**Extra notes:** *${notes}*`}` : ''}`)
 							.addField('Command availability:', `${master_explicit ? 'Master dedicated ~' : `${guildOnly ? `${user.length > 0 ? `[Guild only] ${userIsArray ? user.join(', ') : user}` : 'Guild only.'}` : client.Methods.Randomized(responses.commands.command_availability)}`}`, true)
 							.addField('Cooldown', `${cooldown > 0 ? `${cooldown ? `${cooldown} second${cooldown > 1 ? 's' : ''}` : 'None'}` : 'None'}${guildCooldown ? ', guild' : ''}`, true)
-							.setFooter(`Current prefix: ${prefix}`);
-							// .setFooter(`${target.usage ? `${usageFooterString}` : ''}Current prefix: ${prefix}`);
+							.setFooter(`${requiredParams.length > 0  ? `${optionalParams.length > 0 ? '<> required parameters' : '<> required parameters |'}` : ''}${optionalParams.length > 0 ? `${requiredParams.length > 0 ? ', [] optional parameters |' : '[] optional parameters |'}` : ''} Current prefix: ${prefix}`);
 
 				return message.channel.send(embed);
 			}

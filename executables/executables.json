@@ -41,7 +41,7 @@
             "unexec": 2,
             "empty": 0,
             "dev": 2,
-            "size": "20.4 kB"
+            "size": "19.4 kB"
         },
         {
             "name": "master-explicit",
@@ -60,7 +60,7 @@
             "unexec": 0,
             "empty": 0,
             "dev": 0,
-            "size": "8.2 kB"
+            "size": "8.0 kB"
         },
         {
             "name": "moderation",
