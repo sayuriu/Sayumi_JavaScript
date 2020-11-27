@@ -1,24 +1,78 @@
-module.exports =  {
+const { MessageEmbed: EmbedConstructor, MessageAttachment } = require('discord.js');
+
+module.exports = {
 	name: 'messageDelete',
 	stable: true,
 	onEmit: async (client, message) => {
-		// We will just ignore DMs for now.
-		if (message.channel.type === 'dm' || message.author.id === client.user.id) return;
 
-		// If the message is prompted in commands
-		const messageFlag = await client.Messages.find(msg => msg.msgID && msg.msgID === message.id);
-		if(messageFlag && messageFlag.flagNoDelete) return client.Messages.delete(message.id);
+		if (message.channel.type === 'dm') return;
 
-		// Get database...
 		const data = await client.GuildDatabase.get(message.guild);
 
-		if (data.MessageLogState && data.MessageLogChannel !== '')
+		const LogChannel = message.guild.channels.cache.find(ch => ch.id === data.MessageLogChannel);
+		if (data.MessageLogState && LogChannel)
 		{
-			const embed = client.Embeds.messageLog(message);
-			client.channels.cache.find(channel => channel.id === data.MessageLogChannel).send(embed.deleted);
-		}
+			let hasBeenEditedBefore = null;
+			// Edits the existing embed
+			LogChannel.messages.fetch({ limit: 100 }, false, true).then(async result => {
+				const target = result.find(msg => msg.editedFlag && msg.editedFlag === message.id);
+				if (!target) return send();
 
-		if (message.embeds.length > 0) message.content = message.embeds;
+				const needsToBeEdited = target.embeds[0].fields.find(field => field.name === 'Edited');
+				if (!needsToBeEdited) return send();
+				needsToBeEdited.value = `~~${needsToBeEdited.value}~~`;
+
+				await target.edit(new EmbedConstructor(Object.assign(target.embeds[0], { fields: [target.embeds[0].fields[0], needsToBeEdited] })));
+				hasBeenEditedBefore = target.url;
+				return send();
+			});
+
+			// Message
+			const send = () => {
+				const notifEmbed = new EmbedConstructor()
+												.setTitle('Message deleted')
+												.setColor('ff0000')
+												.setDescription(`${message.member.displayName} <@!${message.member.id}> has deleted a message in <#${message.channel.id}>${hasBeenEditedBefore ? `\n\n*This message seems like it has been edited before. Refer to [this message](${hasBeenEditedBefore}) for details.*` : ''}`)
+												.setTimestamp();
+
+				if (!hasBeenEditedBefore) notifEmbed.addField('Content', message.content);
+
+				const hasEmbeds = message.embeds.length > 0;
+				const hasAttachments = message.attachments.size > 0;
+				const isPinned = message.pinned;
+
+				const { everyone: mentionEveryone, roles: mentionRoles, users: mentionUsers, channels: mentionChannels } = message.mentions;
+
+				const FooterArray0 = [];
+				const FooterArray1 = [];
+				if (hasEmbeds) FooterArray0.push(`${message.embeds.length} embed${message.embeds.length > 1 ? 's' : ''}`);
+				if (hasAttachments) FooterArray0.push(`${message.attachments.size} attachment${message.attachments.size > 1 ? 's' : ''}`);
+				if (mentionEveryone || mentionRoles.size > 0 || mentionUsers.size > 0) FooterArray1.push(`**Mentions:** \n\`everyone / here:${mentionEveryone ? 'true' : 'false'}\`\n\`Users (${mentionUsers.size})\` ${mentionUsers.size > 0 ? `${mentionUsers.size > 10 ? '' : mentionUsers.map(user => `<@!${user.id}>`)}` : ''}\n\`Roles (${mentionRoles.size})\` ${mentionRoles.size > 0 ? `${mentionRoles.size > 10 ? '' : mentionRoles.map(role => `<@&${role.id}>`)}` : ''}\n\`Channels (${mentionChannels.size})\` ${mentionChannels.size > 0 ? `${mentionChannels.size > 10 ? '' : mentionChannels.map(channel => `<#${channel.id}>`)}` : ''}`);
+
+				if (FooterArray0.length > 0 || FooterArray1.length > 0) notifEmbed.addField('Associated', `${FooterArray0.length > 0 ? `\`${FooterArray0.join(', ')}\`` : ''}\n${FooterArray1.join(' ')}`);
+				if (isPinned) notifEmbed.setFooter('Pinned: true');
+				LogChannel.send(notifEmbed);
+
+				if (hasEmbeds)
+				{
+					LogChannel.send({
+						description: 'The message has associated embeds below.',
+					});
+					message.embeds.forEach(embed => {
+						LogChannel.send(embed);
+					});
+				}
+				if (hasAttachments)
+				{
+					LogChannel.send({
+						description: 'The message has associated files below.',
+					});
+					message.attachments.forEach(file => {
+						LogChannel.send(new MessageAttachment(file.url, file.name, file));
+					});
+				}
+			};
+		}
 
 		const History = data.MessageLog;
 		const LogHoldLimit = data.LogHoldLimit;
@@ -29,7 +83,6 @@ module.exports =  {
 			User = {
 				tag: message.author.tag,
 				nickname: message.member.nickname,
-				id: message.author.id,
 				deletedMessages: {},
 			};
 			History.set(User.id, User);
@@ -37,7 +90,7 @@ module.exports =  {
 
 		let DeletedHistory = User.deletedMessages;
 		if (DeletedHistory === undefined) DeletedHistory = {};
-		if (User.tag !== message.author.tag) User.tag !== message.author.tag;
+		if (User.tag !== message.author.tag) User.tag = message.author.tag;
 		if (User.nickname !== message.member.nickname) User.nickname = message.member.nickname;
 
 		const object = {
@@ -82,6 +135,6 @@ module.exports =  {
 
 		History.set(User.id, User);
 		client.GuildDatabase.update(message.guild, { MessageLog: History });
-		client.Messages.delete(message.id);
+		// Database operations
 	},
 };

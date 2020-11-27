@@ -113,11 +113,6 @@ module.exports = {
 			avatarContext.beginPath();
 			avatarContext.arc(64, 64, 64, 0, Math.PI * 2);
 			avatarContext.clip();
-
-			// avatarContext.beginPath();
-			// avatarContext.arc(92, 92, 23, 0, Math.PI * 1.5);
-			// avatarContext.clip();
-
 			avatarContext.drawImage(avatarImage, 0, 0);
 
 			// Render the avatar first

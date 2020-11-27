@@ -10,61 +10,62 @@ module.exports = {
 	args: true,
 	reqArgs: true,
 	usage: '<option> [-associatedOptionFlags]',
+	usageSyntax: '|<option: logs | tempfiles>| |[-associatedOptionFlags(logs): errors | logonly | all]|',
 	group: 'Utilities',
-	onTrigger: (message, args) => {
+	onTrigger: (message, args, client) => {
+		const SelfDeteleMsg = (msg) => client.Methods.SelfMessageDelete(msg, { timeout: 3000 });
 		if (!args[0])
 		{
 			const embed = new EmbedConstructor();
 		}
 		args[0] = args[0].toLowerCase();
 
+		const clearLogs = (file = 'log.log') => {
+			FileSystem.writeFile(`./logs/${file}`, '', (err) => {
+				if (err)
+				{
+					message.channel.send(`Error occured!\n\`${err.message}\``);
+					return false;
+				}
+			});
+			return true;
+		};
+
 		switch (args[0])
 		{
-			case 'log':
+			case 'logs':
 			{
 				if (args[1] && args[1].startsWith('-'))
 				{
 					switch (args[1].toLowerCase())
 					{
-						case '-error':
+						case args[1].toLowerCase().match(/-errors?/):
 						{
-							FileSystem.writeFile('./logs/errors.log', '', (err) => {
-								if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
-							});
-							message.channel.send('Log cleared!').then(m => m.delete({ timeout: 3000 }));
+							if (clearLogs('errors.log')) message.channel.send('Error logs cleared!').then(m => SelfDeteleMsg(m));
 							break;
 						}
-						case '-log':
+						case '-logonly':
 						{
-							FileSystem.writeFile('./logs/log.log', '', (err) => {
-								if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
-							});
-							message.channel.send('Log cleared!').then(m => m.delete({ timeout: 3000 }));
+							if (clearLogs()) message.channel.send('Log cleared!').then(m => SelfDeteleMsg(m));
 							break;
 						}
 						case '-all':
 						{
-							FileSystem.writeFile('./logs/log.log', '', (err) => {
-								if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
-							});
-							FileSystem.writeFile('./logs/errors.log', '', (err) => {
-								if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
-							});
-							message.channel.send('Log cleared!').then(m => m.delete({ timeout: 3000 }));
+							if (clearLogs() && clearLogs('errors.log')) message.channel.send('Logs cleared!').then(m => SelfDeteleMsg(m));
 							break;
 						}
 						default: return message.channel.send('Invalid or wrong flags.');
 					}
-				} else if (!args[1]) {
-					FileSystem.writeFile('./logs/log.log', '', (err) => {
-						if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
-					});
-					FileSystem.writeFile('./logs/errors.log', '', (err) => {
-						if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
-					});
-					message.channel.send('Log cleared!').then(m => m.delete({ timeout: 3000 }));
+				} else {
+					if (clearLogs()) message.channel.send('Log cleared!').then(m => SelfDeteleMsg(m));
 					break;
 				}
+				break;
+			}
+
+			case args[0].match(/-errors?/):
+			{
+				if (clearLogs('errors.log')) message.channel.send('Error logs cleared!').then(m => SelfDeteleMsg(m));
 				break;
 			}
 
@@ -77,7 +78,7 @@ module.exports = {
 				FileSystem.mkdir('./temps', (err) => {
 					if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
 				});
-				message.channel.send('Cache files cleared.').then(m => m.delete({ timeout: 3000 }));
+				message.channel.send('Cache files cleared.').then(m => SelfDeteleMsg(m));
 				break;
 			}
 

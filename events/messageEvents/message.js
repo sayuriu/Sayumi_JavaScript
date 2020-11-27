@@ -14,6 +14,8 @@ module.exports = {
 		const maid = client.user.id;
 		const mention_self = `<@!${maid}>`;
 
+		const SelfDeteleMsg = (msg, duration = 3000) => client.Methods.SelfMessageDelete(msg, { timeout: duration });
+
 		// Gets the prefix if the message is sent in a guild.
 		if (message.guild)
 		{
@@ -38,7 +40,7 @@ module.exports = {
 			{
 				if (message.guild.me.permissions.has('MANAGE_NICKNAMES')) await message.member.setNickname(IfAFK.name).catch(err => {message.channel.send('...').then(m => m.delete({ timeout: 2500 })); });
 				client.AFKUsers.delete(message.author.id);
-				if (message.guild && source.AllowedReplyOn.some(channelID => channelID === IfAFK.lastChannel)) client.channels.cache.find(channel => channel.id === IfAFK.lastChannel).send(`Welcome back <@!${IfAFK.id}>, I have removed your AFK!`).then(m => m.delete({ timeout: 4000 }));
+				if (message.guild && source.AllowedReplyOn.some(channelID => channelID === IfAFK.lastChannel)) client.channels.cache.find(channel => channel.id === IfAFK.lastChannel).send(`Welcome back <@!${IfAFK.id}>, I have removed your AFK!`).then(m => SelfDeteleMsg(m, 4000));
 				else;
 			}
 
@@ -183,7 +185,7 @@ module.exports = {
 					// Master-explicit commands
 					if (RequestedCommand.master_explicit && message.author.id !== master) {
 						return message.channel.send(`Sorry ${message.author}, but this command can be issued by my master only.`).then(msg => {
-							if (message.channel.name.includes('general')) return msg.delete({ timeout: 3000 });
+							if (message.channel.name.includes('general')) return SelfDeteleMsg(msg, 3000);
 							else return msg.delete({ timeout: 5000 });
 						});
 					}
@@ -191,7 +193,7 @@ module.exports = {
 					// NSFW commands
 					if (RequestedCommand.nsfw === 'partial' && message.channel.type !== 'dm')
 					{
-						if (source.AllowPartialNSFW === false) return message.channel.send('Please execute this command from an appropriate channel.').then(m => m.delete({ timeout: 3000 }));
+						if (source.AllowPartialNSFW === false) return message.channel.send('Please execute this command from an appropriate channel.').then(m => SelfDeteleMsg(m, 3000));
 						const boolean = client.Channels.get(message.channel.id);
 						if (!boolean)
 						{
@@ -204,7 +206,7 @@ module.exports = {
 					if (RequestedCommand.nsfw === true && message.channel.type !== 'dm' && message.channel.nsfw === false)
 					{
 						if (message.deletable) message.delete();
-						return message.channel.send('Please execute this command from an appropriate channel.').then(m => m.delete({ timeout: 3000 }));
+						return message.channel.send('Please execute this command from an appropriate channel.').then(m => SelfDeteleMsg(m, 3000));
 					}
 
 					// Perms checking
