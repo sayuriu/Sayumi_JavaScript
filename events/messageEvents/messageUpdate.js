@@ -19,10 +19,7 @@ module.exports = {
                                 .addField('Edited', newMessage.content)
 								.setTimestamp();
 
-			LogChannel.send(updated).then(m => {
-				Object.assign(m, { editedFlag: newMessage.id });
-				// Object.assign(newMessage, { editedFlag: newMessage.id });
-			});
+			LogChannel.send(updated).then(m => Object.assign(m, { editedFlag: newMessage.id }));
 		}
 	},
 };

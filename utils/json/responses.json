@@ -40,7 +40,7 @@
 		],
 		"command_invalid": [
 			"This is not a vaild command for me.",
-			"Perhaps a typo, ${memberName}",
+			"Perhaps a typo, ${memberName}?",
 			"I can't issue this.",
 			"Use `${thisPrefix}help` for a help list if you are confused.",
 			"What is *${typo}*?"

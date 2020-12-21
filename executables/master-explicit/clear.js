@@ -39,7 +39,7 @@ module.exports = {
 				{
 					switch (args[1].toLowerCase())
 					{
-						case args[1].toLowerCase().match(/-errors?/):
+						case args[1].toLowerCase().match(/\s-errors?\s*/):
 						{
 							if (clearLogs('errors.log')) message.channel.send('Error logs cleared!').then(m => SelfDeteleMsg(m));
 							break;
@@ -71,7 +71,10 @@ module.exports = {
 
 			case 'tempfiles':
 			{
-				if (FileSystem.lstatSync('./temps').size <= 0) return message.channel.send('There are no files to clean up.');
+				if (client.Methods.getTotalSize('./temps').startsWith('0')) return message.channel.send('There are no files to clean up.');
+				FileSystem.readdirSync('./temps', { encoding: null, flags: 'w+' }).forEach(file => {
+					FileSystem.unlinkSync(`./temps/${file}`);
+				});
 				FileSystem.rmdir('./temps', (err) => {
 					if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
 				});

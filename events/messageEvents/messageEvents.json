@@ -2,21 +2,19 @@
     "name": "messageEvents",
     "files": [
         "message.js",
-        "messageDelete.txt",
-        "messageDelete_1.js",
+        "messageDelete.js",
         "messageEvents.json",
-        "messageUpdate.txt",
-        "messageUpdate_1.js"
+        "messageUpdate.js"
     ],
     "subfolders": [],
     "parent": true,
     "parentName": "events",
     "evt": [
         "message.js",
-        "messageDelete_1.js",
-        "messageUpdate_1.js"
+        "messageDelete.js",
+        "messageUpdate.js"
     ],
     "dev": 0,
     "empty": 0,
-    "size": "19.7 kB"
+    "size": "17.3 kB"
 }

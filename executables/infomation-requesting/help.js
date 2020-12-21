@@ -5,6 +5,7 @@ const settingsList = require('../../utils/json/SettingsObjects.json');
 module.exports = {
 	name: 'help',
 	aliases: ["holp", "helps", "?"],
+	stable: true,
 	args: true,
 	description: 'A help command for those in need.',
 	group: ['Information', 'Utilities'],

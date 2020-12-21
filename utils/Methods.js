@@ -281,6 +281,11 @@ module.exports = class Methods
         }
     }
 
+    static randomHex8()
+    {
+        return Math.random().toString(16).substr(0, 10).toUpperCase().replace(/\./g, 'x');
+    }
+
     /** Returns a time object. */
     static DateTime()
     {
@@ -306,7 +311,7 @@ module.exports = class Methods
    static TimestampToTime(timestamp)
     {
         if (typeof timestamp !== 'number') throw new TypeError('The input must be a number.');
-        if (timestamp > Date.now()) throw new RangeError('The timestamp must be smaller than present.');
+        if (timestamp > Date.now()) timestamp = Date.now();
 
         const hours = Math.floor(timestamp / 3600000) % 24;
         const minutes = Math.floor(timestamp / 60000) % 60;
@@ -345,7 +350,7 @@ module.exports = class Methods
             else output += days + ` day${days > 1 ? 's' : ''}`;
         }
 
-        output = output.replace(/[1]+/g, function() {
+        output = output.replace(/\b0*?1\b/g, function() {
             return 'a';
         });
 
@@ -532,6 +537,17 @@ module.exports = class Methods
         }
 
         return indice;
+    }
+
+    static stringLimiter(input1, input2 = '', seperator = '.', stringLimit = input1.length)
+    {
+        if (seperator === null) seperator = '.';
+        if (stringLimit === 0) return input1 + input2;
+        const fill = stringLimit - (input1.length + input2.length);
+
+        if (fill < 0) return input1.substr(0, stringLimit - input2.length - 7) + '(...)' + seperator + seperator + input2 || input1 + input2;
+
+        return input1.padEnd(stringLimit - input2.length, seperator) + input2;
     }
 
     /** Updates this program's version and rewrites `package.json`.

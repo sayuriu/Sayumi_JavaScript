@@ -42,7 +42,6 @@ module.exports = {
 	dbUsername: process.env.databaseUsername,
 	dbPassword: process.env.databasePassword,
 
-	token: process.env.TOKEN,
 	master: process.env.master,
 
 	// APIs

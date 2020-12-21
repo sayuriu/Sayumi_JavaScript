@@ -8,3 +8,8 @@ typings
 Playground.js
 package-lock.json
 temps
+oldArchives
+about.js
+executables/executables.json
+*.json
+*.json

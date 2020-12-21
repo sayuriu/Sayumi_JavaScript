@@ -29,7 +29,7 @@ module.exports = {
                 .setDescription(`Written by ${res.author || "unknown"}\n[Permalink](${res.permalink})`)
                 .addField('Definition: ', res.definition || "No definition available.")
                 .addField('Example:', res.example || "No examples available.")
-                .addField('Rating', `Upvotes: ${res.thumbs_up || 0},\nDownvotes : ${res.thumbs_down || 0}.`)
+                .addField('Rating', `Upvotes: \`${res.thumbs_up || 0}\`Downvotes : \`${res.thumbs_down || 0}\``)
                 .setFooter("*Source: Urban Dictionary*");
             message.channel.send(embed);
         } catch(error) {

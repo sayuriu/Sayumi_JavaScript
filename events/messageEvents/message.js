@@ -170,16 +170,10 @@ module.exports = {
 					// Note: Added reqArgs for commands that specifically requires args.
 					if (RequestedCommand.args && RequestedCommand.reqArgs && !args.length)
 					{
-						// Eval command-explicit
-						if (RequestedCommand.terminal) return message.channel.send('Expressions expected.').then(m => m.delete({ timeout: 4000 }));
-						// For normal commands
-						else
-						{
-							let string;
-							if (RequestedCommand.prompt) return message.channel.send(RequestedCommand.prompt);
-							if (RequestedCommand.usage) string = `\nUsage: \`${prefix}${RequestedCommand.name} ${RequestedCommand.usage}\`.`;
-							return message.channel.send(`${client.Methods.Randomized(responses.commands.empty_arguments)} ${string || ''}`);
-						}
+						let string;
+						if (RequestedCommand.prompt) return message.channel.send(RequestedCommand.prompt);
+						if (RequestedCommand.usage) string = `\nUsage: \`${prefix}${RequestedCommand.name} ${RequestedCommand.usage}\`.`;
+						return message.channel.send(`${client.Methods.Randomized(responses.commands.empty_arguments)} ${string || ''}`);
 					}
 
 					// Master-explicit commands

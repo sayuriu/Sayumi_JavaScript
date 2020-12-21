@@ -43,8 +43,7 @@ module.exports = {
 		if (confirm === false) target = target.first();
 		const { activities, clientStatus: clientDevice, status } = target.presence;
 
-		let largePresenceImage = null;
-		let smallPresenceImage = null;
+		let largePresenceImage, smallPresenceImage = null;
 
 		// Generate embed (1)
 		const embed = new MessageEmbed()

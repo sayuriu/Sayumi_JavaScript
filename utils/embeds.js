@@ -195,10 +195,11 @@ module.exports = class EmbedConstructor {
         const createdAt = server.createdAt;
         const timeBefore = Methods.daysAgo(createdAt).message;
 
+        //
         return new MessageEmbed()
             .setTitle(server.name)
             .setColor("RANDOM")
-            .setThumbnail(server.iconURL)
+            .setThumbnail(server.iconURL())
             .setDescription(`*GID: ${server.id}, region ${regions[server.region]}*`)
             .addField('Owner', server.owner)
             .addField('Verification level', verifLevel, true)
@@ -207,7 +208,6 @@ module.exports = class EmbedConstructor {
             .addField('Channel count', `\`All: ${channelCount} | Text: ${channelCount - vcCount} | Voice: ${vcCount}\``, true)
             .addField('Roles count', `\`${rolesCount}\``, true)
             .setFooter(`Created date: ${createdAt.toUTCString().substr(0, 16)} (Around ${timeBefore} ago)`);
-        // });
     }
 
     // TODO: Under construction.

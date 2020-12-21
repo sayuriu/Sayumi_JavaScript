@@ -2,14 +2,17 @@
 const loader = require('./Loader');
 const log = require('./Logger');
 const http = require('http');
+const Init = require('./Database/Methods/client');
 
 /**
  * Yes.
  */
-module.exports = class Sayuri {
-    constructor(data)
+module.exports = class Sayuri extends Init {
+    constructor(data, token)
     {
-        const { client, token, App: app } = data;
+        const { client, App: app } = data;
+        super(client);
+
         /** Initiates this client instance. */
         this.Init = () => {
             this.Login(client, token);
@@ -17,8 +20,11 @@ module.exports = class Sayuri {
             this.CommandInit(client);
             this.HandleProcessErrors();
             this.KeepAlive(app, true);
+
+            setTimeout(() => this.DBInit(), 3000);
         };
         this.Refresh = () => this.Reload(client);
+        this.DBInit = () => super.init(client);
     }
 
     /**

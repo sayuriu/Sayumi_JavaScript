@@ -1,21 +1,25 @@
 {
     "name": "infomation-requesting",
     "files": [
+        "about.js",
         "help.js",
         "infomation-requesting.json",
         "server.js",
+        "status.js",
         "whois.js"
     ],
     "subfolders": [],
     "parent": true,
     "parentName": "executables",
     "exe": [
-        "help.js (dev)",
+        "about.js (dev)",
+        "help.js",
         "server.js (dev)",
+        "status.js (dev)",
         "whois.js"
     ],
-    "unexec": 2,
+    "unexec": 3,
     "empty": 0,
-    "dev": 2,
-    "size": "19.4 kB"
+    "dev": 3,
+    "size": "27.3 kB"
 }

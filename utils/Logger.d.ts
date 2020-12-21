@@ -1,10 +1,3 @@
-import * as Winston from 'winston';
-
-interface ConsoleOutput {
-	out: Winston.Logger;
-	std: Console;
-}
-
 declare class Logger {
 	public info(message: string): this;
 	public warn(message: string): this;

@@ -49,7 +49,6 @@ module.exports = {
 		else
 		{
 			args[0] = args[0].toLowerCase();
-			const msglog = ['msglog', 'log'];
 			switch (args[0])
 			{
 				case 'replyon':
@@ -57,7 +56,7 @@ module.exports = {
 					settings.AllowReplyConfig(message, args);
 					break;
 				}
-				case msglog.some(i => i === args[0]):
+				case 'msglog':
 				{
 					settings.MessageLog(message, args);
 					break;

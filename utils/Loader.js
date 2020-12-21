@@ -146,6 +146,7 @@ module.exports = class Loader {
     */
     EventLoader(pathName, client, Root, subfolder = false)
     {
+        process.env.HANDLED_EVENTS = 0;
         client.Log.carrier('status: SCAN', `[Loader] Checking "${pathName}"...`);
         if (typeof subfolder !== 'boolean') throw new Error('[CommandLoader] The last parameter if specified must a boolean.');
         const hostFolder = {
@@ -371,6 +372,7 @@ module.exports = class Loader {
             }
             if (availablity ===  true)
             {
+                process.env.HANDLED_EVENTS++;
                 object.evt.push(file);
                 if (once)
                 {

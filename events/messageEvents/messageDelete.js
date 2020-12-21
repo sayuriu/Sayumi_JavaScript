@@ -35,7 +35,7 @@ module.exports = {
 												.setDescription(`${message.member.displayName} <@!${message.member.id}> has deleted a message in <#${message.channel.id}>${hasBeenEditedBefore ? `\n\n*This message seems like it has been edited before. Refer to [this message](${hasBeenEditedBefore}) for details.*` : ''}`)
 												.setTimestamp();
 
-				if (!hasBeenEditedBefore) notifEmbed.addField('Content', message.content);
+				if (!hasBeenEditedBefore) notifEmbed.addField('Content', message.content.length > 1024 ? message.content.substr(0, 1021) + '...' : message.content || '`The deleted message does not contain any text.`');
 
 				const hasEmbeds = message.embeds.length > 0;
 				const hasAttachments = message.attachments.size > 0;
@@ -55,18 +55,18 @@ module.exports = {
 
 				if (hasEmbeds)
 				{
-					LogChannel.send({
+					LogChannel.send(new EmbedConstructor({
 						description: 'The message has associated embeds below.',
-					});
+					}));
 					message.embeds.forEach(embed => {
 						LogChannel.send(embed);
 					});
 				}
 				if (hasAttachments)
 				{
-					LogChannel.send({
+					LogChannel.send(new EmbedConstructor({
 						description: 'The message has associated files below.',
-					});
+					}));
 					message.attachments.forEach(file => {
 						LogChannel.send(new MessageAttachment(file.url, file.name, file));
 					});
@@ -74,6 +74,7 @@ module.exports = {
 			};
 		}
 
+		// Database operations
 		const History = data.MessageLog;
 		const LogHoldLimit = data.LogHoldLimit;
 
@@ -82,59 +83,62 @@ module.exports = {
 		{
 			User = {
 				tag: message.author.tag,
-				nickname: message.member.nickname,
+				nickname: message.author.nickname,
 				deletedMessages: {},
 			};
-			History.set(User.id, User);
+			History.set(message.author.id, User);
 		}
 
-		let DeletedHistory = User.deletedMessages;
-		if (DeletedHistory === undefined) DeletedHistory = {};
+		const DeletedHistory = User.deletedMessages;
 		if (User.tag !== message.author.tag) User.tag = message.author.tag;
-		if (User.nickname !== message.member.nickname) User.nickname = message.member.nickname;
+		if (User.nickname !== message.author.nickname) User.nickname = message.member.nickname;
 
-		const object = {
-			dateID: `${Date.now()}`,
-			user: message.author.tag,
-			MsgContent: message.content,
-			MsgTimestamp: message.createdAt,
+		const deletedMsgObject = {
+			displayName: message.member.nickname || message.author.username,
+			deletedTimestamp: Date.now(),
+			message: convertMsgObject(message),
 		};
-		DeletedHistory[object.dateID] = object;
 
-		if (Object.keys(DeletedHistory).length > LogHoldLimit)
+		DeletedHistory[deletedMsgObject.deletedTimestamp] = deletedMsgObject;
+
+		let array = Object.keys(DeletedHistory).map(x => parseInt(x));
+		while (Object.keys(DeletedHistory).length > LogHoldLimit)
 		{
-			let array = [];
-			const filteredArray = [];
-			const tempObject = {};
-			for (const key in DeletedHistory)
-			{
-				const ID = parseInt(key);
-				array.push(ID);
-				tempObject[ID] = DeletedHistory[key];
-			}
-			for (let i = 0; i < LogHoldLimit; i++)
-			{
-				const max = Math.max(...array);
-				filteredArray.push(max);
-
-				const newArray = array.splice(array.indexOf(max) - 1, 1);
-				array = newArray;
-			}
-
-			filteredArray.sort();
-			// Reset the object
-			DeletedHistory = {};
-
-			// Reassign the history object
-			for (let i = 0; i < filteredArray.length; i++)
-			{
-				DeletedHistory[filteredArray[i]] = tempObject[filteredArray[i]];
-			}
+			delete DeletedHistory[`${Math.min(...array)}`];
+			array.sort((a, b) => b - a);
+			array = array.slice(0, array.length - 1);
 		}
+
 		User.deletedMessages = DeletedHistory;
 
-		History.set(User.id, User);
+		History.set(message.author.id, User);
 		client.GuildDatabase.update(message.guild, { MessageLog: History });
-		// Database operations
 	},
 };
+
+function convertMsgObject(message)
+{
+	const msg = cleanAbstractObject(message);
+
+	msg.attachments = cleanAbstractObject(message.attachments);
+	// msg.author = cleanAbstractObject(message.author);
+	msg.mentions = {};
+	msg.mentions.everyone = message.mentions.everyone;
+
+	msg.mentions.users = [];
+	msg.mentions.channels = [];
+	message.mentions.users.forEach(user => msg.mentions.users.push(user.id));
+	message.mentions.channels.forEach(channel => msg.mentions.channels.push(channel.id));
+
+	for (const key in msg)
+	{
+		if (msg[key] === null || msg[key] === undefined) delete msg[key];
+	}
+	return msg;
+}
+
+function cleanAbstractObject(obj)
+{
+	if (typeof obj !== 'object') return [0];
+	return JSON.parse(JSON.stringify(obj));
+}
