@@ -32,6 +32,8 @@ module.exports = {
 	AFKUsers: new Collection(),
 	Timestamps: new Collection(),
 
+	EvaluatingSessions: new Collection(),
+
 	Embeds:  EmbedConstructor,
 	Methods: GlobalFunctions,
 	Log: Logger,

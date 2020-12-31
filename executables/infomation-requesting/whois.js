@@ -5,8 +5,9 @@ const request = require('request');
 
 const activityType = require('../../utils/json/ActivityType.json');
 const userStatus = require('../../utils/json/UserStatus.json');
-const Renderers = require('../../utils/Renderers');
 const imgur = require('../../utils/https/imgur');
+
+require('fs');
 
 module.exports = {
 	name: 'whois',
@@ -23,26 +24,15 @@ module.exports = {
 		// Get user
 		if (!args[0]) args[0] = `<@!${message.author.id}>`;
 
-		let _id;
-		let confirm = false;
-
-		const userID = args[0].match(/^<?@?!?(\d+)>?$/);
-		if (userID !== null)
-		{
-			_id = userID[1];
-			confirm = true;
-		}
-		else if (!userID) _id = null;
-
+		const userID = args[0].match(/^<?@?!?(\d+)>?$/) ? args[0].match(/^<?@?!?(\d+)>?$/)[1] : null;
 		let target;
 
-		if (_id) target = await message.guild.members.fetch({ user: _id, force: true });
-		if (!target) target = await message.guild.members.fetch({ query: args[0], limit: 1 });
+		if (userID) target = await message.guild.members.fetch({ user: userID, force: true });
+		if (!target) target = await message.guild.members.fetch({ query: args[0], limit: 1 }).first();
 
 		if (target.size < 1) return message.channel.send('No such user matches your request.');
-		if (confirm === false) target = target.first();
-		const { activities, clientStatus: clientDevice, status } = target.presence;
 
+		const { activities, clientStatus: clientDevice, status } = target.presence;
 		let largePresenceImage, smallPresenceImage = null;
 
 		// Generate embed (1)
@@ -96,76 +86,7 @@ module.exports = {
 					}
 				}
 			});
-		}
-
-		// Rendering images
-
-			// Main
-			const mainCanvas = canvas.createCanvas(130, 130);
-			const mainContext = mainCanvas.getContext('2d');
-
-			// Avatar
-			const avatarImage = await canvas.loadImage(target.user.avatarURL({ format: 'jpg' }));
-			const avatarCanvas = canvas.createCanvas(128, 128);
-			const avatarContext = avatarCanvas.getContext('2d');
-
-			avatarContext.beginPath();
-			avatarContext.arc(64, 64, 64, 0, Math.PI * 2);
-			avatarContext.clip();
-			avatarContext.drawImage(avatarImage, 0, 0);
-
-			// Render the avatar first
-			const avatar = await canvas.loadImage(avatarCanvas.toBuffer());
-			mainContext.drawImage(avatar, 0, 0);
-
-			// Presence data
-			if (largePresenceImage)
-			{
-				const LICanvas = canvas.createCanvas(128, 128);
-				const LIcontext = LICanvas.getContext('2d');
-
-				const src = await canvas.loadImage(largePresenceImage.link);
-
-				largePresenceImage.data = Renderers.PresenceAssets(src, LICanvas, LIcontext);
-			}
-
-			if (smallPresenceImage)
-			{
-				const SICanvas = canvas.createCanvas(128, 128);
-				const SIcontext = SICanvas.getContext('2d');
-
-				const src = await canvas.loadImage(smallPresenceImage.link);
-
-				smallPresenceImage.data = Renderers.PresenceAssets(src, SICanvas, SIcontext);
-			}
-
-		// Render on Main
-		if (smallPresenceImage)
-		{
-			const SI = await canvas.loadImage(smallPresenceImage.data);
-			mainContext.drawImage(SI, 92, 92, 36, 36);
-		}
-		else if (largePresenceImage)
-		{
-			const LI = await canvas.loadImage(largePresenceImage.data);
-			mainContext.drawImage(LI, 92, 92, 36, 36);
-		}
-
-		// If no presence data, let's use their status instead!
-		else
-		{
-			const IconCanvas = canvas.createCanvas(128, 128);
-			const IconContext = IconCanvas.getContext('2d');
-
-			IconContext.beginPath();
-			IconContext.arc(64, 64, 64, 0, Math.PI * 2);
-			IconContext.clip();
-
-			IconContext.fillStyle = userStatus.colors[status];
-			IconContext.fill();
-
-			const statusIcon = await canvas.loadImage(IconCanvas.toBuffer());
-			mainContext.drawImage(statusIcon, 92, 92, 36, 36);
+			activityString;
 		}
 
 		// Pull request as you upload the picture
@@ -178,20 +99,124 @@ module.exports = {
 		// Join dates
 		embed.addField('Dates', `Created on \`${target.user.createdAt.toUTCString().substr(0, 16)}\`\nJoined on \`${target.joinedAt.toUTCString().substr(0, 16)}\``);
 
-		// Request (last)
-		request(imgur.Post(mainCanvas.toBuffer()), async (err, res) => {
+		// Render & request
 
-			if (err) message.client.Log.carrier('error', `[Imgur API: Error] ${err.name}\n${err.message}`);
+		new UsersCanvasRenderer(target, largePresenceImage, smallPresenceImage, status).renderAvatar().then(imageBuffer => {
+			request(imgur.Post(imageBuffer), async (err, res) => {
 
-			if (res)
-			{
-				data = await JSON.parse(res.body);
+				if (err)
+				{
+					message.client.Log.carrier('error', `[Imgur API: Error] ${err.name}\n${err.message}`);
+					message.channel.send(embed).catch(err => console.error(err));
+				}
 
-				// Generate the embed (2)
-				if (data !== null) embed.setThumbnail(data.data.link);
-				if (smallPresenceImage && largePresenceImage !== null) embed.setFooter(null, largePresenceImage.link);
-				return message.channel.send(embed).catch(err => console.error(err));
-			}
+				if (res)
+				{
+					data = await JSON.parse(res.body);
+
+					// Generate the embed (2)
+					if (data) embed.setThumbnail(data.data.link);
+					if (smallPresenceImage && largePresenceImage) embed.setFooter(null, largePresenceImage.link);
+					return message.channel.send(embed).catch(err => console.error(err));
+				}
+			});
 		});
 	},
 };
+
+class UsersCanvasRenderer
+{
+	constructor(target)
+	{
+		this.avatar = target.user.avatarURL({ format: 'jpg' });
+		this.status = target.presence.status;
+		this.activities = target.presence.activities;
+
+		this.mainCanvas = canvas.createCanvas(130, 130);
+		this.mainCanvasCxt = this.mainCanvas.getContext('2d');
+	}
+
+	getPresenceAssets()
+	{
+		if (this.activities.length > 0)
+		{
+			const prioritizedActivity = this.activities.find(activity => activity.assets && activity.assets.smallImage && activity.assets.largeImage);
+			if (prioritizedActivity)
+			{
+				this.largePresenceImage = prioritizedActivity.assets.largeImageURL({ format: 'jpg' });
+				this.smallPresenceImage = prioritizedActivity.assets.smallImageURL({ format: 'jpg' });
+			}
+			else
+			{
+				this.activities.forEach(activity => {
+					if (activity.assets)
+					{
+						if (activity.assets.smallImage) this.smallPresenceImage = activity.assets.smallImageURL({ format: 'jpg' });
+						if (activity.assets.largeImage) this.largePresenceImage = activity.assets.largeImageURL({ format: 'jpg' });
+					}
+				});
+			}
+		}
+	}
+
+	async renderAvatar()
+	{
+		this.getPresenceAssets();
+
+		const image = await canvas.loadImage(this.avatar);
+		const avatarCanvas = canvas.createCanvas(128, 128);
+		const avatarContext = avatarCanvas.getContext('2d');
+
+		avatarContext.beginPath();
+		avatarContext.arc(64, 64, 64, 0, Math.PI * 2);
+		avatarContext.clip();
+		avatarContext.drawImage(image, 0, 0);
+
+		const finalized = await canvas.loadImage(avatarCanvas.toBuffer());
+		this.mainCanvasCxt.drawImage(finalized, 0, 0);
+		await this.renderStatusIcons();
+		return this.mainCanvas.toBuffer();
+	}
+
+	async renderStatusIcons()
+	{
+		if (this.smallPresenceImage)
+			await canvas.loadImage(this.smallPresenceImage).then(async img => {
+				const src = await canvas.loadImage(this.renderStatusIcon(1, img));
+				this.mainCanvasCxt.drawImage(src, 92, 92, 36, 36);
+			});
+
+		else if (this.largePresenceImage)
+			await canvas.loadImage(this.largePresenceImage).then(async img => {
+				const src = await canvas.loadImage(this.renderStatusIcon(1, img));
+				this.mainCanvasCxt.drawImage(src, 92, 92, 36, 36);
+			});
+
+		else await canvas.loadImage(this.renderStatusIcon(2)).then(img => this.mainCanvasCxt.drawImage(img, 92, 92, 36, 36));
+	}
+
+	renderStatusIcon(type = 2, img)
+	{
+		const CANVAS = canvas.createCanvas(128, 128);
+		const CXT = CANVAS.getContext('2d');
+
+		CXT.beginPath();
+		CXT.arc(64, 64, 64, 0, Math.PI * 2);
+		CXT.clip();
+
+		switch (type)
+		{
+			case 1:
+			{
+				CXT.drawImage(img, 0, 0);
+				return CANVAS.toBuffer();
+			}
+			case 2:
+			{
+				CXT.fillStyle = userStatus.colors[this.status];
+				CXT.fill();
+				return CANVAS.toBuffer();
+			}
+		}
+	}
+}

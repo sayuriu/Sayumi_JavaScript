@@ -121,6 +121,12 @@ module.exports = class Methods
 		}
     }
 
+    /** This is used to compare sessionID strings of unique operations. (eg. eval)*/
+    // static compareHexID(alrg, target)
+    // {
+    //
+    // }
+
     /** Stating files in the console output.
      * @param {object} dir The directory object to pass in. Usually it's taken from the loader.
      * @param {string} type The type of data you want to inspect. For Discord, it's reduced to commands, events and database models. This will be added more in the future.
@@ -356,6 +362,13 @@ module.exports = class Methods
 
         // output = output[0].toUpperCase() + output.substr(1);
         return { daysRaw: days, years: years, months: months, day: day, message: output };
+    }
+
+    static delayTask(duration)
+    {
+        if (duration === 0 || typeof duration !== 'number') return;
+        const timestamp = Date.now();
+        while(Date.now() - timestamp < duration);
     }
 
     static EscapeRegExp(string)

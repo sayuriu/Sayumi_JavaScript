@@ -1,3 +1,5 @@
+// @deprecated
+
 const Canvas = require('canvas');
 
 module.exports = class Renderers

@@ -2,6 +2,7 @@
     "name": "infomation-requesting",
     "files": [
         "about.js",
+        "avatar.js",
         "help.js",
         "infomation-requesting.json",
         "server.js",
@@ -13,13 +14,14 @@
     "parentName": "executables",
     "exe": [
         "about.js (dev)",
+        "avatar.js (dev)",
         "help.js",
         "server.js (dev)",
         "status.js (dev)",
         "whois.js"
     ],
-    "unexec": 3,
+    "unexec": 4,
     "empty": 0,
-    "dev": 3,
-    "size": "27.3 kB"
+    "dev": 4,
+    "size": "29.2 kB"
 }

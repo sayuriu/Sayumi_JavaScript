@@ -10,26 +10,31 @@ module.exports = {
 	stable: true,
 	args: true,
 	group: 'Utilities',
-	// flags: [''],
+	terminal: true,
 	master_explicit: true,
 	usage: '[flags] <input>',
 	usageSyntax: '[flags: ]',
-	onTrigger: async (message, prefix) => {
+	onTrigger: async (message, prefix, client) => {
 		const filter = (reaction, user) => {
 			return ['👍', '✋'].includes(reaction.emoji.name) && user.id === message.author.id;
 		};
 		const userFilter = user => user.id === message.author.id;
-		new EvalRenderer(Object.assign(message, { ReactionFilter: filter, UserFilter: userFilter }), prefix).start();
+		const session = new EvalRenderer(Object.assign(message, { ReactionFilter: filter, UserFilter: userFilter, sessionID: sessionID }), prefix);
+
+		const sessionID = getSessionsID(message.author, message.channel);
+		client.EvaluatingSessions.set(sessionID, session);
+		client.EvaluatingSessions.get(sessionID).start();
 	},
 };
-
 const headerStringArray = [
-	'--------- [EVAL SESSION ACTIVE]',
+	'--------- [EVAL SESSION ACTIVE] \'${SID}\'',
 	'',
 	' - Type in expressions directly to execute.',
 	' - Flags can be included before the expression: [sh/ext/]',
 	' - Type -exit to cancel this session.',
+	' [NOTE: \'You cannot execute commands in the same channel until this session ends.\']',
 ];
+const getSessionsID = (user, channel) => (parseInt(user.id) + parseInt(channel.id)).toString(16);
 
 class EvalRenderer {
 
@@ -38,6 +43,7 @@ class EvalRenderer {
 		this.header = null;
 		this.message = message;
 		this.mainInstanceUserID = message.author.id;
+		this.InstanceID = message.sessionID;
 		this.listenerChannel = message.channel;
 		this.showHidden = false;
 		this.showExt = false;
@@ -50,13 +56,17 @@ class EvalRenderer {
 		this.UserFilter = message.UserFilter;
 		this._embed = null;
 		this.lastInput = null;
-		this.emptyInputStart = false;
+		// this.emptyInputStart = false;
+		this.prefix = prefix;
 
 		this.a = -1;
-		this.sessionActiveString = `\`\`\`css\n${headerStringArray.join('\n').replace(/\n/g, () => {
-			this.a++;
-			return `\n0${this.a} `;
-		})}\`\`\``;
+		this.sessionActiveString = `\`\`\`css\n${headerStringArray.join('\n')
+				.replace(/\n/g, () => {
+					this.a++;
+					if (this.a === 0) return '\n';
+					return `\n0${this.a} `;
+				})
+				.replace(/\${SID}/g, this.InstanceID)}\`\`\``;
 		this.sessionDestroyedString = '```\nThis session is destroyed. No input will be taken until you start a new one.```';
 	}
 
@@ -112,9 +122,20 @@ class EvalRenderer {
 					if (
 						this.input.toLowerCase().match(/this.message.client.token/g) ||
 						this.input.toLowerCase().match(/process.env/g)
-					) this.resetUI('<no-exe: Input contain illegal keywords>');
+					) this.resetUI('<no-exe: Input contain illegal keywords');
 				}
 
+				if (this.input.startsWith(this.prefix))
+				{
+					const data = {
+						input: this.input,
+						error: {
+							name: 'CONFLICTED_HEADER',
+							message: 'Input started with this bot\'s prefix.',
+						},
+					};
+					this._embed = new TerminalEmbeds(data).ReturnError();
+				}
 				else
 				{
 					if (this.input.toLowerCase().startsWith('-exit')) return this.destroyInstance();
@@ -199,6 +220,7 @@ class EvalRenderer {
 			this.mainEmbedInstance.delete({ timeout: 5000 });
 			this.header.delete({ timeout: 5000 });
 		}
+		this.message.client.EvaluatingSessions.delete(getSessionsID(this.message.author, this.message.channel));
 		return this.destroyed = true;
 	}
 

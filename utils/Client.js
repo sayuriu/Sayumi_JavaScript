@@ -10,7 +10,7 @@ const Init = require('./Database/Methods/client');
 module.exports = class Sayuri extends Init {
     constructor(data, token)
     {
-        const { client, App: app } = data;
+        const { client, App: app, bugChannel } = data;
         super(client);
 
         /** Initiates this client instance. */
@@ -20,6 +20,8 @@ module.exports = class Sayuri extends Init {
             this.CommandInit(client);
             this.HandleProcessErrors();
             this.KeepAlive(app, true);
+
+            process.env.BUG_CHANNEL_ID = data.bugChannel || '630334027081056287';
 
             setTimeout(() => this.DBInit(), 3000);
         };

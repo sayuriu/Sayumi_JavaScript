@@ -11,5 +11,6 @@ temps
 oldArchives
 about.js
 executables/executables.json
-*.json
-*.json
+a.json
+a
+web

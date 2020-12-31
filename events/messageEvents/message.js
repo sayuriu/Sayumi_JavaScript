@@ -80,6 +80,10 @@ module.exports = {
 
 			// Returns when the message is sent in an appropriate channel (In guilds ofcourse)
 			if (message.guild && !source.AllowedReplyOn.some(channelID => channelID === message.channel.id)) return;
+
+			// If commands is typed in an evaluation instance
+			if (client.EvaluatingSessions.get((parseInt(message.author.id) + parseInt(message.channel.id)).toString(16))) return;
+
 			else
 			{
 				// message.content = functions.EscapeRegExp(message.content);
@@ -243,7 +247,7 @@ module.exports = {
 					// Catch errors
 					} catch (error) {
 						client.Log.error(`[Command Execution] An error has occured while executing "${RequestedCommand.name}": \n${error.message}`);
-						client.channels.cache.find(ch => ch.id === '630334027081056287').send(client.Embeds.error(message, error.message));
+						client.channels.cache.find(ch => ch.id === process.env.BUG_CHANNEL_ID).send(client.Embeds.error(message, error.message));
 						if (message.channel.type === 'text') return message.channel.send(client.Methods.Randomized(responses.errors.command_errors));
 						else return message.reply(client.Methods.Randomized(responses.errors.command_errors));
 					}

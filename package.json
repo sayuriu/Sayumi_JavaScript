@@ -1,6 +1,6 @@
 {
     "name": "sayumi",
-    "version": "1.24.129b516",
+    "version": "1.24.140b021",
     "author": "Sayuri",
     "license": "MIT",
     "description": "Not yet.",
@@ -33,6 +33,7 @@
         "opusscript": "^0.0.7",
         "request": "^2.88.2",
         "sodium": "^3.0.2",
+        "splashy": "^5.0.2",
         "utf-8-validate": "^5.0.2",
         "util": "^0.12.3",
         "winston": "^3.3.3",
