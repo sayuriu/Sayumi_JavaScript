@@ -35,6 +35,7 @@ module.exports = {
 												.setDescription(`${message.member.displayName} <@!${message.member.id}> has deleted a message in <#${message.channel.id}>${hasBeenEditedBefore ? `\n\n*This message seems like it has been edited before. Refer to [this message](${hasBeenEditedBefore}) for details.*` : ''}`)
 												.setTimestamp();
 
+				// Flagged for changes since designs issues for eval
 				if (!hasBeenEditedBefore) notifEmbed.addField('Content', message.content.length > 1024 ? message.content.substr(0, 1021) + '...' : message.content || '`The deleted message does not contain any text.`');
 
 				const hasEmbeds = message.embeds.length > 0;

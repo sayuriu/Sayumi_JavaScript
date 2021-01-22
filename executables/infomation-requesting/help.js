@@ -12,8 +12,8 @@ module.exports = {
 	cooldown: 10,
 	usage: '[category? command]',
 	onTrigger: async (message, args, client) => {
-		const ArrayOrString = client.Methods.ArrayOrString;
-		const Randomized = client.Methods.Randomized;
+		const ArrayOrString = client.Methods.Common.ArrayOrString;
+		const Randomize = client.Methods.Common.Randomize;
 
 		const source = await client.GuildDatabase.get(message.guild);
 		const prefix = source.prefix;
@@ -37,14 +37,14 @@ module.exports = {
 			client.CommandCategories.set(settings.name, settings);
 
 			client.CommandCategories.forEach(category => {
-				const CategoryKeyword = category.keywords[0];
+				const CategoryKeyword = category.keywords[0] || 'Unaccessible';
 				const length = category.commands.length;
 
 				if (CategoryKeyword === 'settings') return embed.addField(`Internal Settings \`${CategoryKeyword}\``, `${settingsOptions.size} available setting${settingsOptions.size > 1 ? 's' : ''}`);
 				embed.addField(`${category.name} \`${CategoryKeyword}\``, `${length > 0 ? `contains ${length} command${length > 1 ? 's' : ''}` : 'No command found.'}`, true);
 			});
 
-			const tips = Randomized(responses.tips);
+			const tips = Randomize(responses.tips);
 			if (tips.length > 0) embed.setFooter(`Tip: ${tips}`);
 			return message.channel.send(embed);
 		}
@@ -52,20 +52,13 @@ module.exports = {
 		if (args[0])
 		{
 			args[0] = args[0].toLowerCase();
-
-			if (args[0].startsWith('help'))
-			{
-				return client.emit('message', Object.assign(message, { content: `${prefix}help` }));
-			}
+			if (args[0].startsWith('help')) return client.emit('message', Object.assign(message, { content: `${prefix}help` }));
 
 			let allCategories = [];
 			let target;
 			let onCategory = false;
 
-			client.CommandCategories.forEach(t => {
-				allCategories = allCategories.concat(t.keywords);
-			});
-
+			client.CommandCategories.forEach(t => allCategories = allCategories.concat(t.keywords));
 			if (allCategories.some(i => i === args[0]))
 			{
 				target = client.CommandCategories.find(index => index.keywords && index.keywords.some(i => i === args[0]));
@@ -74,7 +67,7 @@ module.exports = {
 			else target = client.CommandList.get(args[0]) || client.CommandList.find(cmd => cmd.aliases && cmd.aliases.includes(args[0]));
 
 			// If category
-			if (target !== undefined && onCategory === true)
+			if (target && onCategory)
 			{
 
 				// Settings
@@ -139,8 +132,8 @@ module.exports = {
 
 					// Send the embed
 					const send = async () => {
-						if (response === undefined) return;
-						if (response.size > 0)
+						if (!response) return;
+						if (response.size)
 						{
 							if (response.first().content.toLowerCase() === 'cancel')
 							{
@@ -177,7 +170,7 @@ module.exports = {
 						}
 
 						// Keep listening to user's input if the input is invalid, until time expires
-						if (response.size === 0 && user.timeout - now > 0 && check)
+						if (!response.size && user.timeout - now > 0 && check)
 						{
 							await timeOutOptions(message, user.timeout);
 							await send();
@@ -216,15 +209,15 @@ module.exports = {
 						});
 					}
 
-					const tips = Randomized(responses.tips);
+					const tips = Randomize(responses.tips);
 					embed.setDescription(descString);
-					embed.setFooter(`Current prefix: ${prefix}${tips.length > 0 ? `\nTip: ${tips}` : ''}`);
+					embed.setFooter(`Current prefix: ${prefix}${tips.length > 0 ? `\n${tips}` : ''}`);
 					return message.channel.send(embed);
 				}
 			}
 
 			// If command
-			else if (target !== undefined && onCategory === false)
+			else if (target && !onCategory)
 			{
 				// Initial properties
 				const name = target.name;
@@ -245,10 +238,11 @@ module.exports = {
 				if (usageStringWithSyntax.length < usageString.length) usageStringWithSyntax = usageString;
 
 				// Usage parameters
-				const reqPLeft = message.client.Methods.StringSearch(/\|</g, usageStringWithSyntax);
-				const optPLeft = message.client.Methods.StringSearch(/\|\[/g, usageStringWithSyntax);
-				const reqPRight = message.client.Methods.StringSearch(/>\|/g, usageStringWithSyntax);
-				const optPRight = message.client.Methods.StringSearch(/]\|/g, usageStringWithSyntax);
+				const StringSearch = message.client.Methods.Common.StringSearch;
+				const reqPLeft = StringSearch(/\|</g, usageStringWithSyntax);
+				const optPLeft = StringSearch(/\|\[/g, usageStringWithSyntax);
+				const reqPRight = StringSearch(/>\|/g, usageStringWithSyntax);
+				const optPRight = StringSearch(/]\|/g, usageStringWithSyntax);
 
 				const requiredParams = [];
 				const optionalParams = [];
@@ -281,10 +275,10 @@ module.exports = {
 				.setColor('RANDOM')
 				.setTitle(`[${Array.isArray(group) ? `${group.join(', ')}` : group}] ` + `\`${name}\``)
 				.setDescription(`${flags.some(n => n === 'Under Developement') ? '**[Under Development!]** __This command may not running as expected.__' : ''}\n*${desc}${perms.length > 0 ? `\n${permsString}*` : '*'}`);
-				if (aliases !== 'None') embed.addField(`${Randomized(responses.commands.command_aliases)}`, `\`${Array.isArray(aliases) ? aliases.join(', ') : aliases}\``);
+				if (aliases !== 'None') embed.addField(`${Randomize(responses.commands.info.aliases)}`, `\`${Array.isArray(aliases) ? aliases.join(', ') : aliases}\``);
 
 				embed.addField(`Usage`, `${target.usage ? `${usageString}` : usage}` + `${requiredParams.length > 0  ? `\n\`<> ${requiredParams.join(', ')}\`` : ''}${optionalParams.length > 0 ? `\n\`[] ${optionalParams.join(', ')}\`` : ''}` + `${notes.length > 0 ? `\n${noteIsArray ? `**Extra notes:**\n*${notes.join('\n')}*` : `**Extra notes:** *${notes}*`}` : ''}`)
-							.addField('Command availability:', `${master_explicit ? 'Master dedicated ~' : `${guildOnly ? `${user.length > 0 ? `[Guild only] ${userIsArray ? user.join(', ') : user}` : 'Guild only.'}` : client.Methods.Randomized(responses.commands.command_availability)}`}`, true)
+							.addField('Command availability:', `${master_explicit ? 'Master dedicated ~' : `${guildOnly ? `${user.length > 0 ? `[Guild only] ${userIsArray ? user.join(', ') : user}` : 'Guild only.'}` : Randomize(responses.commands.info.availability)}`}`, true)
 							.addField('Cooldown', `${cooldown > 0 ? `${cooldown ? `${cooldown} second${cooldown > 1 ? 's' : ''}` : 'None'}` : 'None'}${guildCooldown ? ', guild' : ''}`, true)
 							.setFooter(`${requiredParams.length > 0  ? `${optionalParams.length > 0 ? '<> required parameters' : '<> required parameters |'}` : ''}${optionalParams.length > 0 ? `${requiredParams.length > 0 ? ', [] optional parameters |' : '[] optional parameters |'}` : ''} Current prefix: ${prefix}`);
 
@@ -302,7 +296,7 @@ function toUsageString(usage, prefix, name, flags, client)
 	{
 		const usageArray = [];
 		usage.forEach(i => {
-			usageArray.push(`\`${prefix}${name} ${i}\`${flags ? `\`| ${client.Methods.joinArrayString(flags)}\`` : ''}`);
+			usageArray.push(`\`${prefix}${name} ${i}\`${flags ? `\`| ${client.Methods.Common.joinArrayString(flags)}\`` : ''}`);
 		});
 		if (usageArray.length === 1) usage = usageArray[0];
 		else

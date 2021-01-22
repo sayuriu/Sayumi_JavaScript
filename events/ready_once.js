@@ -7,7 +7,7 @@ module.exports = {
 	onEmit: (client) => {
 		setInterval(() => {
 			try {
-				client.user.setActivity(client.Methods.Randomized(responses.statuses), { type: 'WATCHING' });
+				client.user.setActivity(client.Methods.Common.Randomize(responses.statuses), { type: 'WATCHING' });
 			} catch (error) {
 				return client.Log.error(`[Discord > ClientPresence] \n${error.message}`);
 			}

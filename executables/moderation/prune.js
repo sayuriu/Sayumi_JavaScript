@@ -2,7 +2,6 @@ const log = (require('../../utils/Logger'));
 
 module.exports = {
 	name: "prune",
-	aliases: ["pr"],
 	description: "Prune messages from a channel, up to 99 messages.",
 	stable: true,
 	group: 'Moderation',

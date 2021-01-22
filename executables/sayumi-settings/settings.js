@@ -1,5 +1,5 @@
 const settings = require('../../utils/GuildSettings');
-const discord = require('discord.js');
+const { MessageEmbed: EmbedConstructor } = require('discord.js');
 
 module.exports = {
 	name: 'settings',
@@ -33,7 +33,7 @@ module.exports = {
 				logLimit: source.LogHoldLimit,
 				afk: source.AFKUsers,
 			};
-			const embed = new discord.MessageEmbed()
+			const embed = new EmbedConstructor()
 									.setTitle('Settings')
 									.setDescription(`Now showing settings for guild [${message.guild.name}]`)
 									.setColor('#42e3f5')

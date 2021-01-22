@@ -1,6 +1,6 @@
 const beautify = require('beautify');
-const util = require('util');
-const fs = require('fs');
+const { inspect } = require('util');
+const { readFileSync, writeFileSync } = require('fs');
 const { MessageEmbed: EmbedConstructor, MessageAttachment } = require('discord.js');
 
 module.exports = {
@@ -15,13 +15,15 @@ module.exports = {
 	usage: '[flags] <input>',
 	usageSyntax: '[flags: ]',
 	onTrigger: async (message, prefix, client) => {
-		const filter = (reaction, user) => {
-			return ['👍', '✋'].includes(reaction.emoji.name) && user.id === message.author.id;
-		};
-		const userFilter = user => user.id === message.author.id;
-		const session = new EvalRenderer(Object.assign(message, { ReactionFilter: filter, UserFilter: userFilter, sessionID: sessionID }), prefix);
-
 		const sessionID = getSessionsID(message.author, message.channel);
+
+		const session = new EvalRenderer(Object.assign(message, {
+			ReactionFilter: (reaction, user) => ['👍', '✋'].includes(reaction.emoji.name) && user.id === message.author.id,
+			UserFilter: user => user.id === message.author.id,
+			sessionID: sessionID,
+			prefix: prefix,
+		}));
+
 		client.EvaluatingSessions.set(sessionID, session);
 		client.EvaluatingSessions.get(sessionID).start();
 	},
@@ -38,26 +40,22 @@ const getSessionsID = (user, channel) => (parseInt(user.id) + parseInt(channel.i
 
 class EvalRenderer {
 
-	constructor(message, prefix)
+	constructor(message)
 	{
 		this.header = null;
 		this.message = message;
 		this.mainInstanceUserID = message.author.id;
 		this.InstanceID = message.sessionID;
 		this.listenerChannel = message.channel;
-		this.showHidden = false;
-		this.showExt = false;
 		this.destroyed = false;
 		this.exceedBoolean = false;
 		this.OutputWindows = [];
-		this.flagArray = [];
-		this.input = message.content.slice(prefix.length + 5);
+		this.input = message.content.slice(message.prefix.length + 5);
 		this.ReactionFilter = message.ReactionFilter;
 		this.UserFilter = message.UserFilter;
 		this._embed = null;
 		this.lastInput = null;
-		// this.emptyInputStart = false;
-		this.prefix = prefix;
+		this.prefix = message.prefix;
 
 		this.a = -1;
 		this.sessionActiveString = `\`\`\`css\n${headerStringArray.join('\n')
@@ -66,7 +64,7 @@ class EvalRenderer {
 					if (this.a === 0) return '\n';
 					return `\n0${this.a} `;
 				})
-				.replace(/\${SID}/g, this.InstanceID)}\`\`\``;
+				.replace(/\${SID}/g, '0x' + this.InstanceID)}\`\`\``;
 		this.sessionDestroyedString = '```\nThis session is destroyed. No input will be taken until you start a new one.```';
 	}
 
@@ -74,22 +72,18 @@ class EvalRenderer {
 	start()
 	{
 		this.message.delete();
-		if (GeneralProcessing.processInput(this.input).input.replace(/\s+/g, '') === '') this.resetUI('<Awaiting input...>');
-		else
-		{
-			this.updateEvalState();
-			this.generateEmbeds();
-		}
+		this.updateState();
+
+		if (this.input.replace(/\s+/g, '') === '') this.resetUI('<Awaiting input...>');
+		else this.generateEmbeds();
 
 		if (this._embed instanceof EmbedConstructor)
 		{
 			this.listenerChannel.send(this.sessionActiveString).then(m => this.header = m);
 			this.listenerChannel.send(this._embed).then(mainEmbed => {
 
-				if (this.error) this.error = GeneralProcessing.ErrorExport(this.error);
-
-				if (this.showExt) this.listenerChannel.send(`\`\`\`js\n${this.output ? this.output : this.error}\`\`\`\u200b\`${this.outputType}\``).then(m => this.OutputWindows.push(m));
-				if (this.exceedBoolean && this.filePath) this.listenerChannel.send(new MessageAttachment(fs.readFileSync(this.filePath), `eval.json`)).then(m => {
+				if (this.flagArray.some(f => f === 'showExtended')) this.listenerChannel.send(`\`\`\`js\n${this.output}\`\`\`\u200b\`${this.outputType}\``).then(m => this.OutputWindows.push(m));
+				if (this.exceedBoolean && this.filePath) this.listenerChannel.send(new MessageAttachment(readFileSync(this.filePath), `eval.json`)).then(m => {
 					this.OutputWindows.push(m);
 					this.exceedBoolean = false;
 				});
@@ -113,40 +107,17 @@ class EvalRenderer {
 				this.message = this.lastInput.first();
 				this.lastInput.first().delete();
 
-				this.resetEvalState();
+				this.resetState();
 				this.clearWindows();
 				this.input = this.lastInput.first().content;
 
-				if (this.message.author.id !== this.message.client.master)
-				{
-					if (
-						this.input.toLowerCase().match(/this.message.client.token/g) ||
-						this.input.toLowerCase().match(/process.env/g)
-					) this.resetUI('<no-exe: Input contain illegal keywords');
-				}
+				if (this.input.toLowerCase().startsWith('-exit')) return this.destroyInstance();
 
-				if (this.input.startsWith(this.prefix))
-				{
-					const data = {
-						input: this.input,
-						error: {
-							name: 'CONFLICTED_HEADER',
-							message: 'Input started with this bot\'s prefix.',
-						},
-					};
-					this._embed = new TerminalEmbeds(data).ReturnError();
-				}
-				else
-				{
-					if (this.input.toLowerCase().startsWith('-exit')) return this.destroyInstance();
+				this.updateState();
+				this.generateEmbeds();
+				this.updateMainInstance();
 
-					this.updateEvalState();
-					this.generateEmbeds();
-					this.updateMainInstance();
-				}
-
-				if (this.error) this.error = GeneralProcessing.ErrorExport(this.error);
-				if (this.showExt) this.listenerChannel.send(`\`\`\`js\n${this.output ? this.output : this.error}\`\`\`\u200b\`${this.outputType}\``).then(m => this.OutputWindows.push(m));
+				if (this.flagArray.some(f => f === 'showExtended')) this.listenerChannel.send(`\`\`\`js\n${this.output}\`\`\`\u200b\`${this.outputType}\``).then(m => this.OutputWindows.push(m));
 				if (this.exceedBoolean && this.filePath)
 				{
 					if (!this.listenerChannel.permissionsFor(this.message.client.user.id).has('ATTACH_FILES'))
@@ -159,7 +130,7 @@ class EvalRenderer {
 					}
 					else
 					{
-						this.listenerChannel.send(new MessageAttachment(fs.readFileSync(this.filePath), `eval.json`)).then(m => {
+						this.listenerChannel.send(new MessageAttachment(readFileSync(this.filePath), `eval.json`)).then(m => {
 							this.OutputWindows.push(m);
 							this.exceedBoolean = false;
 						});
@@ -178,7 +149,7 @@ class EvalRenderer {
 
 	generateEmbeds()
 	{
-		if (this.error) this._embed = new TerminalEmbeds(this).ReturnError();
+		if (this.outputType === 'error') this._embed = new TerminalEmbeds(this).ReturnError();
 		else this._embed = new TerminalEmbeds(this).ReturnSucess();
 	}
 
@@ -191,21 +162,22 @@ class EvalRenderer {
 		});
 	}
 
-	updateEvalState()
+	updateState()
 	{
-		Object.assign(this, GeneralProcessing.processInput(this.input, this.message));
-		Object.assign(this, GeneralProcessing.execute(this.input, this.showHidden));
-		GeneralProcessing.outputCheck(this.message, this);
+		const data = {
+			message: this.message,
+			prefix: this.prefix,
+			rawInput: this.input,
+		};
+		Object.assign(this, new GeneralProcessing(data));
 	}
 
-	resetEvalState()
+	resetState()
 	{
 		this.output = null;
 		this.outputRaw = null;
 		this.outputType = null;
-		this.error = null;
-		this.showHidden = false;
-		this.showExt = false;
+		this.flagArray = [];
 		this.diffTime = 0;
 		this._embed = 0;
 	}
@@ -235,40 +207,57 @@ class EvalRenderer {
 
 class GeneralProcessing
 {
-	static processInput(input, message)
+	constructor(data)
 	{
-		this.message = message;
-		let showHidden = false;
-		let showExt = false;
-		const flagArray = [];
+		this.message = data.message;
+		this.prefix = data.prefix;
+		this.rawInput = data.rawInput;
+		this.flagArray = [];
+		this.run();
+	}
 
+	run()
+	{
+		this.input = this.processInput(this.rawInput);
+		Object.assign(this, this.execute(this.input, this.flagArray, this.message, this.client));
+		this.outputCheck(this.message, this);
+		this.output = this.ErrorExport(this.output);
+	}
+
+	processInput(rawInput)
+	{
+		let input =  rawInput;
 		const flag_showHidden = input.match(/\s*-(showHidden|showhidden|sh|SH)\s*/);
 		const flag_showExt = input.match(/\s*-(ext|showExt)\s*/);
-		// const flag_active = input.match(/\s*-active\s*/);
 
 		if (flag_showHidden && flag_showHidden[0].length > 0)
 		{
 			input = input.replace(/\s*-?(showHidden|showhidden|sh|SH)\s*/, '');
-			showHidden = true;
-			flagArray.push('showHidden');
+			this.flagArray.push('showHidden');
 		}
 		if (flag_showExt && flag_showExt[0].length > 0)
 		{
 			input = input.replace(/\s*-?(ext|showExt)\s*/, '');
-			showExt = true;
-			flagArray.push('showExtended');
+			this.flagArray.push('showExtended');
 		}
 
 		input = input.replace(/^`+(js)?/, '').replace(/`+$/, '');
-		return { input: input, showHidden: showHidden, showExt: showExt, flagArray: flagArray };
+		return input;
 	}
 
-	static execute(input, showHidden)
+	execute(input, flagArray, message, client)
 	{
 		try
 		{
+			if (illegalStrings(this.input.toLowerCase()))this.GenerateErrors('FORBIDDEN', 'Illegal keywords / varibles found.');
+			if (input.startsWith(this.prefix)) this.GenerateErrors('CONFLICTED_HEADER', 'Input started with this bot\'s prefix.');
+
+			const showHidden = flagArray.some(f => f === 'showHidden');
+
+			// this.parse(input);
+
 			const processed = eval(input);
-			const output = util.inspect(processed, showHidden, null, false);
+			const output = inspect(processed, showHidden, null, false);
 			const startTime = process.hrtime();
 			const diffTime = process.hrtime(startTime);
 			let outputType = (typeof processed).toString();
@@ -287,24 +276,24 @@ class GeneralProcessing
 				else outputType += `: ${header}`;
 			}
 
-			return { diffTime: diffTime, output: output, outputType: outputType, outputRaw: processed, error: null };
+			return { diffTime: diffTime, output: output, outputType: outputType, outputRaw: processed };
 		}
 		catch (error)
 		{
 			return {
 				diffTime: 0,
-				output: null,
-				outputType: 'error',
-				error: {
+				output: {
 					name: error.name,
 					stack: error.stack.substr(error.stack.indexOf('at '), error.stack.length),
 					message: error.message,
 				},
+				outputType: 'error',
+				outputRaw: null,
 			};
 		}
 	}
 
-	static outputCheck(message, data)
+	outputCheck(message, data)
 	{
 		if (data.error) return;
 		if (data.output.length > 1024)
@@ -315,8 +304,8 @@ class GeneralProcessing
 				JSONObjectString = JSON.stringify(data.outputRaw, null, 4);
 				if (JSONObjectString)
 				{
-					if (data.showExt && JSONObjectString.length <= 2048) data.output = util.inspect(JSON.parse(JSONObjectString), false, null, false);
-					else if (JSONObjectString.length <= 1024) data.output = util.inspect(JSON.parse(JSONObjectString), false, null, false);
+					if (data.flagArray.some(f => f === 'showExtended') && JSONObjectString.length <= 2048) data.output = inspect(JSON.parse(JSONObjectString), false, null, false);
+					else if (JSONObjectString.length <= 1024) data.output = inspect(JSON.parse(JSONObjectString), false, null, false);
 					data.exceedBoolean = true;
 
 					this.DataExport(Object.assign(
@@ -327,32 +316,48 @@ class GeneralProcessing
 				}
 				else
 				{
-					data.showExt = true;
+					data.flagArray.push('showExtended');
 					this.DataExport(data, data.showExt);
 				}
 
 			} catch (e) {
-				data.showExt = true;
+				data.flagArray.push('showExtended');
 				this.DataExport(data, data.showExt);
 			}
 		}
 	}
 
-	static DataExport(data, showExt = false)
+	DataExport(data, showExt = false)
 	{
 		const { fileName = null, writeData = null } = data;
 		if (fileName && writeData)
 		{
-			fs.writeFileSync(`./temps/${fileName}`, writeData);
+			writeFileSync(`./temps/${fileName}`, writeData);
 			data.filePath = `./temps/${fileName}`;
 		}
 		data.output = data.output.substr(0, data.output.substr(0, showExt ? 1956 : 1010).lastIndexOf('\n')) + '\n...';
 	}
 
-	static ErrorExport(error)
+	ErrorExport(data = null)
 	{
-		error.stack = 'Hidden';
-		return util.inspect(JSON.parse(JSON.stringify(error, null, 4)), false, null, false);
+		if (data.type !== 'error') return data;
+		data.stack = 'Hidden';
+		return inspect(JSON.parse(JSON.stringify(data, null, 4)), false, null, false);
+	}
+
+	GenerateErrors(name, message)
+	{
+		class BaseError extends Error {
+			constructor(header, ...msg)
+			{
+				super(...msg);
+				this.name = header || 'UNKNOWN_ERROR';
+				this.name = this.name.toUpperCase();
+
+				Error.captureStackTrace(this, BaseError);
+			}
+		}
+		throw new BaseError(name, message);
 	}
 }
 
@@ -362,11 +367,11 @@ class TerminalEmbeds
 	{
 		this.input = data.input;
 		this.flagArray = data.flagArray;
-		this.showExt = data.showExt;
+		this.showExt = data.flagArray.some(f => f === 'showExtended');
 		this.output = data.output;
 		this.outputType = data.outputType;
 		this.diffTime = data.diffTime;
-		this.error = data.error;
+		this.error = data.outputType === 'error' ? data.output : null;
 		this.exceedBoolean = data.exceedBoolean;
 		this.filePath = data.filePath || null;
 	}
@@ -401,5 +406,15 @@ class TerminalEmbeds
 				.addField('Error', `\`[${errorName}] ${message}\``)
 
 				.setTimestamp();
+	}
+}
+
+function illegalStrings(input) {
+	const match = reg => input.match(reg);
+	switch (input)
+	{
+		case match(/(this\.)?message\.client\.token/g): return true;
+		case match(/process.env/): return true;
+		default: return false;
 	}
 }

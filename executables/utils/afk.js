@@ -15,11 +15,7 @@ module.exports = {
 		let reason;
 		if (reason === '') reason = undefined;
 
-		if (args)
-		{
-			if (args.length === 1) reason = args[0];
-			else reason = args.join(' ');
-		}
+		if (args) reason = args.join(' ');
 
 		const userObject = {
 			name: message.member.displayName,

@@ -1,5 +1,5 @@
 const { MessageEmbed: EmbedConstructor } = require('discord.js');
-const clientSchema = require('../../utils/Database/Models/client');
+const clientSchema = require('../../utils/database/models/client');
 
 const fixedMem = 2 * Math.pow(1024, 3);
 
@@ -11,21 +11,22 @@ module.exports = {
 	cooldown: 12,
 	onTrigger: async (message, args, client) => {
 
-		const hex = client.Methods.randomHex8();
+		const hex = client.Methods.Common.RandomHex8();
+		const stringPad = client.Methods.Common.StringLimiter();
 		const dbDL = await dbLatency(client);
 		let processArr = [
-			`\`${client.Methods.stringLimiter('CPU:', '[Calculating...]', null, 40)}\``,
-			`\`${client.Methods.stringLimiter('Memory:', '[Calculating...]', null, 40)}\``,
-			`\`${client.Methods.stringLimiter('Heap:', '[Calculating...]', null, 40)}\``,
-			`\`${client.Methods.stringLimiter('C++:', '[Calculating...]', null, 40)}\``,
+			`\`${stringPad('CPU:', '[Calculating...]', null, 40)}\``,
+			`\`${stringPad('Memory:', '[Calculating...]', null, 40)}\``,
+			`\`${stringPad('Heap:', '[Calculating...]', null, 40)}\``,
+			`\`${stringPad('C++:', '[Calculating...]', null, 40)}\``,
 		];
 		let processArrString = processArr.join('\n');
 
 		let latencyArr = [
-			`\`${client.Methods.stringLimiter('APIs:', '[Getting...]', null, 24)}\``,
-			`\`${client.Methods.stringLimiter('Message:', '[Getting...]', null, 24)}\``,
-			`\`${client.Methods.stringLimiter('Database:', '[Getting...]', null, 24)}\``,
-			`\`${client.Methods.stringLimiter('Internals:', '[Getting...]', null, 24)}\``,
+			`\`${stringPad('APIs:', '[Getting...]', null, 24)}\``,
+			`\`${stringPad('Message:', '[Getting...]', null, 24)}\``,
+			`\`${stringPad('Database:', '[Getting...]', null, 24)}\``,
+			`\`${stringPad('Internals:', '[Getting...]', null, 24)}\``,
 		];
 		let latencyArrString = latencyArr.join('\n');
 
@@ -47,18 +48,18 @@ module.exports = {
 			const msgDL = now - m.createdTimestamp;
 
 			latencyArr = [
-				`\`${client.Methods.stringLimiter('APIs:', `${client.ws.ping} ms`, null, 24)}\``,
-				`\`${client.Methods.stringLimiter('Message:', `${msgDL} ms`, null, 24)}\``,
-				`\`${client.Methods.stringLimiter('Database:', `${dbDL} ms`, null, 24)}\``,
-				`\`${client.Methods.stringLimiter('Internals:', `${thisLatency(client)} ms`, null, 24)}\``,
+				`\`${stringPad('APIs:', `${client.ws.ping} ms`, null, 24)}\``,
+				`\`${stringPad('Message:', `${msgDL} ms`, null, 24)}\``,
+				`\`${stringPad('Database:', `${dbDL} ms`, null, 24)}\``,
+				`\`${stringPad('Internals:', `${thisLatency(client)} ms`, null, 24)}\``,
 			];
 			latencyArrString = latencyArr.join('\n');
 
 			processArr = [
-				`\`${client.Methods.stringLimiter('CPU:', `${getCPU()}`, null, 40)}\``,
-				`\`${client.Methods.stringLimiter('Memory:', `${getMemoryUsage(client)}`, null, 40)}\``,
-				`\`${client.Methods.stringLimiter('Heap:', `${getHeap(client)}`, null, 40)}\``,
-				`\`${client.Methods.stringLimiter('C++:', `${getMemoryExternal(client)}`, null, 40)}\``,
+				`\`${stringPad('CPU:', `${getCPU()}`, null, 40)}\``,
+				`\`${stringPad('Memory:', `${getMemoryUsage(client)}`, null, 40)}\``,
+				`\`${stringPad('Heap:', `${getHeap(client)}`, null, 40)}\``,
+				`\`${stringPad('C++:', `${getMemoryExternal(client)}`, null, 40)}\``,
 			];
 			processArrString = processArr.join('\n');
 

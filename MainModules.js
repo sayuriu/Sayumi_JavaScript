@@ -5,7 +5,7 @@ const EmbedConstructor = require("./utils/Embeds");
 const Logger = require('./utils/Logger');
 const Database = require('./utils/Database');
 const GlobalFunctions = require('./utils/Methods');
-const GuildDatabase = require('./utils/Database/Methods/guildActions');
+const GuildDatabase = require('./utils/database/methods/guildActions');
 
 const Props = require('./utils/json/Props.json');
 

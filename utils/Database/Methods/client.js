@@ -1,4 +1,4 @@
-const InitSchema = require('../Models/client');
+const InitSchema = require('../models/client');
 const Database = require('mongoose');
 const logger = require('../../Logger');
 

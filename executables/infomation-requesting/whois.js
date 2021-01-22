@@ -101,7 +101,7 @@ module.exports = {
 
 		// Render & request
 
-		new UsersCanvasRenderer(target, largePresenceImage, smallPresenceImage, status).renderAvatar().then(imageBuffer => {
+		new UsersCanvasRenderer(target, largePresenceImage, smallPresenceImage, status).render().then(imageBuffer => {
 			request(imgur.Post(imageBuffer), async (err, res) => {
 
 				if (err)
@@ -159,7 +159,7 @@ class UsersCanvasRenderer
 		}
 	}
 
-	async renderAvatar()
+	async render()
 	{
 		this.getPresenceAssets();
 
@@ -195,8 +195,9 @@ class UsersCanvasRenderer
 		else await canvas.loadImage(this.renderStatusIcon(2)).then(img => this.mainCanvasCxt.drawImage(img, 92, 92, 36, 36));
 	}
 
-	renderStatusIcon(type = 2, img)
+	renderStatusIcon(type = 2, img = null)
 	{
+		if (!img) type = 2;
 		const CANVAS = canvas.createCanvas(128, 128);
 		const CXT = CANVAS.getContext('2d');
 

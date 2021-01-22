@@ -65,5 +65,14 @@
         "descriptions": "",
         "colorCode": "#000000",
         "keywords": []
-    }
+    },
+    "Fun": {
+        "name": "Fun",
+        "descriptions": "",
+        "colorCode": "#000000",
+        "keywords": [
+            "fun"
+        ]
+    },
+    "lastUpdated": 1611329236023
 }

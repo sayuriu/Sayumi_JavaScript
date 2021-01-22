@@ -1,13 +1,13 @@
-// Shorten stage of requiring class
-const loader = require('./Loader');
-const log = require('./Logger');
+// Shorten stages of requiring
+const { CommandCheck, EventCheck, Load, BindCategory } = require('./Loader');
+const { error: outerr, carrier } = require('./Logger');
 const http = require('http');
-const Init = require('./Database/Methods/client');
+const ClientInit = require('./database/methods/client');
 
 /**
  * Yes.
  */
-module.exports = class Sayuri extends Init {
+module.exports = class Sayuri extends ClientInit {
     constructor(data, token)
     {
         const { client, App: app, bugChannel } = data;
@@ -20,12 +20,11 @@ module.exports = class Sayuri extends Init {
             this.CommandInit(client);
             this.HandleProcessErrors();
             this.KeepAlive(app, true);
+            this.Watch('./', client);
 
-            process.env.BUG_CHANNEL_ID = data.bugChannel || '630334027081056287';
-
+            process.env.BUG_CHANNEL_ID = bugChannel || '630334027081056287';
             setTimeout(() => this.DBInit(), 3000);
         };
-        this.Refresh = () => this.Reload(client);
         this.DBInit = () => super.init(client);
     }
 
@@ -49,8 +48,7 @@ module.exports = class Sayuri extends Init {
     {
         if (!client) throw new ReferenceError('[Sayuri > Client] Did you pass the client yet?');
         if (typeof client !== 'object') throw new TypeError('[Sayuri > Client] The client is not an object.');
-        const request = { type: 'events', client: client, root: '../' };
-        new loader(request).LoadEvents();
+        Load(client, '../', 'events');
     }
 
     /**
@@ -61,21 +59,20 @@ module.exports = class Sayuri extends Init {
     {
         if (!client) throw new ReferenceError('[Sayuri > Client] Did you pass the client yet?');
         if (typeof client !== 'object') throw new TypeError('[Sayuri > Client] The client is not an object.');
-        const request = { type: 'executables', client: client, root: '../' };
-        new loader(request).LoadCommands();
+        Load(client, '../', 'executables');
     }
 
     /** This is for handling some additional runtime errors and events. */
     HandleProcessErrors()
     {
         process.on("uncaughtException", error => {
-            log.error(`[Uncaught Exception] ${error.message}\n${error.stack}`);
+            outerr(`[Uncaught Exception] ${error.message}\n${error.stack}`);
         });
         process.on("unhandledRejection", error => {
-            log.error(`[Unhandled Promise Rejection] ${error.message}\n${error.stack}`);
+            outerr(`[Unhandled Promise Rejection] ${error.message}\n${error.stack}`);
         });
         process.on('exit', code => {
-            log.carrier(`status: ${code}`, `Process instance has exited with code ${code}.`);
+            carrier(`status: ${code}`, `Process instance has exited with code ${code}.`);
         });
     }
 
@@ -91,9 +88,127 @@ module.exports = class Sayuri extends Init {
         }, 280000);
     }
 
-    static Reload(client)
+    Watch(rootDir, client)
     {
-        const request = { type: 'executables', client: client, root: '../' };
-        return new loader(request).LoadCommands();
+        const { watch, stat, readFileSync } = require('fs');
+        const { join } = require('path');
+        const FSEventTimeout = new (require('discord.js')).Collection();
+        this.root = '../';
+
+        watch(rootDir, { recursive: true }, (evt, filename) => {
+            if (filename)
+            {
+                const path = rootDir + filename;
+                const requirePath = this.root + filename;
+                const printCSLPath = join(requirePath).split('\\').splice(1, join(requirePath).split('\\').length).join('\\');
+                const { resolve } = require;
+                const file = path.split('\\')[path.split('\\').length - 1];
+
+                const print_change = (cmdOrEvt, warnArray) => {
+                    Object.keys(cmdOrEvt).length ?
+                    client.Log.debug(`[Reload > ud] Updated ${cmdOrEvt.name || 'something at'} [${printCSLPath.split('\\').join(' > ')}]`) :
+                    client.Log.debug(`[Reload > rg] Registered ${cmdOrEvt.name || require(requirePath).name || 'something at'} [${printCSLPath.split('\\').join(' > ')}]`);
+
+                    if (warnArray.length) client.Log.warn(`[Executable Loader] ${client.Methods.Common.JoinArrayString(warnArray)}`);
+                };
+
+                const exePath = (requirePath.match(/executables/g) || []).length ? true : false;
+                const evtPath = (requirePath.match(/events/g) || []).length ? true : false;
+
+                if (evt === 'change')
+                {
+                    stat(filename, (e, stats) => {
+
+                        if (e) client.Log.error(`[Reload - FileStats error]\nPath: ${requirePath}\n${e.message}`);
+                        if (!FSEventTimeout.get(requirePath))
+                        {
+                            if (file.endsWith('.js'))
+                            {
+                                if (requirePath.match(/node_modules/g)) return; 'ignore node_modules dir';
+                                const cmd = exePath ? client.CommandList.get(require(requirePath).name) || {} : {};
+
+                                if (stats.mtimeMs > (cmd.loadTime || 0) && (exePath || evtPath))
+                                {
+                                    const warnArray = [];
+
+                                    if (exePath)
+                                    {
+                                        if ((cmd.memWeight || 0) === stats.size) return;
+                                        if (resolve(requirePath) === cmd.resolvedPath) delete require.cache[resolve(requirePath)];
+                                        CommandCheck(file, [], path, client, warnArray, { exe: [], unexec: 0, dev: 0 }, this.root);
+                                        print_change(cmd, warnArray);
+                                    }
+                                    if (evtPath)
+                                    {
+                                        delete require.cache[resolve(requirePath)];
+                                        EventCheck(file, path, client, { evt: [], unexec: 0, dev: 0, empty: 0 }, warnArray, this.root);
+                                        process.env.HANDLED_EVENTS--;
+                                        print_change(require(requirePath), warnArray);
+                                    }
+                                }
+                                else client.Log.debug(`[Reload > ld] Updated: "${printCSLPath}"`);
+                                timeout(requirePath);
+                            }
+                        }
+
+                        'only scans utils/json folder';
+                        if (file.endsWith('.json') && path.split('\\').some(n => n === 'json'))
+                        {
+                            // deal with CommandCategories
+                            const object = require(requirePath);
+                            object;
+                            if (stats.mtimeMs > (object.lastUpdated || 0))
+                            {
+                                // do something here, or do we actually need to do it?
+                            }
+                        }
+                    });
+                }
+                if (evt === 'rename')
+                {
+                    const warnArray = [];
+                    try {
+                        readFileSync(path);
+                        if (file.endsWith('.js'))
+                        {
+                            if (exePath)
+                            {
+                                const cmd = client.CommandList.get(require(requirePath).name) || {};
+                                CommandCheck(file, [], path, client, warnArray, { exe: [], unexec: 0, dev: 0 }, this.root);
+                                client.Log.debug(`[Reload > ad] Registered ${cmd.name || `"${require(requirePath).name}" at` || 'something at'} ${printCSLPath}`);
+                            }
+                            if (evtPath)
+                            {
+                                EventCheck(file, path, client, { evt: [], unexec: 0, dev: 0, empty: 0 }, warnArray, this.root);
+                                client.Log.debug(`[Reload > ad] Registered ${`"${require(requirePath).name || 'something'}" at`} ${printCSLPath}`);
+                            }
+                            if (warnArray.length) client.Log.warn(`[Executable Loader] ${client.Methods.Common.JoinArrayString(warnArray)}`);
+                        }
+                        else client.Log.debug(`[Reload > ad] Added "${printCSLPath}"`);
+                    } catch (err) {
+                        // ln 150: do something? [disable entry, etc etc...]
+                        // if (cache(resolve(requirePath))) null;
+                        handleErrors(err, requirePath);
+                    } finally {
+                        timeout(requirePath);
+                    }
+                }
+            }
+        });
+
+        const handleErrors = (err, reqPath) => {
+            if (!reqPath) return false;
+            switch (err.code)
+            {
+                case 'ENOENT': return client.Log.debug(`[Reload > del] Removed: "${join(reqPath)}"`);
+                case 'EISDIR': return;
+                default: return client.Log.error(`[Reload / ${err.syscall}] ${err}`);
+            }
+        };
+
+        const timeout = (pathName) => {
+            FSEventTimeout.set(pathName, true);
+            setTimeout(() => FSEventTimeout.delete(pathName), 500);
+        };
     }
 };

@@ -2,9 +2,9 @@ const { MessageEmbed } = require('discord.js');
 const request = require('request');
 const Methods = require('./Methods');
 
-const { date, month, year } = Methods.DateTime();
-const currentDate = Methods.convertDate(date, month, year);
-const channelCheck = Methods.channelCheck;
+const { date, month, year } = Methods.Time.DateTime();
+const currentDate = Methods.Time.ConvertDate(date, month, year);
+const channelCheck = Methods.DiscordClient.ChannelCheck;
 
 module.exports = class EmbedConstructor {
     /**

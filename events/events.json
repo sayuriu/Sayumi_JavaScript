@@ -1,6 +1,7 @@
 {
     "name": "events",
     "files": [
+        "a.js",
         "events.json",
         "ready.js",
         "ready_once.js"
@@ -44,7 +45,7 @@
             ],
             "dev": 0,
             "empty": 0,
-            "size": "17.5 kB"
+            "size": "17.9 kB"
         }
     ],
     "parent": false,
@@ -53,6 +54,6 @@
         "ready_once.js"
     ],
     "dev": 0,
-    "empty": 0,
-    "size": "18.1 kB"
+    "empty": 1,
+    "size": "18.4 kB"
 }

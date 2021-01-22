@@ -1,6 +1,6 @@
-const GuildSchema = require('../Models/guild');
+const GuildSchema = require('../models/guild');
 const Database = require('mongoose');
-const DefaultSettings = require('../../../utils/json/DefaultGlobalSettings.json');
+const DefaultSettings = require('../../json/DefaultGlobalSettings.json');
 const log = require('../../Logger');
 
 module.exports = class GuildDatabase {

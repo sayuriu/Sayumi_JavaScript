@@ -1,4 +1,4 @@
-const discord = require('discord.js');
+const { Collection } = require('discord.js');
 const responses = require('../../utils/json/Responses.json');
 const DefaultSettings = require('../../utils/json/DefaultGlobalSettings.json');
 require('dotenv').config();
@@ -14,7 +14,9 @@ module.exports = {
 		const maid = client.user.id;
 		const mention_self = `<@!${maid}>`;
 
-		const SelfDeteleMsg = (msg, duration = 3000) => client.Methods.SelfMessageDelete(msg, { timeout: duration });
+		const Randomize = client.Methods.Common.Randomize;
+
+		const SelfDeteleMsg = (msg, duration = 3000) => client.Methods.DiscordClient.SelfMessageDelete(msg, { timeout: duration });
 
 		// Gets the prefix if the message is sent in a guild.
 		if (message.guild)
@@ -54,7 +56,7 @@ module.exports = {
 				if (userArray.length === 1)
 				{
 					const target = userArray[0];
-					const { hour, minute, second } = client.Methods.TimestampToTime(Date.now() - target.AFKTimeStamp);
+					const { hour, minute, second } = client.Methods.Time.TimestampToTime(Date.now() - target.AFKTimeStamp);
 					let timeString = '';
 
 					if (hour) timeString = `${hour} hour${hour > 1 ? 's' : ''}`;
@@ -78,7 +80,7 @@ module.exports = {
 				mentionID = true;
 			}
 
-			// Returns when the message is sent in an appropriate channel (In guilds ofcourse)
+			// Returns when the message is sent in the listened channel (In guilds ofcourse)
 			if (message.guild && !source.AllowedReplyOn.some(channelID => channelID === message.channel.id)) return;
 
 			// If commands is typed in an evaluation instance
@@ -86,9 +88,18 @@ module.exports = {
 
 			else
 			{
-				// message.content = functions.EscapeRegExp(message.content);
 				const args = message.content.slice(mentionID ? prefix.length + 1 : prefix.length).split(/ +/);
 				const CommandName = args.shift().toLowerCase();
+
+				if (!CommandName.length)
+				{
+					if (message.channel.type === 'dm' || source.FalseCMDReply.some(chID => chID === message.channel.id))
+					{
+						// functions.Cooldown(client.Cooldowns, typo, 3, message.author.id, message);
+						return message.channel.send(responses.commands.only_prefix);
+					}
+					else return;
+				}
 
 				// Look up for the command
 				const RequestedCommand = client.CommandList.get(CommandName) ||
@@ -98,9 +109,8 @@ module.exports = {
 				if (!RequestedCommand) {
 					const typo = CommandName;
 
-					// 	`If that is an unadded feature, consider typing \`${mentionID ? '@Sayumi' : prefix}feedback ${typo}\` if you want this feature/command added to my collection.`
-					const NotACmd = responses.errors.command_invalid;
-					const res = client.Methods.Randomized(NotACmd)
+					const NotACmd = responses.commands.problems.invalid;
+					const res = Randomize(NotACmd)
 										.replace(/\${typo}/g, typo)
 										.replace(/\${memberName}/g, message.guild ? message.member.displayName : message.author.username)
 										.replace(/\${thisPrefix}/g, prefix);
@@ -119,14 +129,14 @@ module.exports = {
 					// Sending guild-only commands through DMs
 					if (RequestedCommand.guildOnly && message.channel.type === 'dm')
 					{
-						return message.reply(client.Methods.Randomized(responses.commands.guild_only_invalid));
+						return message.reply(Randomize(responses.commands.guild_only_invalid));
 					}
 
 					// Cooldowns (throttling)
 					const cooldowns = client.Cooldowns;
 					const now = Date.now();
 
-					if (!cooldowns.has(RequestedCommand.name)) cooldowns.set(RequestedCommand.name, new discord.Collection());
+					if (!cooldowns.has(RequestedCommand.name)) cooldowns.set(RequestedCommand.name, new Collection());
 
 					const timestamps = cooldowns.get(RequestedCommand.name);
 					const cooldownAmount = (RequestedCommand.cooldown || 2) * 1000;
@@ -138,11 +148,16 @@ module.exports = {
 						{
 							const expirationTime = timestamps.get(message.guild.id) + cooldownAmount;
 
+							// @suggest: use while loop
 							if (now < expirationTime && message.author.id !== master)
 							{
 								const timeLeft = (expirationTime - now) / 1000;
 								return message.reply(
-									`please wait ${timeLeft.toFixed(1)} second${ Math.floor(timeLeft) > 1 ? 's' : '' } before reusing the \`${RequestedCommand.name}\` command.`,
+									[
+										// @flagged:needs-optimizations
+										`please wait ${timeLeft.toFixed(0)} second${ Math.floor(timeLeft) > 1 ? 's' : '' } before reusing`,
+										`please cool down! \`[${timeLeft.toFixed(0)} second${ Math.floor(timeLeft) > 1 ? 's' : '' }]\``,
+									][Math.floor(Math.random() * 2)],
 								);
 							}
 						}
@@ -177,12 +192,12 @@ module.exports = {
 						let string;
 						if (RequestedCommand.prompt) return message.channel.send(RequestedCommand.prompt);
 						if (RequestedCommand.usage) string = `\nUsage: \`${prefix}${RequestedCommand.name} ${RequestedCommand.usage}\`.`;
-						return message.channel.send(`${client.Methods.Randomized(responses.commands.empty_arguments)} ${string || ''}`);
+						return message.channel.send(`${Randomize(responses.commands.problems.empty_arguments)} ${string || ''}`);
 					}
 
 					// Master-explicit commands
 					if (RequestedCommand.master_explicit && message.author.id !== master) {
-						return message.channel.send(`Sorry ${message.author}, but this command can be issued by my master only.`).then(msg => {
+						return message.channel.send(`Sorry ${message.author}, but this command can be issued by master only.`).then(msg => {
 							if (message.channel.name.includes('general')) return SelfDeteleMsg(msg, 3000);
 							else return msg.delete({ timeout: 5000 });
 						});
@@ -248,8 +263,8 @@ module.exports = {
 					} catch (error) {
 						client.Log.error(`[Command Execution] An error has occured while executing "${RequestedCommand.name}": \n${error.message}`);
 						client.channels.cache.find(ch => ch.id === process.env.BUG_CHANNEL_ID).send(client.Embeds.error(message, error.message));
-						if (message.channel.type === 'text') return message.channel.send(client.Methods.Randomized(responses.errors.command_errors));
-						else return message.reply(client.Methods.Randomized(responses.errors.command_errors));
+						if (message.channel.type === 'text') return message.channel.send(Randomize(responses.commands.error));
+						else return message.reply(Randomize(responses.commands.error));
 					}
 				}
 			}

@@ -1,0 +1,17 @@
+{
+    "name": "fun",
+    "files": [
+        "fun.json",
+        "snipe.js"
+    ],
+    "subfolders": [],
+    "parent": true,
+    "parentName": "executables",
+    "exe": [
+        "snipe.js (dev)"
+    ],
+    "unexec": 1,
+    "empty": 0,
+    "dev": 1,
+    "size": "1.5 kB"
+}

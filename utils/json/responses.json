@@ -33,17 +33,6 @@
 		"functions_responses": [
 			"Are you sure the input is an array?",
 			"The input is not an array."
-		],
-		"command_errors": [
-			"The command you're trying to issue is not being issued due to some errors. Please try again later.",
-      		"Oops, looks like I've encountered an error. Error is being reported, I'm trying to fix this as soon as possible."
-		],
-		"command_invalid": [
-			"This is not a vaild command for me.",
-			"Perhaps a typo, ${memberName}?",
-			"I can't issue this.",
-			"Use `${thisPrefix}help` for a help list if you are confused.",
-			"What is *${typo}*?"
 		]
 	},
 	"statuses": [
@@ -57,37 +46,65 @@
 		"101-How-to bully"
 	],
 	"commands": {
+		"info": {
+			"aliases": [
+				"Other ways to call this command:",
+				"Aliases:"
+			],
+			"availability": [
+				"Here?",
+				"Anywhere, except voice channels.",
+				"Any text channel would do."
+			]
+		},
+		"problems": {
+			"empty_arguments": [
+				"Lacking arguments to work with.",
+				"Insufficient amount of arguments provided.",
+				"Data returns `null`. Wanna try again?"
+			],
+			"guild_only_invalid": [
+				"Unfortunately, this command cannot be executed inside DMs.",
+				"Sorry, but i can't do this inside a direct-message chat.",
+				"Make sure that you typed this command inside a server."
+			],
+			"in_cooldown": [
+				"please cool down! `${time} left`",
+				"please wait for `${time}` before reusing."
+			],
+			"invalid": [
+				"This is not a vaild command for me.",
+				"Perhaps a typo, ${memberName}?",
+				"I can't issue this.",
+				"Use `${thisPrefix}help` for a help list if you are confused.",
+				"What is *${typo}*?"
+			],
+			"permissions_lack": {
+				"user_end": [
+					"you are lacking permissions to do so."
+				],
+				"this_end": [
+					"Lacking permissions: ${permissions}"
+				]
+			}
+		},
 		"only_prefix": [
 			"Hmmmmmm",
 			"Eh.",
 			"Hi.",
 			"I'm thinking new ways to response to those mentions. Any ideas?"
 		],
-		"empty_arguments": [
-			"Lacking arguments to work with.",
-			"Insufficient amount of arguments provided.",
-			"Data returns `null`. Wanna try again?"
-		],
-		"guild_only_invalid": [
-			"Unfortunately, this command cannot be executed inside DMs.",
-			"Sorry, but i can't do this inside a direct-message chat.",
-			"Make sure that you typed this command inside a server."
-		],
-		"command_aliases": [
-			"Other ways to call this command:",
-			"Aliases:"
-		],
-		"command_availability":
-		[
-			"Here?",
-			"Anywhere, except voice channels.",
-			"Any text channel would do."
+		"error": [
+			"The command you're trying to issue is not being issued due to some errors. Please try again later.",
+      		"Oops, looks like I've encountered an error. Error is being reported, I'm trying to fix this as soon as possible."
 		]
 	},
 	"tips": [
 		"Do you know mentioning me directly also works as the prefix?",
 		"Is this even a tip?",
-		"It the best to use commands in a dedicated channel.",
+		"It's best to use each command in its dedicated channel.",
+		"nya",
+		"bleep bloop",
 		""
 	]
 }
