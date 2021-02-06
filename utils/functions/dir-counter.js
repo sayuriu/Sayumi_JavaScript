@@ -1,3 +1,5 @@
+// @flagged:deprecated
+
 const { error: outerr } = require('../Logger');
 const chalk = require('chalk');
 const randomize = require('./common/randomize');
@@ -131,16 +133,6 @@ module.exports = function(dir, type)
 	return void {};
 };
 
-function extendHeader_File(icase = '', fileLength) {
-	return extendHeader_Secondary(`${fileLength}${icase} file${fileLength > 1 ? 's' : ''}`);
-}
-
-function extendHeader_Evt(icase = '', fileLength)
-{
-	return extendHeader_Secondary(`${fileLength} ${icase} event${fileLength > 1 ? 's' : ''}`);
-}
-
-function extendHeader_Secondary(msg)
-{
-	return chalk.hex('#8c8c8c')(' ' + msg);
-}
+const extendHeader_File = (icase = '', fileLength) => extendHeader_Secondary(`${fileLength}${icase} file${fileLength > 1 ? 's' : ''}`);
+const extendHeader_Evt = (icase = '', fileLength) => extendHeader_Secondary(`${fileLength} ${icase} event${fileLength > 1 ? 's' : ''}`);
+const extendHeader_Secondary = (msg) => chalk.hex('#8c8c8c')(' ' + msg);

@@ -10,28 +10,31 @@ module.exports = {
 	args: true,
 	usage: 'user',
 	usageSyntax: '|[user: User (Direct tag or ID, max 1)]|',
-	onTrigger: (message, args, client) => {
+	onTrigger: async (message, args, client) => {
 
-		if (!args[0]) return message.channel.send(avatarImage(message.author));
+		if (!args[0]) return message.channel.send(avatarEmbed(message.author, await splashy(this.avatarImage)));
 
-		const calledUser = message.mentions.user.first()
-						|| message.guild.members.fetch({ user: args[0], force: true })
-						|| message.guild.members.fetch({ query: args[0], limit: 1 }).first();
+		const calledUser = message.mentions.users.first()
+						|| await message.guild.members.fetch({ id: args[0], force: true })
+						|| await message.guild.members.fetch({ query: args[0], limit: 1 }).first();
 
-		if (!calledUser) return message.channel.send('Couldn\'t find that user.');
-		message.channel.send(avatarImage(calledUser.user));
+		const send = async () => {
+			if (!calledUser) return message.channel.send('Couldn\'t find that user.');
+			message.channel.send(avatarEmbed(calledUser.user, await splashy(calledUser.user.displayAvatarURL({ format: 'jpg' }))));
+		};
+
+		return await send();
 	},
 };
 
-async function avatarImage(user)
+function avatarEmbed(user, colourSet)
 {
-	this.avatarImage = user.displayAvatarURL();
+	this.avatarImage = user?.displayAvatarURL({ format: 'jpg' });
 	this.usertag = `${user.username}\`#${user.discriminator}\``;
 
-	const colours = await splashy(this.avatarImage);
 	return new EmbedConstructor()
 				.setTitle(this.usertag)
-				.setColor(colours[Math.round(Math.random() * colours.length)])
+				.setColor(colourSet[Math.round(Math.random() * colourSet.length)])
 				.setURL(this.avatarImage)
 				.setImage(this.avatarImage);
 }

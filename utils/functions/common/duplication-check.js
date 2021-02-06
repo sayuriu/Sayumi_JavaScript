@@ -1,3 +1,5 @@
+// @flag::deprecated
+
 const { warn } = require('../../Logger');
 
 module.exports = function(array, type = 'Item', WarnArray = [])
@@ -10,23 +12,9 @@ module.exports = function(array, type = 'Item', WarnArray = [])
 	const res = [...new Set(findDuplicates(array))];
 	if (res.length)
 	{
-		switch(WarnArray)
+		for(const i in res)
 		{
-			case null:
-			{
-				WarnArray = [];
-				for(const i in res) WarnArray.push(`${type} "${res[i]}": Duplicates found.`);
-				if (WarnArray.length) warn(this.joinArrayString(WarnArray));
-				break;
-			}
-			case WarnArray:
-			{
-				for(const i in res)
-				{
-					if (WarnArray.length > 0) WarnArray.push(`${type} "${res[i]}": Duplicates found.`);
-				}
-				break;
-			}
+			if (WarnArray.length > 0) WarnArray.push(`${type} "${res[i]}": Duplicates found.`);
 		}
 	}
 };

@@ -6,6 +6,7 @@ module.exports = {
         EscapeRegExp: require('./functions/common/escape-reg-exp.js'),
         Greetings: require('./functions/common/greetings'),
         JoinArrayString: require('./functions/common/join-array-to-str'),
+        ParseErrors: require('./functions/common/parse-errors'),
         RandomHex8: require('./functions/common/ranhex8'),
         Randomize: require('./functions/common/randomize'),
         StringSearch: require('./functions/common/string-search'),

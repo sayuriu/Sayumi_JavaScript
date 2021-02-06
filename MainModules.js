@@ -1,26 +1,31 @@
 const { Collection } = require('discord.js');
-const express = require('express');
+
 const Client = require("./utils/Client");
 const EmbedConstructor = require("./utils/Embeds");
-const Logger = require('./utils/Logger');
 const Database = require('./utils/Database');
-const GlobalFunctions = require('./utils/Methods');
 const GuildDatabase = require('./utils/database/methods/guildActions');
+
+const express = require('express');
+const GlobalFunctions = require('./utils/Methods');
+const Logger = require('./utils/Logger');
 
 const Props = require('./utils/json/Props.json');
 
 require('dotenv').config();
 
 module.exports = {
+
+	ROOT_DIR: __dirname,
 	/** The host for Discord client.
 	 * @param {object} data Must contain the client object and token.
 	*/
-	Client: Client,
+	Client,
 	/**
 	 * Provides basic actions and connections to MongoDB.
 	 * @param {object} data [Object] Contains `local (boolean)`, `username`, and `password`.
 	*/
-	Database: Database,
+	Database,
+	GuildDatabase,
 
 	CommandList: new Collection(),
 	CommandAliases: new Collection(),
@@ -37,7 +42,6 @@ module.exports = {
 	Embeds:  EmbedConstructor,
 	Methods: GlobalFunctions,
 	Log: Logger,
-	GuildDatabase: GuildDatabase,
 
 	// Database side
 	local: true,

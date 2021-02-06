@@ -73,7 +73,7 @@ module.exports = class Database {
 		if (local)
 		{
 			dbConnection.once('open', () => {
-				carrier('status: > Local Database', 'Using this machine as the host.');
+				carrier('Database', 'Using this machine as the host.');
 			});
 			dbConnection.on('error', error => {
 				outerr(`[Local Database > mongoDB] A connection error has occured: \n"${error.message}"`);
@@ -99,7 +99,7 @@ module.exports = class Database {
 			});
 		}
 		dbConnection.on('disconnected', () => {
-			carrier('status: 0', `Disconnected from ${local ? 'local database' : 'remote database'}.`);
+			carrier('Database', `Disconnected from ${local ? 'local database' : 'remote database'}.`);
 		});
 	}
 };

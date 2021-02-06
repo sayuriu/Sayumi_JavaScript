@@ -1,4 +1,4 @@
-const FileSystem = require('fs');
+const { writeFile, readdirSync, unlinkSync, rmdir, mkdir } = require('fs');
 const { MessageEmbed: EmbedConstructor } = require('discord.js');
 
 module.exports = {
@@ -13,7 +13,7 @@ module.exports = {
 	usageSyntax: '|<option: logs | tempfiles>| |[-associatedOptionFlags(logs): errors | logonly | all]|',
 	group: 'Utilities',
 	onTrigger: (message, args, client) => {
-		const SelfDeteleMsg = (msg) => client.Methods.SelfMessageDelete(msg, { timeout: 3000 });
+		const SelfDeteleMsg = (msg) => client.Methods.DiscordClient.SelfMessageDelete(msg, { timeout: 3000 });
 		if (!args[0])
 		{
 			const embed = new EmbedConstructor();
@@ -21,7 +21,7 @@ module.exports = {
 		args[0] = args[0].toLowerCase();
 
 		const clearLogs = (file = 'log.log') => {
-			FileSystem.writeFile(`./logs/${file}`, '', (err) => {
+			writeFile(`./logs/${file}`, '', (err) => {
 				if (err)
 				{
 					message.channel.send(`Error occured!\n\`${err.message}\``);
@@ -71,14 +71,14 @@ module.exports = {
 
 			case 'tempfiles':
 			{
-				if (client.Methods.getTotalSize('./temps').startsWith('0')) return message.channel.send('There are no files to clean up.');
-				FileSystem.readdirSync('./temps', { encoding: null, flags: 'w+' }).forEach(file => {
-					FileSystem.unlinkSync(`./temps/${file}`);
+				if (client.Methods.DirSet.GetTotalSize('./temps').startsWith('0')) return message.channel.send('There are no files to clean up.');
+				readdirSync('./temps', { encoding: null, flags: 'w+' }).forEach(file => {
+					unlinkSync(`./temps/${file}`);
 				});
-				FileSystem.rmdir('./temps', (err) => {
+				rmdir('./temps', (err) => {
 					if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
 				});
-				FileSystem.mkdir('./temps', (err) => {
+				mkdir('./temps', (err) => {
 					if (err) return message.channel.send(`Error occured!\n\`${err.message}\``);
 				});
 				message.channel.send('Cache files cleared.').then(m => SelfDeteleMsg(m));

@@ -219,7 +219,7 @@ class GeneralProcessing
 	run()
 	{
 		this.input = this.processInput(this.rawInput);
-		Object.assign(this, this.execute(this.input, this.flagArray, this.message, this.client));
+		Object.assign(this, this.execute(this.input, this.flagArray, this.message, this.message.client, console.log));
 		this.outputCheck(this.message, this);
 		this.output = this.ErrorExport(this.output);
 	}
@@ -245,7 +245,7 @@ class GeneralProcessing
 		return input;
 	}
 
-	execute(input, flagArray, message, client)
+	execute(input, flagArray, message, client, log)
 	{
 		try
 		{

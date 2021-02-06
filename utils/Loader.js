@@ -1,378 +1,237 @@
-// @flagged:needs-optimizations
-
 const { lstatSync, statSync, readdirSync, writeFileSync } = require('fs');
 const { join } = require('path');
-const { execArgv } = require('process');
-const counter = require('./functions/dir-counter');
+const calBytes = require('./functions/dir-set/convert-bytes');
+const dupcheck = require('./functions/common/duplication-check');
+const ParseError = require('./functions/common/parse-errors');
+const chalk = require('chalk');
 
-/** Loads the executable from specified directory and pass onto the `client` object.
- * @param {string} pathName The name of the folder that you wanna scan.
- * @param {object} client The client to pass in.
- * @param {string?} Root Root directory located from this file's location. `./` if it's not specified.
- * @param {boolean} subfolder If the file which called this method is located in a subfolder to Root.
- * @param {boolean?} subfolder If the file which called this method is located in a subfolder to Root. `false`by default.
-*/
-function ExeLoader(pathName, client, Root, subfolder = false)
+class Loader
 {
-    client.Log.carrier('status: SCAN', `[Loader] Checking "${pathName}"...`);
-    if (typeof subfolder !== 'boolean') throw new Error('[CommandLoader] The last parameter if specified must a boolean.');
-    const AliasesArray = [];
-    const hostFolder = {
-        name: pathName,
-        files: [],
-        folders: [],
-        parent: false,
-        exe: [],
-        unexec: 0,
-        empty: 0,
-        dev: 0,
-        size: 'n/a',
-    };
-    if (typeof pathName !== 'string' || typeof Root !== 'string') throw new Error('[CommandLoader] pathName or Root provided is not a string.');
-    const { files, folders } = hostFolder;
+    constructor(client, pathAndType)
+    {
+        // Loader
+        this.mainRoot = client.ROOT_DIR;
+        this.dirIndex = {
+            size: 0,
+            invalidNames: [],
+            noFunc: [],
+            emptyFiles: [],
+            errored: [],
+        };
 
-    // If the host folder is empty, escape immediately to prevent wasting memory
-    hostFolder.size = client.Methods.DirSet.GetTotalSize(subfolder ? Root + pathName : pathName);
-    if (hostFolder.size === 'n/a') return client.Log.warn(`[Loader] "${subfolder ? Root + pathName : pathName}": This folder is empty!`);
+        // stdout
+        this.loaded = 0;
+        this.empty = 0;
+        [this.path, this.type] = pathAndType;
 
-    // Stage 1: Pre-scan. This filters files and folders and put them into corresponding arrays.
-    readdirSync(subfolder ? Root + pathName : pathName).forEach(file => {
-        const fullPath = join(pathName, file);
-        if (lstatSync(subfolder ? Root + fullPath : fullPath).isDirectory()) folders.push({
-            name: file,
-            files: [],
-            subfolders: [],
-            parent: true,
-            parentName: pathName,
-            exe: [],
-            unexec: 0,
-            empty: 0,
-            dev: 0,
+        this.stdoutSignalSend = function(data)
+        {
+            switch (data)
+            {
+                case 'start-scan':
+                {
+                    const string = chalk.hex('#30e5fc')('[Bootstrap] ')
+                                        + chalk.hex('8c8c8c')(`scan ${this.type}: `)
+                                        + chalk.hex('#c15ee6')(this.path)
+                                        + ' scanning';
+                    return process.stdout.write(string);
+                }
+                case 'end-scan':
+                {
+                    const string = chalk.hex('#30e5fc')('[Bootstrap] ')
+                                        + chalk.hex('8c8c8c')(`scan ${this.type}: `)
+                                        + chalk.hex('#c15ee6')(this.path)
+                                        + ' complete\n';
+                    process.stdout.cursorTo(0);
+                    return process.stdout.write(string);
+                }
+            }
+        };
+
+        this.stdoutSignalSend('start-scan');
+        this.recursiveLoad(this.path, client, this.type);
+        this.stdoutSignalSend('end-scan');
+        summarize(this, this.type, client);
+    }
+
+    recursiveLoad(dir, client, type)
+    {
+        readdirSync(dir).forEach(file => {
+            const dirPath = join(dir, file);
+            const fullPath = join(this.mainRoot, dirPath);
+
+            if (lstatSync(fullPath).isDirectory()) return this.recursiveLoad(dirPath, client, type);
+            if (file.endsWith('.js')) ParseCheck(type, fullPath, client, this);
         });
-        else files.push(file);
-    });
-
-    // Stage 2.1: Load files inside the host folder if present.
-    if (files.length)
-    {
-        const WarnLog = [];
-        for (let i = 0; i < files.length; i++)
-        {
-            const file = files[i];
-            const fullPath = join(pathName, file);
-            CommandCheck(file, AliasesArray, fullPath, client, WarnLog, hostFolder, Root, subfolder);
-        }
-        if (WarnLog.length) client.Log.warn(client.Methods.Common.JoinArrayString(WarnLog));
+        if (type === 'cmd') BindCategory(client);
     }
-    counter(hostFolder, 'cmd');
-
-    // Stage 2.2: Load subfolders.
-    if (folders.length)
-    {
-        // If there is only a subfolder
-        if (folders.length === 1)
-        {
-            const WarnLog = [];
-            const target = folders[0];
-            const Folder = join(pathName, target.name);
-            target.size = client.Methods.DirSet.GetTotalSize(subfolder ? Root + Folder : Folder);
-            readdirSync(Folder).forEach(file => {
-                const fullPath = join(Folder, file);
-                CommandCheck(file, AliasesArray, fullPath, client, WarnLog, target, Root, subfolder);
-            });
-            if (target.files.length || target.subfolders.length)
-            {
-                counter(target, 'cmd');
-                writeFileSync(`${Folder}/${target.name}.json`, JSON.stringify(target, null, 4));
-            }
-            if (!target.files.length && !target.subfolders.length)
-            {
-                WarnLog.push(`"${Folder}": This folder is empty!`);
-            }
-            if (WarnLog.length) client.Log.warn(`[Executable Loader] ${client.Methods.Common.JoinArrayString(WarnLog)}`);
-        }
-
-        // If there are 2 or more subfolders
-        else
-        {
-            for (let i = 0; i < folders.length; i++)
-            {
-                const WarnLog = [];
-                const target = folders[i];
-                const Folder = join(pathName, target.name);
-                target.size = client.Methods.DirSet.GetTotalSize(subfolder ? Root + Folder : Folder);
-                readdirSync(subfolder ? Root + Folder : Folder).forEach(file => {
-                    const fullPath = join(Folder, file);
-                    CommandCheck(file, AliasesArray, fullPath, client, WarnLog, target, Root, subfolder);
-                });
-                if (!target.files.length && !target.subfolders.length)
-                {
-                    WarnLog.push(`"${Folder}": This folder is empty!`);
-                }
-                if (WarnLog.length) client.Log.warn(`[Executable Loader] ${client.Methods.Common.JoinArrayString(WarnLog)}`);
-                if (target.files.length || target.subfolders.length)
-                {
-                    counter(target, 'cmd');
-                    writeFileSync(`${Folder}/${target.name}.json`, JSON.stringify(target, null, 4));
-                }
-            }
-        }
-    }
-    client.Methods.Common.DuplicationCheck(AliasesArray, 'alias');
-    writeFileSync(`${subfolder ? Root + pathName : pathName}/${hostFolder.name}.json`, JSON.stringify(hostFolder, null, 4));
-    BindCategory(client);
-    return hostFolder;
 }
 
-/** Loads events from specified diretory and initiate event listeners.
- * @param {string} pathName The name of the folder that you wanna scan.
- * @param {object} client The client to pass in.
- * @param {string?} Root Root directory located from this file's location. `./` if it's not specified.
- * @returns `object`
-*/
-function EventLoader(pathName, client, Root, subfolder = false)
+
+// Problem: Only detected one error while requring...
+// @flag::bug
+
+function ParseCheck(type, path, client, data)
 {
-    process.env.HANDLED_EVENTS = 0;
-    client.Log.carrier('status: SCAN', `[Loader] Checking "${pathName}"...`);
-    if (typeof subfolder !== 'boolean') throw new Error('[CommandLoader] The last parameter if specified must a boolean.');
-    const hostFolder = {
-        name: pathName,
-        files: [],
-        folders: [],
-        parent: false,
-        evt: [],
-        dev: 0,
-        empty: 0,
-        size: 'n/a',
-    };
-    if (typeof pathName !== 'string' || typeof Root !== 'string') throw new Error('[EventLoader] pathName or Root provided is not a string.');
-    const { files, folders } = hostFolder;
+    // let availability = true;
+    let { size: sizec } = data.dirIndex || { size: 0 };
+    const { invalidNames, emptyFiles, noFunc, errored } =  data.dirIndex || { invalidNames: [], emptyFiles: [], noFunc: [], errored: [] };
+    try {
+        const object = require(path);
+        const { name } = object;
+        const size = statSync(path)['size'];
+        sizec += size;
 
-    // If the host folder is empty, escape immediately to prevent wasting memory
-    hostFolder.size = client.Methods.DirSet.GetTotalSize(subfolder ? Root + pathName : pathName);
-    if (hostFolder.size === 'n/a') return client.Log.warn(`[Loader] "${subfolder ? Root + pathName : pathName}": This folder is empty!`);
+        this.path = path.split('\\').splice(3, path.split('\\').length).join('\\');
 
-    // Stage 1: Pre-scan. This filters files and folders and put them into corresponding arrays.
-    readdirSync(pathName).forEach(file => {
-        const fullPath = join(pathName, file);
-            if (lstatSync(fullPath).isDirectory()) folders.push({
-            name: file,
-            files: [],
-            subfolders: [],
-            parent: true,
-            parentName: pathName,
-            evt: [],
-            dev: 0,
-            empty: 0,
-            size: 'n/a',
-        });
-        else files.push(file);
-    });
+        // Empty eh...
+        if (!size) return emptyFiles.push(this.path);
 
-    // Stage 2.1: Load files if present.
-    if (files.length)
-    {
-        const WarnLog = [];
-        for (let i = 0; i < files.length; i++)
-        {
-            const file = files[i];
-            const fullPath = join(pathName, file);
-            EventCheck(file, fullPath, client, hostFolder, WarnLog, Root);
-        }
-        if (WarnLog.length) client.Log.warn(`[Event Loader]`, client.Methods.Common.JoinArrayString(WarnLog));
-    }
-    counter(hostFolder, 'evt');
+        // Check for name
+        if (!name || typeof name !== 'string') return invalidNames.push(this.path);
 
-    // Stage 2.2: Load subfolders.
-    if (folders.length)
-    {
-        // If there is only a subfolder
-        if (folders.length === 1)
+        if (type === 'cmd')
         {
-            const WarnLog = [];
-            const target = folders[0];
-            const Folder = join(pathName, target.name);
-            target.size = client.Methods.DirSet.GetTotalSize(subfolder ? Root + Folder : Folder);
-            readdirSync(Folder).forEach(file => {
-                const fullPath = join(Folder, file);
-                EventCheck(file, fullPath, client, target, WarnLog, Root);
-            });
-            if (!target.files.length && !target.subfolders.length)
-            {
-                WarnLog.push(`"${Folder}": This folder is empty!`);
-            }
-            if (WarnLog.length) client.Log.warn(`[Event Loader] ${client.Methods.Common.JoinArrayString(WarnLog)}`);
-            if (target.files.length || target.subfolders.length)
-            {
-                counter(target, 'evt');
-                writeFileSync(`${Folder}/${target.name}.json`, JSON.stringify(target, null, 4));
-            }
-        }
+            const { aliases, onTrigger } = object;
 
-        // If there are 2 or more subfolders
-        else
-        {
-            for (let i = 0; i < folders.length; i++)
-            {
-                const WarnLog = [];
-                const target = folders[i];
-                const Folder = join(pathName, target.name);
-                target.size = client.Methods.DirSet.GetTotalSize(subfolder ? Root + Folder : Folder);
-                readdirSync(Folder).forEach(file => {
-                    const fullPath = join(Folder, file);
-                    EventCheck(file, fullPath, client, target, WarnLog, Root);
-                });
-                if (target.files.length < 1 && target.subfolders < 1)
-                {
-                    WarnLog.push(`"${Folder}": This folder is empty!`);
-                }
-                if (WarnLog.length) client.Log.warn(`[Event Loader] ${client.Methods.Common.JoinArrayString(WarnLog)}`);
-                if (target.files.length || target.subfolders.length)
-                {
-                    counter(target, 'evt');
-                    writeFileSync(`${Folder}/${target.name}.json`, JSON.stringify(target, null, 4));
-                }
-            }
-        }
-    }
-    writeFileSync(`${subfolder ? Root + pathName : pathName}/${hostFolder.name}.json`, JSON.stringify(hostFolder, null, 4));
-}
+            // Check for command's functions
+            if (!onTrigger || typeof onTrigger !== 'function') return noFunc.push(name ? `"${name}": ${this.path}` : this.path);
 
-/** Check executables from a file and bind them to the `client` object.
- * @param {string} file Name of the file you want to scan.
- * @param {array} AliasesArray (Must have) This is used for checking duplications in command aliases later on.
- * @param {string} path The path to the file.
- * @param {object} client The client to pass in.
- * @param {object?} object The object used in the nested method. Refer to Loader functions.
- * @param {array?} warnArray The array used for warnings in console.
- * @param {string?} Root The root directory located from this method. This may get removed in future optimizations.
- * @param {boolean?} subfolder If the file which called this method is located in a subfolder to Root. `false`by default.
- * @see method `Loader.ExeLoader` ('Loader.js')
- */
-function CommandCheck(file, AliasesArray, path, client, warnArray, object = {
-    exe: [], dev: 0, unexec: 0,
-}, Root = null, subfolder =  false)
-{
-    if (typeof subfolder !== 'boolean') throw new Error('[CommandCheck] The last parameter if specified must a boolean.');
-    if (lstatSync(path).isDirectory()) return object.subfolders.push(file);
-    if (object.parent) object.files.push(file);
-    if (file.endsWith('.js'))
-    {
-        let availablity = true;
-        let dev = false;
-        const pathString = Root ? Root + path : path;
-        const CommandFile = require(pathString);
-
-        const { name, aliases, stable, onTrigger } = CommandFile;
-
-        // Check for command's name
-        if (!name || typeof name !== 'string')
-        {
-            warnArray.push(`File"${path}": The command has either no name or invalid name type.`);
-            object.unexec++;
-            availablity = false;
-        }
-        // Check for command's functions
-        if (!onTrigger || typeof onTrigger !== 'function')
-        {
-            warnArray.push(`${CommandFile.name ? `Command "${CommandFile.name}" has either no or invalid functions` : `File "${path}" has either no or invalid functions and name.`}`);
-            if (availablity) object.unexec++;
-            availablity = false;
-        }
-        // Check for stablity status
-        if (!stable)
-        {
-            if (availablity) object.unexec++;
-            if (onTrigger || typeof onTrigger === 'function')
-            {
-                object.exe.push(`${file} (dev)`);
-                object.dev++;
-                dev = true;
-            }
-        }
-        if (!statSync(path)['size'])
-        {
-            if (availablity) object.unexec++;
-            object.empty++;
-            availablity = false;
-        }
-        if (availablity)
-        {
-            if (!dev) object.exe.push(`${file}`);
             client.CommandList.set(
                 name,
                 Object.assign(
-                    CommandFile,
-                    { memWeight:statSync(path)['size'], loadTime: Date.now(), resolvedPath: require.resolve(pathString) },
-                ));
-            if (CommandFile.aliases)
-            {
-                AliasesArray.push(aliases);
-                client.CommandAliases.set(aliases, name);
-            }
+                    object,
+                    { memWeight: size, loadTime: Date.now() },
+                ),
+            );
+            if ((aliases || []).length) client.CommandAliases.set(aliases, name);
+            data.loaded++;
         }
-        else object.unexec++;
-    }
-}
 
- /** Check events from a file and bind them to the `client` object.
- * @param {string} file Name of the file you want to scan.
- * @param {string} path The path to the file.
- * @param {object} client The client to pass in.
- * @param {object?} object The object used in the nested method. Refer to Loader functions.
- * @param {array?} warnArray The array used for warnings in console.
- * @param {string?} Root The root directory located from this method. This may get removed in future optimizations.
- * @see method `Loader.EventLoader` ('Loader.js')
- */
-function EventCheck(file, path, client, object, warnArray, Root = null)
-{
-    if (lstatSync(path).isDirectory()) return object.subfolders.push(file);
-    if (object.parent) object.files.push(file);
-    if (file.endsWith('.js'))
-    {
-        let availablity = true;
-        const EventFile = Root ? require(Root + path) : require(path);
-        const { name, onEmit, once, stable } = EventFile;
+        if (type === 'evt')
+        {
+            const { once, onEmit } = object;
 
-        // If the event object has a name
-        if (name)
-        {
-            if (!stable)
-            {
-                availablity = false;
-                object.evt.push(`${file} (dev)`);
-                object.dev++;
-            }
-            if (!onEmit || typeof onEmit !== 'function')
-            {
-                availablity = false;
-                warnArray.push(`Event "${EventFile.name}" doesn't have any callback function.`);
-            }
-        }
-        if (!statSync(path)['size'])
-        {
-            availablity = false;
-            object.empty++;
-        }
-        if (availablity)
-        {
-            // Remove old identical listeners if found identical ones
+            if (!onEmit || typeof onEmit !== 'function') return noFunc.push(name ? `"${name}": ${this.path}` : this.path);
+
+            // Remove old identical listeners if found identical ones to prevent overlapping
             if (client.eventNames().some(e => e === name)) client.off(client.eventNames()[client.eventNames().findIndex(e => e === name)], () => null);
             process.env.HANDLED_EVENTS++;
-            object.evt.push(file);
-            if (once) client.once(name, onEmit.bind(null, client));
-            else client.on(name, onEmit.bind(null, client));
+            once ? client.once(name, onEmit.bind(null, client)) : client.on(name, onEmit.bind(null, client));
+            data.loaded++;
+        }
+    } catch (e) {
+        errored.push(e);
+    }
+    Object.assign(data.dirIndex, { invalidNames, emptyFiles, noFunc, size: sizec, errored });
+}
+
+function summarize(data, type, client)
+{
+    const cmdc = client.CommandList.size;
+    const typec = type.replace(/cmd/, 'command').replace(/evt/, 'event');
+    const { dirIndex } = data;
+    if (type === 'cmd')
+    {
+        console.log(`${chalk.hex('#8c8c8c')(`[${calBytes(dirIndex.size)}]`)} ${chalk.hex('#2dd66b')(`${cmdc} ${typec}${cmdc > 1 ? 's' : ''}`)}`);
+        Object.assign(dirIndex, { EntriesToCMD: EntryMergeAll(client) });
+    }
+    if (type === 'evt') console.log(`${chalk.hex('#8c8c8c')(`[${calBytes(dirIndex.size)}]`)} ${chalk.hex('#2dd66b')(`${process.env.HANDLED_EVENTS} ${typec}${process.env.HANDLED_EVENTS > 1 ? 's' : ''}`)}`);
+
+    IssueWarns(dirIndex, type);
+}
+
+/** Sums up all command names and aliases into an array. */
+function EntryMergeAll(client)
+{
+    const allNames = [];
+    let allAliases = [];
+
+    for (const key of client.CommandList.keys())
+    {
+        allNames.push(key);
+    }
+    for (const key of client.CommandAliases.keys())
+    {
+        if (Array.isArray(key)) allAliases = allAliases.concat(key);
+        else allAliases.push(key);
+    }
+
+    return [].concat(allNames, allAliases);
+}
+
+
+function IssueWarns(dirIndex, type)
+{
+    const { invalidNames, emptyFiles, noFunc, EntriesToCMD, errored } = dirIndex;
+    type = type.replace(/cmd/, 'command').replace(/evt/, 'event');
+    if (invalidNames.length)
+    {
+        process.stdout.write(`${invalidNames.length} file${invalidNames.length > 1 ? 's' : ''} with ${chalk.hex('#e38c22')('no or invalid names')}:\n`);
+        invalidNames.forEach(i => process.stdout.write(`  ${chalk.hex('#b5b5b5')(i)}\n`));
+        process.stdout.write('\n');
+    }
+    if (emptyFiles.length)
+    {
+        process.stdout.write(`${emptyFiles.length} ${chalk.hex('#8f8f8f')(`empty file${emptyFiles.length > 1 ? 's' : ''}`)}:\n`);
+        emptyFiles.forEach(i => process.stdout.write(`  ${chalk.hex('#b5b5b5')(i)}\n`));
+        process.stdout.write('\n');
+    }
+    if (noFunc.length)
+    {
+        process.stdout.write(`${noFunc.length} ${type}${noFunc.length > 1 ? 's' : ''} with ${chalk.hex('#cfcfcf').bgHex('#ff3333')('no callbacks')}:\n`);
+        noFunc.forEach(i => process.stdout.write(`  ${chalk.hex('#b5b5b5')(i)}\n`));
+        process.stdout.write('\n');
+    }
+
+    if (errored.length)
+    {
+        const map = new Map();
+        errored.forEach(e => ParseError(e, map));
+
+        // process.stdout.write(`${map.size} file${map.size > 1 ? 's' : ''} had ${chalk.hex('#d13636')(`errors`)} while compiling and sikipped:\n`);
+        process.stdout.write(`Those files had ${chalk.hex('#d13636')(`errors`)} while compiling and skipped:\n`);
+        for (const entry of map.entries())
+        {
+            const errorName = entry[0];
+            const errorStacks = entry[1];
+
+            process.stdout.write(chalk.hex('#212121').bgHex('#a8a8a8')(`${errorName}\n`));
+            errorStacks.forEach(stack => {
+                const [eMessage, location, line] = stack;
+                process.stdout.write(`  ${chalk.hex('#7a7a7a')('line')} ${chalk.hex('#b8b8b8')(`${line}`)} ${chalk.hex('#7a7a7a')('of')} ${chalk.hex('#b5b5b5')(location)}: ${eMessage}\n`);
+            });
+            process.stdout.write('\n');
+        }
+    }
+    if ((EntriesToCMD || []).length)
+    {
+        const dupFinder = arr => arr.filter((entry, index) => arr.indexOf(entry) !== index);
+        const res = [...new Set(dupFinder(EntriesToCMD))];
+        if (res.length)
+        {
+            const targetList = [];
+            for (const i in res)
+            {
+                targetList.push(res[i]);
+            }
+            if (targetList.length)
+            {
+                const outString = `${targetList.length} ${chalk.hex('#c9c7c7').bgHex('#c46e49')(`duplicated command entr${targetList.length > 1 ? 'ies' : 'y'}`)} found.\n Unstability may occur when executing ${targetList.length > 1 ? 'those entries' : 'this entry'}:\n  `
+                                        + `${chalk.hex('#9c9679')(targetList.join('\n  '))}\n`;
+                process.stdout.write(outString + '\n');
+            }
         }
     }
 }
 
-/** Binds each command loaded from the list to its approriate categories.
+/** Binds each command loaded from the list to its approriate c ategories.
  * @param {object} client The client to pass in.
  */
 function BindCategory(client)
 {
     const groupArray = [];
-    const object = require('./json/Categories.json');
+    const object = require('../utils/json/Categories.json');
     client.CategoryCompare = new (require('discord.js')).Collection();
 
     // Set categories for comparing
@@ -450,23 +309,8 @@ function BindCategory(client)
     writeFileSync('./utils/json/Categories.json', JSON.stringify(object, null, 4));
 }
 
-function Validate(data)
-{
-    const { type, root: folder } = data;
-    if (typeof type !== 'string') throw new Error('[Loader] type: The type specified is not a string.');
-    // if (typeof client !== 'object') throw new Error('[Loader] client: The client specified is not an object.');
-    if (typeof folder !== 'string') throw new Error('[Loader] folder: The directory specified is not a string.');
-}
-
-
 module.exports = {
-    Load: (client, root, ...folders) =>
-    {
-        if (folders.some(f => f === 'executables')) ExeLoader('executables', client, root);
-        if (folders.some(f => f === 'events')) EventLoader('events', client, root);
-    },
-
-    CommandCheck: CommandCheck,
-    EventCheck: EventCheck,
-    BindCategory: BindCategory,
+    Loader,
+    ParseCheck,
+    IssueWarns,
 };

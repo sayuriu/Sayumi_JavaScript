@@ -14,3 +14,10 @@ executables/executables.json
 a.json
 a
 web
+.gitignore
+.shrinkwrap.yaml
+.tsconfig.json
+executables/**/**.json
+executables/**.json
+events/**.json
+events/**/**.json
