@@ -10,5 +10,5 @@ const Sayuri = Object.assign(new Client(), modules);
 
 // #region Actions
 new Sayuri.Database(Sayuri).Init();
-new Sayuri.Client(Object.assign(modules, { client: Sayuri }), process.env.TOKEN).Init();
+new Sayuri.Client(Sayuri, process.env.TOKEN).Init();
 // #endregion

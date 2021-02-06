@@ -12,7 +12,18 @@ module.exports = {
 	cooldown: 10,
 	usage: '[category? command]',
 	onTrigger: async (message, args, client) => {
-		const ArrayOrString = client.Methods.Common.ArrayOrString;
+		const ArrayOrString = (input) =>
+		{
+			if (Array.isArray(input))
+			{
+				const array = [];
+				input.forEach(i => array.push(i.toString()));
+				input = array;
+
+				return { output: input, boolean: true };
+			}
+			else return { output: input, boolean: false };
+		};
 		const Randomize = client.Methods.Common.Randomize;
 
 		const source = await client.GuildDatabase.get(message.guild);
@@ -52,7 +63,7 @@ module.exports = {
 		if (args[0])
 		{
 			args[0] = args[0].toLowerCase();
-			if (args[0].startsWith('help')) return client.emit('message', Object.assign(message, { content: `${prefix}help` }));
+			if (args[0].startsWith('help')) return client.emit('message', Object.assign(message, { content: `${prefix}${message.content}` }));
 
 			let allCategories = [];
 			let target;
@@ -61,10 +72,10 @@ module.exports = {
 			client.CommandCategories.forEach(t => allCategories = allCategories.concat(t.keywords));
 			if (allCategories.some(i => i === args[0]))
 			{
-				target = client.CommandCategories.find(index => index.keywords && index.keywords.some(i => i === args[0]));
+				target = client.CommandCategories.find(index => index.keywords?.some(i => i === args[0]));
 				onCategory = true;
 			}
-			else target = client.CommandList.get(args[0]) || client.CommandList.find(cmd => cmd.aliases && cmd.aliases.includes(args[0]));
+			else target = client.CommandList.get(args[0]) || client.CommandList.find(cmd => cmd.aliases?.includes(args[0]));
 
 			// If category
 			if (target && onCategory)

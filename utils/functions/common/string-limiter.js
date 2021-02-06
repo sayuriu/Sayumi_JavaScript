@@ -1,4 +1,4 @@
-module.exports = function(input1, input2 = '', seperator = '.', stringLimit = input1.length)
+module.exports = function(input1 = '', input2 = '', seperator = '.', stringLimit = input1.length)
 {
 	if (stringLimit <= 0) return input1 + input2;
 	const fill = stringLimit - (input1.length + input2.length);

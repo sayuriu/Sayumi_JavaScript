@@ -30,7 +30,7 @@ module.exports = {
 		if (userID) target = await message.guild.members.fetch({ user: userID, force: true });
 		if (!target) target = await message.guild.members.fetch({ query: args[0], limit: 1 }).first();
 
-		if (target.size < 1) return message.channel.send('No such user matches your request.');
+		if (!target) return message.channel.send('No such user matches your request.');
 
 		const { activities, clientStatus: clientDevice, status } = target.presence;
 		let largePresenceImage, smallPresenceImage = null;

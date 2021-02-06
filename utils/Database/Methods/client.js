@@ -16,14 +16,15 @@ module.exports = class Initialize
 			wsStatus: client.ws.status,
 			gateway: client.ws.gateway,
 			cmds: client.CommandList.size,
-			events: parseInt(process.env.HANDLED_EVENTS),
+			events: parseInt(process.env.HANDLED_EVENTS) || 0,
 			cachedUsers: client.users.cache.size,
 			cachedGuilds: client.guilds.cache.size,
 		};
 
 		const form = await new InitSchema(obj);
 		return form.save({}, (err) => {
-			if (err) return logger.error(`[Database > Client Init Sync] ${err}`);
+			// if (err) return logger.error(`[Database > Client Init Sync] ${err}`);
+			if (err) return logger.carrier('error', `[Database > Client Init Sync] ${err}`);
 		});
 	}
 };

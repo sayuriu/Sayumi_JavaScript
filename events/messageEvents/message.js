@@ -1,15 +1,13 @@
 const { Collection } = require('discord.js');
-const responses = require('../../utils/json/Responses.json');
-const DefaultSettings = require('../../utils/json/DefaultGlobalSettings.json');
-require('dotenv').config();
-const { master } = process.env;
+const { commands } = require('../../utils/json/Responses.json');
+const { prefix: DefaultPrefix } = require('../../utils/json/DefaultGlobalSettings.json');
 
 module.exports = {
 	name: 'message',
 	stable: true,
 	onEmit: async (client, message) => {
 		// Get the info first.
-		let prefix = DefaultSettings.prefix;
+		let prefix = DefaultPrefix;
 		let source;
 		const maid = client.user.id;
 		const mention_self = `<@!${maid}>`;
@@ -47,7 +45,7 @@ module.exports = {
 			}
 
 			// AFK on ping
-			if (message.mentions.users.size > 0)
+		if (message.mentions.users.size > 0)
 			{
 				message.mentions.users.forEach(user => {
 					const userMention = client.AFKUsers.get(user.id);
@@ -96,20 +94,21 @@ module.exports = {
 					if (message.channel.type === 'dm' || source.FalseCMDReply.some(chID => chID === message.channel.id))
 					{
 						// functions.Cooldown(client.Cooldowns, typo, 3, message.author.id, message);
-						return message.channel.send(responses.commands.only_prefix);
+						return message.channel.send(commands.only_prefix);
 					}
 					else return;
 				}
 
 				// Look up for the command
 				const RequestedCommand = client.CommandList.get(CommandName) ||
-											client.CommandList.find(cmd => cmd.aliases && cmd.aliases.includes(CommandName));
+											// client.CommandList.find(cmd => cmd.aliases && cmd.aliases.includes(CommandName));
+											client.CommandList.find(cmd => cmd.aliases?.includes(CommandName));
 
 				// If the command doesn't exist
 				if (!RequestedCommand) {
 					const typo = CommandName;
 
-					const NotACmd = responses.commands.problems.invalid;
+					const NotACmd = commands.problems.invalid;
 					const res = Randomize(NotACmd)
 										.replace(/\${typo}/g, typo)
 										.replace(/\${memberName}/g, message.guild ? message.member.displayName : message.author.username)
@@ -129,7 +128,7 @@ module.exports = {
 					// Sending guild-only commands through DMs
 					if (RequestedCommand.guildOnly && message.channel.type === 'dm')
 					{
-						return message.reply(Randomize(responses.commands.guild_only_invalid));
+						return message.reply(Randomize(commands.guild_only_invalid));
 					}
 
 					// Cooldowns (throttling)
@@ -140,6 +139,7 @@ module.exports = {
 
 					const timestamps = cooldowns.get(RequestedCommand.name);
 					const cooldownAmount = (RequestedCommand.cooldown || 2) * 1000;
+					const master = message.author.id === client.master ? true : false;
 
 					// Guild cooldowns
 					if (RequestedCommand.guildCooldown && message.guild)
@@ -149,7 +149,7 @@ module.exports = {
 							const expirationTime = timestamps.get(message.guild.id) + cooldownAmount;
 
 							// @suggest: use while loop
-							if (now < expirationTime && message.author.id !== master)
+							if (now < expirationTime && !master)
 							{
 								const timeLeft = (expirationTime - now) / 1000;
 								return message.reply(
@@ -172,7 +172,7 @@ module.exports = {
 						{
 							const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
 
-							if (now < expirationTime && message.channel.type !== 'dm' && message.author.id !== master)
+							if (now < expirationTime && message.channel.type !== 'dm' && !master)
 							{
 								const timeLeft = (expirationTime - now) / 1000;
 								return message.reply(
@@ -192,11 +192,11 @@ module.exports = {
 						let string;
 						if (RequestedCommand.prompt) return message.channel.send(RequestedCommand.prompt);
 						if (RequestedCommand.usage) string = `\nUsage: \`${prefix}${RequestedCommand.name} ${RequestedCommand.usage}\`.`;
-						return message.channel.send(`${Randomize(responses.commands.problems.empty_arguments)} ${string || ''}`);
+						return message.channel.send(`${Randomize(commands.problems.empty_arguments)} ${string || ''}`);
 					}
 
 					// Master-explicit commands
-					if (RequestedCommand.master_explicit && message.author.id !== master) {
+					if (RequestedCommand.master_explicit && !master) {
 						return message.channel.send(`Sorry ${message.author}, but this command can be issued by master only.`).then(msg => {
 							if (message.channel.name.includes('general')) return SelfDeteleMsg(msg, 3000);
 							else return msg.delete({ timeout: 5000 });
@@ -263,8 +263,8 @@ module.exports = {
 					} catch (error) {
 						client.Log.error(`[Command Execution] An error has occured while executing "${RequestedCommand.name}": \n${error.message}`);
 						client.channels.cache.find(ch => ch.id === process.env.BUG_CHANNEL_ID).send(client.Embeds.error(message, error.message));
-						if (message.channel.type === 'text') return message.channel.send(Randomize(responses.commands.error));
-						else return message.reply(Randomize(responses.commands.error));
+						if (message.channel.type === 'text') return message.channel.send(Randomize(commands.error));
+						else return message.reply(Randomize(commands.error));
 					}
 				}
 			}

@@ -9,73 +9,68 @@ module.exports = {
 	group: ['Information'],
 	description: 'Get information about my latency and memory usage.',
 	cooldown: 12,
-	onTrigger: async (message, args, client) => {
+	onTrigger: async (message, client) => {
 
 		const hex = client.Methods.Common.RandomHex8();
-		const stringPad = client.Methods.Common.StringLimiter();
+		const stringPad = client.Methods.Common.StringLimiter;
 		const dbDL = await dbLatency(client);
-		let processArr = [
-			`\`${stringPad('CPU:', '[Calculating...]', null, 40)}\``,
-			`\`${stringPad('Memory:', '[Calculating...]', null, 40)}\``,
-			`\`${stringPad('Heap:', '[Calculating...]', null, 40)}\``,
-			`\`${stringPad('C++:', '[Calculating...]', null, 40)}\``,
-		];
-		let processArrString = processArr.join('\n');
+		let processArrString = [
+			`\`${stringPad('CPU:', '[Calculating...]', '.', 40)}\``,
+			`\`${stringPad('Memory:', '[Calculating...]', '.', 40)}\``,
+			`\`${stringPad('Heap:', '[Calculating...]', '.', 40)}\``,
+			`\`${stringPad('C++:', '[Calculating...]', '.', 40)}\``,
+		].join('\n');
 
-		let latencyArr = [
-			`\`${stringPad('APIs:', '[Getting...]', null, 24)}\``,
-			`\`${stringPad('Message:', '[Getting...]', null, 24)}\``,
-			`\`${stringPad('Database:', '[Getting...]', null, 24)}\``,
-			`\`${stringPad('Internals:', '[Getting...]', null, 24)}\``,
-		];
-		let latencyArrString = latencyArr.join('\n');
+		let latencyArrString = [
+			`\`${stringPad('APIs:', '[Getting...]', '.', 24)}\``,
+			`\`${stringPad('Message:', '[Getting...]', '.', 24)}\``,
+			`\`${stringPad('Database:', '[Getting...]', '.', 24)}\``,
+			`\`${stringPad('Internals:', '[Getting...]', '.', 24)}\``,
+		].join('\n');
 
-		const { hour, minute, second } = client.Methods.TimestampToTime(Date.now() - client.uptime);
+		const { hour, minute, second } = client.Methods.Time.TimestampToTime(Date.now() - client.uptime);
 
-		// const eve
-
-		const initEmbed = new EmbedConstructor()
+		message.channel.send(
+			new EmbedConstructor()
 				.setTitle('Status')
 				.setDescription(`\`Uptime: ${hour > 0 ? `${hour} hr${hour > 1 ? 's' : ''} ` : ''}${minute > 0 ? `${minute} min${minute > 1 ? 's' : ''} ` : ''}${second > 0 ? `${second} sec${second > 1 ? 's' : ''}` : ''}\``)
 				.addField('Process', processArrString, true)
 				.addField('Latency', latencyArrString, true)
 				.setColor('#f5f242')
-				.setFooter(hex);
-
-		message.channel.send(initEmbed).then(m => {
+				.setFooter(hex),
+		).then(m => {
 
 			const now = Date.now();
 			const msgDL = now - m.createdTimestamp;
 
-			latencyArr = [
-				`\`${stringPad('APIs:', `${client.ws.ping} ms`, null, 24)}\``,
-				`\`${stringPad('Message:', `${msgDL} ms`, null, 24)}\``,
-				`\`${stringPad('Database:', `${dbDL} ms`, null, 24)}\``,
-				`\`${stringPad('Internals:', `${thisLatency(client)} ms`, null, 24)}\``,
-			];
-			latencyArrString = latencyArr.join('\n');
+			latencyArrString = [
+				`\`${stringPad('APIs:', `${client.ws.ping} ms`, '.', 24)}\``,
+				`\`${stringPad('Message:', `${msgDL} ms`, '.', 24)}\``,
+				`\`${stringPad('Database:', `${dbDL} ms`, '.', 24)}\``,
+				`\`${stringPad('Internals:', `${thisLatency(client)} ms`, '.', 24)}\``,
+			].join('\n');
 
-			processArr = [
-				`\`${stringPad('CPU:', `${getCPU()}`, null, 40)}\``,
-				`\`${stringPad('Memory:', `${getMemoryUsage(client)}`, null, 40)}\``,
-				`\`${stringPad('Heap:', `${getHeap(client)}`, null, 40)}\``,
-				`\`${stringPad('C++:', `${getMemoryExternal(client)}`, null, 40)}\``,
-			];
-			processArrString = processArr.join('\n');
+			processArrString = [
+				`\`${stringPad('CPU:', `${getCPU()}`, '.', 40)}\``,
+				`\`${stringPad('Memory:', `${getMemoryUsage(client)}`, '.', 40)}\``,
+				`\`${stringPad('Heap:', `${getHeap(client)}`, '.', 40)}\``,
+				`\`${stringPad('C++:', `${getMemoryExternal(client)}`, '.', 40)}\``,
+			].join('\n');
 
 			while(Date.now() - now < 100);
 
-			const updatedEmbed = new EmbedConstructor()
+			// what is inline
+			m.edit(
+				new EmbedConstructor()
 				.setTitle('Status')
 				.setDescription(`\`ProcessID [${hex}]\``)
-				.addField('Uptime', `\`Uptime: ${hour > 0 ? `${hour} hr${hour > 1 ? 's' : ''} ` : ''}${minute > 0 ? `${minute} min${minute > 1 ? 's' : ''} ` : ''}${second > 0 ? `${second} sec${second > 1 ? 's' : ''}` : ''}\``)
-				.addField('Handling', `\`${client.CommandList.size}\``, true)
-				.addField('Process', processArrString)
+				.addField('Uptime', `\`${hour > 0 ? `${hour} hr${hour > 1 ? 's' : ''} ` : ''}${minute > 0 ? `${minute} min${minute > 1 ? 's' : ''} ` : ''}${second > 0 ? `${second} sec${second > 1 ? 's' : ''}` : ''}\``)
+				.addField('Handling', `\`${client.CommandList.size} command${client.CommandList.size > 1 ? 's' : ''}\``)
+				.addField('Process', processArrString, true)
 				.addField('Latency', latencyArrString, true)
 				.setColor('#42b9f5')
-				.setTimestamp();
-
-			m.edit(updatedEmbed);
+				.setTimestamp(),
+			);
 		});
 	},
 };
@@ -103,7 +98,7 @@ function getMemoryUsage(client)
 	if (parseInt(percentage[0]) < 10) p = `0${percentage.join('.')}`;
 	else p = percentage.join('.');
 
-	return `${client.Methods.convertBytes(rss)} of ${client.Methods.convertBytes(fixedMem)} | ${p}%`;
+	return `${client.Methods.Data.ConvertBytes(rss)} of ${client.Methods.Data.ConvertBytes(fixedMem)} | ${p}%`;
 }
 
 function getMemoryExternal(client)
@@ -116,7 +111,7 @@ function getMemoryExternal(client)
 	if (parseInt(percentage[0]) < 10) p = `0${percentage.join('.')}`;
 	else p = percentage.join('.');
 
-	return `${client.Methods.convertBytes(ext)} of ${client.Methods.convertBytes(fixedEMem)} | ${p}%`;
+	return `${client.Methods.Data.ConvertBytes(ext)} of ${client.Methods.Data.ConvertBytes(fixedEMem)} | ${p}%`;
 }
 
 function getHeap(client)
@@ -128,7 +123,7 @@ function getHeap(client)
 	if (parseInt(percentage[0]) < 10) p = `0${percentage.join('.')}`;
 	else p = percentage.join('.');
 
-	return `${client.Methods.convertBytes(heapUsed)} of ${client.Methods.convertBytes(heapTotal)} | ${p}%`;
+	return `${client.Methods.Data.ConvertBytes(heapUsed)} of ${client.Methods.Data.ConvertBytes(heapTotal)} | ${p}%`;
 }
 
 async function dbLatency(client)
