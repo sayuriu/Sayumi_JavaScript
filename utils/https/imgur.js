@@ -7,6 +7,10 @@ const log = mainModules.Log;
 
 module.exports = class Imgur
 {
+	constructor()
+	{
+		throw new Error(`${this.constructor.name} can't be instantiated!`);
+	}
 	static Get(hash)
 	{
 		// Request data

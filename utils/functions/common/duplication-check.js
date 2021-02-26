@@ -1,4 +1,4 @@
-// @flag::deprecated
+// @flag::deprecated?
 
 const { warn } = require('../../Logger');
 
@@ -16,5 +16,6 @@ module.exports = function(array, type = 'Item', WarnArray = [])
 		{
 			if (WarnArray.length > 0) WarnArray.push(`${type} "${res[i]}": Duplicates found.`);
 		}
+		return res;
 	}
 };

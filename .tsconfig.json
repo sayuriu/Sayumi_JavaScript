@@ -1,10 +1,9 @@
 {
-	"include": ["utils/**/*"],
-  
+	"include": ["utils/typings/"],
+
 	"compilerOptions": {
 	 " allowJs": true,
 	 " declaration": true,
-	 " emitDeclarationOnly": true,
-	 " outDir": "dist"
+	 " emitDeclarationOnly": true
 	}
   }

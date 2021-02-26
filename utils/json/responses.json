@@ -6,7 +6,7 @@
 				"You should go to sleep.",
 				"Staying up overnight is bad for your health."
 			],
-			"morning": [	
+			"morning": [
 				"Morning.",
 				"Good morning."
 			],
@@ -36,10 +36,10 @@
 		]
 	},
 	"statuses": [
-		"raw event data", 
-		"what is her prefix", 
-		"how to become a reliable maid", 
-		"Sayuri's notes", 
+		"raw event data",
+		"what is her prefix",
+		"how to become a reliable maid",
+		"Sayuri's notes",
 		"guides to create a REST API",
 		"debug console",
 		"terminal output",
@@ -106,5 +106,17 @@
 		"nya",
 		"bleep bloop",
 		""
-	]
+	],
+	"music": {
+		"embed": {
+			"searching": ["Looking up...", "Searching", "Please wait..."],
+			"resolved": ["Results for `${input}`", "Choose one.", "`${input}`"]
+		},
+		"volume_set": {
+			"double": ["The volume is doubled.", "Now playing in twice the intensity."],
+			"half": ["The volume is halved.", "The playback intensity is halved."],
+			"one": ["Now playing in default volume.", "Now playing in default intensity."],
+			"custom": ["`${value}`[**`${valuePercent}`**] is the new volume.", "Successfully set the new volume to `${value}`[**`${valuePercent}`**]"]
+		}
+	}
 }

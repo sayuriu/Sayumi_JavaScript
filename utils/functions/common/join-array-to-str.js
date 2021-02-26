@@ -1,6 +1,6 @@
 const { warn } = require('../../Logger');
 
-module.exports = function(stringArray = [])
+module.exports = function(joiner = '\n', ...stringArray)
 {
 	if (!stringArray) return false;
 	if (!stringArray.length)
@@ -8,6 +8,11 @@ module.exports = function(stringArray = [])
 		warn('ArrayString has no item.');
 		return false;
 	}
+	let out;
+	for (const i of stringArray)
+	{
+		out = out.concat(i);
+	}
 	// if (!stringArray.length) throw new ReferenceError('ArrayString has no item.');
-	return stringArray.join('\n');
+	return out.join(joiner);
 };

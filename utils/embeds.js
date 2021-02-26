@@ -7,6 +7,10 @@ const currentDate = Methods.Time.ConvertDate(date, month, year);
 const channelCheck = Methods.DiscordClient.ChannelCheck;
 
 module.exports = class EmbedConstructor {
+    constructor()
+    {
+        throw new Error(`${this.constructor.name} can't be instantiated!`);
+    }
     /**
      * The embed used for update patches.
      * @param {string} header The title of the update.

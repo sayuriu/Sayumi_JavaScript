@@ -67,10 +67,6 @@ class Loader
     }
 }
 
-
-// Problem: Only detected one error while requring...
-// @flag::bug
-
 function ParseCheck(type, path, client, data)
 {
     // let availability = true;
@@ -159,7 +155,6 @@ function EntryMergeAll(client)
 
     return [].concat(allNames, allAliases);
 }
-
 
 function IssueWarns(dirIndex, type)
 {

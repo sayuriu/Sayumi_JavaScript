@@ -7,7 +7,7 @@ module.exports = function()
 	const month = date.getMonth() + 1;
 	const res = {
 		date: `${date.getDate() < 10 ? '0' : ''}${date.getDate()}`,
-		dateID: `${Math.floor(Date.now() / 86400000)}`,
+		dateID: Math.floor(Date.now() / 86400000),
 		month: `${month < 10 ? '0' : ''}${month}`,
 		GMT: date.toString().substr(28, 5),
 		year: date.getFullYear().toString(),

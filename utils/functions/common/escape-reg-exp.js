@@ -1,1 +1,1 @@
-module.exports = string => string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&');
+module.exports = input => input.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&');

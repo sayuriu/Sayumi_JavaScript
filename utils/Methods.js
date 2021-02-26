@@ -1,10 +1,12 @@
 module.exports = {
     Common: {
         ArrShiftToLast: require('./functions/common/array-shift-to-last'),
+        ArrShuffle: require('./functions/common/array-shuffler'),
         DelayTask: require('./functions/common/delay-task'),
         DuplicationCheck: require('./functions/common/duplication-check'),
         EscapeRegExp: require('./functions/common/escape-reg-exp.js'),
         Greetings: require('./functions/common/greetings'),
+        HSLtoRGB: require('./functions/common/hsl-to-rgb'),
         JoinArrayString: require('./functions/common/join-array-to-str'),
         ParseErrors: require('./functions/common/parse-errors'),
         RandomHex8: require('./functions/common/ranhex8'),

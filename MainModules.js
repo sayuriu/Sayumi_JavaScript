@@ -38,6 +38,7 @@ module.exports = {
 	Timestamps: new Collection(),
 
 	EvaluatingSessions: new Collection(),
+	MusicInstances: new Collection(),
 
 	Embeds:  EmbedConstructor,
 	Methods: GlobalFunctions,

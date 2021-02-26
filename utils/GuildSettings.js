@@ -4,6 +4,10 @@ const settings = require('./json/SettingsObjects.json');
 const { Methods, GuildDatabase } = require('../MainModules');
 
 module.exports = class Settings {
+	constructor()
+    {
+        throw new Error(`${this.constructor.name} can't be instantiated!`);
+    }
 
 	static async AFKUsers(message, args)
 	{

@@ -4,6 +4,7 @@ const { error: outerr, carrier, bootstrap } = require('./Logger');
 const http = require('http');
 const ClientInit = require('./database/methods/client');
 
+// Note: type 'ClientData' actually refers to <discord>#Client.
 /**
  * Yes.
  */
@@ -31,11 +32,10 @@ module.exports = class Sayuri extends ClientInit {
         this.DBInit = () => super.init(client);
     }
 
-    /**
-     * Initiates a login session to Discord.
-     * @param {object} client The client to pass in.
+    /** Initiates a login session to Discord.
+     * @param {ClientData} client The client to pass in.
      * @param {string} token The token of the client. Refer to [your app's page](https://discord.com/developers/applications) for more details.
-     */
+    */
     Login(client, token)  {
         if (!client) throw new ReferenceError('[Sayuri > Client] Did you pass the client yet?');
         if (typeof client !== 'object') throw new TypeError('[Sayuri > Client] The client is not an object.');
@@ -43,10 +43,8 @@ module.exports = class Sayuri extends ClientInit {
         client.login(token);
     }
 
-    /**
-     * Initiates the event listener.
-     * @param {object} client The client to pass in.
-     */
+    /** Initiates the event listener.
+     * @param {ClientData} client The client to pass in. */
     EventListener(client)
     {
         if (!client) throw new ReferenceError('[Sayuri > Client] Did you pass the client yet?');
@@ -54,10 +52,8 @@ module.exports = class Sayuri extends ClientInit {
         new Loader(client, ['events', 'evt']);
     }
 
-    /**
-     * Loads the executables from the library.
-     * @param {object} client The client to pass in.
-     */
+    /** Loads the executables from the library.
+     * @param {object} client The client to pass in. */
     CommandInit(client)
     {
         if (!client) throw new ReferenceError('[Sayuri > Client] Did you pass the client yet?');
@@ -79,6 +75,10 @@ module.exports = class Sayuri extends ClientInit {
         });
     }
 
+    /** Keep the app alive by pinging HTTP to the host in an interval. Not working as expected.
+     * @param {} app
+     * @param {boolean} thisHost
+     */
     KeepAlive(app, thisHost)
     {
         app.Express.get('/', (req, res) => {
@@ -91,6 +91,12 @@ module.exports = class Sayuri extends ClientInit {
         }, 280000);
     }
 
+    /** Watch for updates in directory and updates the client if needed.
+     * Basically, hot-reloading, so you don't have to restart this everytime you make changes to core files. Hit save and keep working.
+     *
+     * @param {string} rootDir Root directory.
+     * @param {ClientData} client The client to pass in.
+     */
     Watch(rootDir, client)
     {
         const { watch, stat, readFileSync } = require('fs');

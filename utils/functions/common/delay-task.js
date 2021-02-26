@@ -1,3 +1,4 @@
+/** Only works with synchronous operations. */
 module.exports = function(duration)
 {
 	if (duration === 0 || typeof duration !== 'number') return;

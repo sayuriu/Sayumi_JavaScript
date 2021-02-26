@@ -1,7 +1,7 @@
 {
     "name": "sayumi",
-    "version": "1.32.21b206",
-    "author": "Sayuri",
+    "version": "1.32.23b723",
+    "author": "u-sayuri",
     "license": "MIT",
     "description": "Not yet.",
     "main": "main",
@@ -9,35 +9,42 @@
         "start": "node ."
     },
     "dependencies": {
-        "@discordjs/opus": "^0.3.2",
-        "@discordjs/uws": "^11.149.1",
         "beautify": "0.0.8",
         "bufferutil": "^4.0.1",
         "canvas": "^2.6.1",
         "chalk": "^4.1.0",
-        "discord.js": "^12.5.1",
         "dotenv": "^8.2.0",
         "erlpack": "^0.1.3",
-        "eslint": "^7.4.0",
         "express": "^4.17.1",
-        "ffmpeg": "^0.0.4",
-        "ffmpeg-static": "^4.2.7",
         "glob": "^7.1.6",
-        "libsodium-wrappers": "^0.7.5",
         "mongodb": "^3.5.9",
         "mongoose": "^5.9.22",
         "node-fetch": "^2.6.1",
         "node-opus": "^0.3.3",
         "opusscript": "^0.0.7",
+        "parse-ms": "^2.1.0",
         "request": "^2.88.2",
-        "sodium": "^3.0.2",
-        "utf-8-validate": "^5.0.2",
+        "simple-youtube-api": "^5.2.1",
+        "soundcloud-scraper": "^4.0.3",
+        "spotify-url-info": "^2.2.0",
         "util": "^0.12.3",
         "winston": "^3.3.3",
+        "youtube-sr": "^4.0.2",
+        "ytdl-core": "^4.5.0"
+    },
+    "devDependencies": {
+        "@discordjs/opus": "^0.3.3",
+        "discord.js": "^12.5.1",
+        "eslint": "^7.20.0",
+        "ffmpeg-static": "^4.2.7",
+        "libsodium-wrappers": "^0.7.5",
+        "sodium": "^3.0.2",
+        "utf-8-validate": "^5.0.2",
         "zlib-sync": "^0.1.7"
     },
     "repository": {
-        "url": "https://github.com/u-sayuri/Sayumi_JavaScript"
+        "type": "git",
+        "url": "git+https://github.com/u-sayuri/Sayumi_JavaScript"
     },
     "engines": {
         "node": "12.x.x"
