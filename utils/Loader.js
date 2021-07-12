@@ -1,7 +1,5 @@
 const { lstatSync, statSync, readdirSync, writeFileSync } = require('fs');
 const { join } = require('path');
-const calBytes = require('./functions/dir-set/convert-bytes');
-const dupcheck = require('./functions/common/duplication-check');
 const ParseError = require('./functions/common/parse-errors');
 const chalk = require('chalk');
 
@@ -24,6 +22,7 @@ class Loader
         this.empty = 0;
         [this.path, this.type] = pathAndType;
 
+        // @flag:rewrite?
         this.stdoutSignalSend = function(data)
         {
             switch (data)
@@ -106,14 +105,22 @@ function ParseCheck(type, path, client, data)
 
         if (type === 'evt')
         {
-            const { once, onEmit } = object;
+            const { once, onEmit, music } = object;
 
             if (!onEmit || typeof onEmit !== 'function') return noFunc.push(name ? `"${name}": ${this.path}` : this.path);
 
-            // Remove old identical listeners if found identical ones to prevent overlapping
-            if (client.eventNames().some(e => e === name)) client.off(client.eventNames()[client.eventNames().findIndex(e => e === name)], () => null);
-            process.env.HANDLED_EVENTS++;
+            // Remove old identical listeners if found to prevent overlapping
+            if (music)
+            {
+                client.MusicPlayer.removeAllListeners(name);
+                client.MusicPlayer.on(name, onEmit.bind(null, client));
+            }
+            else
+            {
+                client.removeAllListeners(name);
             once ? client.once(name, onEmit.bind(null, client)) : client.on(name, onEmit.bind(null, client));
+            }
+            process.env.HANDLED_EVENTS++;
             data.loaded++;
         }
     } catch (e) {
@@ -124,6 +131,7 @@ function ParseCheck(type, path, client, data)
 
 function summarize(data, type, client)
 {
+    const { ConvertBytes: calBytes } = client.Methods.Data;
     const cmdc = client.CommandList.size;
     const typec = type.replace(/cmd/, 'command').replace(/evt/, 'event');
     const { dirIndex } = data;
@@ -160,31 +168,24 @@ function IssueWarns(dirIndex, type)
 {
     const { invalidNames, emptyFiles, noFunc, EntriesToCMD, errored } = dirIndex;
     type = type.replace(/cmd/, 'command').replace(/evt/, 'event');
-    if (invalidNames.length)
+
+    function out(item, customString)
     {
-        process.stdout.write(`${invalidNames.length} file${invalidNames.length > 1 ? 's' : ''} with ${chalk.hex('#e38c22')('no or invalid names')}:\n`);
-        invalidNames.forEach(i => process.stdout.write(`  ${chalk.hex('#b5b5b5')(i)}\n`));
+        process.stdout.write(customString);
+        item.forEach(i => process.stdout.write(`  ${chalk.hex('#b5b5b5')(i)}\n`));
         process.stdout.write('\n');
     }
-    if (emptyFiles.length)
-    {
-        process.stdout.write(`${emptyFiles.length} ${chalk.hex('#8f8f8f')(`empty file${emptyFiles.length > 1 ? 's' : ''}`)}:\n`);
-        emptyFiles.forEach(i => process.stdout.write(`  ${chalk.hex('#b5b5b5')(i)}\n`));
-        process.stdout.write('\n');
-    }
-    if (noFunc.length)
-    {
-        process.stdout.write(`${noFunc.length} ${type}${noFunc.length > 1 ? 's' : ''} with ${chalk.hex('#cfcfcf').bgHex('#ff3333')('no callbacks')}:\n`);
-        noFunc.forEach(i => process.stdout.write(`  ${chalk.hex('#b5b5b5')(i)}\n`));
-        process.stdout.write('\n');
-    }
+
+    if (invalidNames.length) out(invalidNames, `${invalidNames.length} file${invalidNames.length > 1 ? 's' : ''} with ${chalk.hex('#e38c22')('no or invalid names')}:\n`);
+    if (emptyFiles.length) out(emptyFiles, `${emptyFiles.length} ${chalk.hex('#8f8f8f')(`empty file${emptyFiles.length > 1 ? 's' : ''}`)}:\n`);
+    if (noFunc.length) out(noFunc, `${noFunc.length} ${type}${noFunc.length > 1 ? 's' : ''} with ${chalk.hex('#cfcfcf').bgHex('#ff3333')('no callbacks')}:\n`);
 
     if (errored.length)
     {
         const map = new Map();
         errored.forEach(e => ParseError(e, map));
 
-        // process.stdout.write(`${map.size} file${map.size > 1 ? 's' : ''} had ${chalk.hex('#d13636')(`errors`)} while compiling and sikipped:\n`);
+        if (!map.size) return process.stdout.write(`An ${chalk.hex('#d13636')(`error`)} has been detected while loading assets. Please attach breakpoints on this function next time to track down.\n`);
         process.stdout.write(`Those files had ${chalk.hex('#d13636')(`errors`)} while compiling and skipped:\n`);
         for (const entry of map.entries())
         {
