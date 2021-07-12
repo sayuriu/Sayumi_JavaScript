@@ -1,10 +1,9 @@
 const { MessageEmbed } = require('discord.js');
 const request = require('request');
-const Methods = require('./Methods');
+const { DiscordClient: { ChannelCheck }, Time: { DateTime, ConvertDate, ParseTimeMS: DaysAgo } } = require('./Methods');
 
-const { date, month, year } = Methods.Time.DateTime();
-const currentDate = Methods.Time.ConvertDate(date, month, year);
-const channelCheck = Methods.DiscordClient.ChannelCheck;
+const { date, month, year } = DateTime();
+const currentDate = ConvertDate(date, month, year);
 
 module.exports = class EmbedConstructor {
     constructor()
@@ -43,8 +42,8 @@ module.exports = class EmbedConstructor {
 
     static error(message, errorMsg)
     {
-        const res = channelCheck(message.channel);
-        if (errorMsg === null) errorMsg = 'null';
+        const res = ChannelCheck(message.channel);
+        if (!errorMsg) errorMsg = 'null';
         const errorReport = new MessageEmbed()
                                         .setTitle('An error has occured.')
                                         .setDescription(`${res.message}\nExecuted by ${message.author.tag}`)
@@ -125,7 +124,7 @@ module.exports = class EmbedConstructor {
         let error = null;
         let edited = null;
 
-        if (typeof res === 'object' && res !== null)
+        if (res && typeof res === 'object')
         {
             const { title, copyright, date: capturedDate, hdurl, media_type, url } = res;
             if (media_type === 'image')
@@ -158,7 +157,7 @@ module.exports = class EmbedConstructor {
         }
 
         let errorShort;
-        if (typeof err === 'object' && err !== null)
+        if (err && typeof err === 'object')
         {
             const { status, statusText, code, message } = err;
             error = new MessageEmbed()
@@ -197,7 +196,7 @@ module.exports = class EmbedConstructor {
         const rolesCount = server.roles.cache.size;
 
         const createdAt = server.createdAt;
-        const timeBefore = Methods.daysAgo(createdAt).message;
+        const timeBefore = DaysAgo(createdAt);
 
         //
         return new MessageEmbed()
@@ -279,12 +278,12 @@ module.exports = class EmbedConstructor {
                     {
                         canvas.loadImage(Renderers.getPresenceAssets(assets)).then(img =>  context.drawImage(img, 90, 90, 38, 38));
                         request(imgur.Post(mainCanvas.toBuffer()), (err, res) => {
-                            if (err !== null)
+                            if (err)
                             {
                                 message.client.Log.carrier('error', `[Imgur API: Error] ${err.name}\n${err.message}`);
                                 embed.setThumbnail(member.user.avatarURL());
                             }
-                            if (res !== null)
+                            if (res)
                             {
                                 const data = JSON.parse(res.body);
                                 embed.setThumbnail(data.link);

@@ -1,36 +1,32 @@
 const { Collection } = require('discord.js');
 
-const Client = require("./utils/Client");
 const EmbedConstructor = require("./utils/Embeds");
 const Database = require('./utils/Database');
 const GuildDatabase = require('./utils/database/methods/guildActions');
-
-const express = require('express');
-const GlobalFunctions = require('./utils/Methods');
-const Logger = require('./utils/Logger');
-
-const Props = require('./utils/json/Props.json');
 
 require('dotenv').config();
 
 module.exports = {
 
 	ROOT_DIR: __dirname,
+
 	/** The host for Discord client.
 	 * @param {object} data Must contain the client object and token.
 	*/
-	Client,
+	Client: require("./utils/Client"),
 	/**
 	 * Provides basic actions and connections to MongoDB.
 	 * @param {object} data [Object] Contains `local (boolean)`, `username`, and `password`.
+	 * @property {object} Guild Guild database utility class.
 	*/
-	Database,
-	GuildDatabase,
+	Database: Object.assign(Database, { Guild: GuildDatabase }),
 
 	CommandList: new Collection(),
 	CommandAliases: new Collection(),
 	CommandCategories: new Collection(),
 
+	CachedGuildSettings: new Collection(),
+	// @flag:deprecated - Merge with guild settings since this is not affected by DMs
 	Channels: new Collection(),
 	Messages: new Collection(),
 	Cooldowns: new Collection(),
@@ -38,11 +34,10 @@ module.exports = {
 	Timestamps: new Collection(),
 
 	EvaluatingSessions: new Collection(),
-	MusicInstances: new Collection(),
 
 	Embeds:  EmbedConstructor,
-	Methods: GlobalFunctions,
-	Log: Logger,
+	Methods: require('./utils/Methods'),
+	Log: require('./utils/Logger'),
 
 	// Database side
 	local: true,
@@ -64,8 +59,8 @@ module.exports = {
 	},
 
 	App: {
-		Express: express(),
+		Express: require('express')(),
 		link: process.env.ProjLink,
 	},
-	Props: Props,
+	Props: require('./utils/json/Props.json'),
 };

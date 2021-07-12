@@ -3,13 +3,14 @@ const { inspect } = require('util');
 const { readFileSync, writeFileSync } = require('fs');
 const { MessageEmbed: EmbedConstructor, MessageAttachment } = require('discord.js');
 
+/** This command is incompatible with Message#MessageInteractions.
+ */
 module.exports = {
 	name: 'eval',
 	description: 'Execute literally anything, directly through the command line. \nSounds scary.',
 	cooldown: 0,
-	stable: true,
 	args: true,
-	group: 'Utilities',
+	group: ['Utilities'],
 	terminal: true,
 	master_explicit: true,
 	usage: '[flags] <input>',
@@ -97,54 +98,52 @@ class EvalRenderer {
 	// Main listener of this instance
 	async listener()
 	{
-		if (this.destroyed) return;
-		if (this.mainEmbedInstance.deleted) return;
-		this.lastInput = await this.listenerChannel.awaitMessages(m => m.author.id === this.mainInstanceUserID, { max: 1, time: 2147483646, errors: ['time'] }).catch(async error => {
+		if (this.destroyed || this.mainEmbedInstance.deleted) return;
+		this.lastInput = await this.listenerChannel.awaitMessages(m => m.author.id === this.mainInstanceUserID, { max: 1, time: 0x7fffffff, errors: ['time'] }).catch(async error => {
 			return await this.listener();
 		});
 		if (this.lastInput.first())
+		{
+			this.message = this.lastInput.first();
+			this.lastInput.first().delete();
+
+			this.resetState();
+			this.clearWindows();
+			this.input = this.lastInput.first().content;
+
+			if (this.input.toLowerCase().startsWith('-exit')) return this.destroyInstance();
+
+			await this.updateState();
+			this.generateEmbeds();
+			this.updateMainInstance();
+
+			if (this.flagArray.some(f => f === 'showExtended')) this.listenerChannel.send(`\`\`\`js\n${this.output}\`\`\`\u200b\`${this.outputType}\``).then(m => this.OutputWindows.push(m));
+			if (this.exceedBoolean && this.filePath)
 			{
-				this.message = this.lastInput.first();
-				this.lastInput.first().delete();
-
-				this.resetState();
-				this.clearWindows();
-				this.input = this.lastInput.first().content;
-
-				if (this.input.toLowerCase().startsWith('-exit')) return this.destroyInstance();
-
-				this.updateState();
-				this.generateEmbeds();
-				this.updateMainInstance();
-
-				if (this.flagArray.some(f => f === 'showExtended')) this.listenerChannel.send(`\`\`\`js\n${this.output}\`\`\`\u200b\`${this.outputType}\``).then(m => this.OutputWindows.push(m));
-				if (this.exceedBoolean && this.filePath)
+				if (!this.listenerChannel.permissionsFor(this.message.client.user.id).has('ATTACH_FILES'))
 				{
-					if (!this.listenerChannel.permissionsFor(this.message.client.user.id).has('ATTACH_FILES'))
-					{
-						const desc = this._embed.description ? this._embed.description + '\n' : '';
-						this._embed = new EmbedConstructor(Object.assign(
-							this._embed,
-							{ description: `${desc}'Couldn't send output file. Lacking permission.'` },
-						));
-					}
-					else
-					{
-						this.listenerChannel.send(new MessageAttachment(readFileSync(this.filePath), `eval.json`)).then(m => {
-							this.OutputWindows.push(m);
-							this.exceedBoolean = false;
-						});
-					}
+					const desc = this._embed.description ? this._embed.description + '\n' : '';
+					this._embed = new EmbedConstructor(Object.assign(
+						this._embed,
+						{ description: `${desc}'Couldn't send output file. Lacking permission.'` },
+					));
 				}
-				await this.listener();
+				else
+				{
+					this.listenerChannel.send(new MessageAttachment(readFileSync(this.filePath), `eval.json`)).then(m => {
+						this.OutputWindows.push(m);
+						this.exceedBoolean = false;
+					});
+				}
 			}
-		else return await this.listener();
+		}
+		return await this.listener();
 	}
 
 	// Update on each pull
 	updateMainInstance()
 	{
-		if (this.mainEmbedInstance && this._embed) this.mainEmbedInstance.edit(this._embed);
+		if (!this.mainEmbedInstance.deleted && this._embed) this.mainEmbedInstance.edit(this._embed);
 	}
 
 	generateEmbeds()
@@ -162,14 +161,15 @@ class EvalRenderer {
 		});
 	}
 
-	updateState()
+	async updateState()
 	{
 		const data = {
 			message: this.message,
 			prefix: this.prefix,
 			rawInput: this.input,
 		};
-		Object.assign(this, new GeneralProcessing(data));
+		const newState = await new GeneralProcessing(data).run();
+		Object.assign(this, newState);
 	}
 
 	resetState()
@@ -213,15 +213,15 @@ class GeneralProcessing
 		this.prefix = data.prefix;
 		this.rawInput = data.rawInput;
 		this.flagArray = [];
-		this.run();
 	}
 
-	run()
+	async run()
 	{
 		this.input = this.processInput(this.rawInput);
-		Object.assign(this, this.execute(this.input, this.flagArray, this.message, this.message.client, console.log));
+		Object.assign(this, await this.execute(this.input, this.flagArray, this.message, this.message.client, console.log));
 		this.outputCheck(this.message, this);
 		this.output = this.ErrorExport(this.output);
+		return this;
 	}
 
 	processInput(rawInput)
@@ -230,12 +230,12 @@ class GeneralProcessing
 		const flag_showHidden = input.match(/\s*-(showHidden|showhidden|sh|SH)\s*/);
 		const flag_showExt = input.match(/\s*-(ext|showExt)\s*/);
 
-		if (flag_showHidden && flag_showHidden[0].length > 0)
+		if (flag_showHidden && flag_showHidden[0].length)
 		{
 			input = input.replace(/\s*-?(showHidden|showhidden|sh|SH)\s*/, '');
 			this.flagArray.push('showHidden');
 		}
-		if (flag_showExt && flag_showExt[0].length > 0)
+		if (flag_showExt && flag_showExt[0].length)
 		{
 			input = input.replace(/\s*-?(ext|showExt)\s*/, '');
 			this.flagArray.push('showExtended');
@@ -245,12 +245,12 @@ class GeneralProcessing
 		return input;
 	}
 
-	execute(input, flagArray, message, client, log)
+	async execute(input, flagArray, message, client, log)
 	{
 		try
 		{
-			if (illegalStrings(this.input.toLowerCase()))this.GenerateErrors('FORBIDDEN', 'Illegal keywords / varibles found.');
-			if (input.startsWith(this.prefix)) this.GenerateErrors('CONFLICTED_HEADER', 'Input started with this bot\'s prefix.');
+			if (illegalStrings(this.input.toLowerCase()))this.throw('FORBIDDEN', 'Illegal keywords / varibles found.');
+			if (input.startsWith(this.prefix)) this.throw('CONFLICTED_HEADER', 'Input started with this bot\'s prefix.');
 
 			const showHidden = flagArray.some(f => f === 'showHidden');
 
@@ -345,7 +345,7 @@ class GeneralProcessing
 		return inspect(JSON.parse(JSON.stringify(data, null, 4)), false, null, false);
 	}
 
-	GenerateErrors(name, message)
+	throw(name, message)
 	{
 		class BaseError extends Error {
 			constructor(header, ...msg)
@@ -389,7 +389,7 @@ class TerminalEmbeds
 				.addField('Input', `${flagArray.length > 0 ? `\`flags: ${flagArray.join(', ')}\`\n` : ''}\`\`\`js\n${beautify(this.input, { format: 'js' })}\n\`\`\``)
 				.addField('Output', `\`\`\`js\n${showExt ? 'The output is shown below.' : output.length > 1010 ? output.substr(0, output.substr(0, 1010).lastIndexOf('\n')) + '\n...' : output}\n\`\`\``)
 
-				.setFooter(`${showExt ? `Executed in ${diffTime[0] > 0 ? `${diffTime}s` : ""}${diffTime[1] / 1000000}ms` : `[${outputType}] | Executed in ${diffTime[0] > 0 ? `${diffTime}s` : ""}${diffTime[1] / 1000000}ms`}`)
+				.setFooter(`${showExt ? `Executed in ${diffTime[0] > 0 ? `${diffTime}s` : ""}${diffTime[1] / 1000}ms` : `[${outputType}] | Executed in ${diffTime[0] > 0 ? `${diffTime}s` : ""}${diffTime[1] / 1000000}ms`}`)
 				.setTimestamp();
 	}
 
@@ -414,7 +414,7 @@ function illegalStrings(input) {
 	switch (input)
 	{
 		case match(/(this\.)?message\.client\.token/g): return true;
-		case match(/process.env/): return true;
+		case match(/process\.env/): return true;
 		default: return false;
 	}
 }

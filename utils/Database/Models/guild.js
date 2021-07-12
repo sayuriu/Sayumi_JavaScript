@@ -1,8 +1,8 @@
-const Database = require("mongoose");
+const { Schema, model } = require("mongoose");
 const DefaultSettings = require("../../json/DefaultGlobalSettings.json");
 
-const Guilds = new Database.Schema({
-    _id: Database.Schema.Types.ObjectId,
+const Guilds = new Schema({
+    _id: Schema.Types.ObjectId,
     guildID: String,
     guildName: String,
     prefix: {
@@ -31,6 +31,7 @@ const Guilds = new Database.Schema({
     },
     MessageLogChannel: {
         type: String,
+        default: null,
     },
     MessageLogState: {
         type: Boolean,
@@ -39,6 +40,21 @@ const Guilds = new Database.Schema({
     MessageLog: {
         type: Map,
         default: new Map(),
+    },
+    MusicPlayerSettings: {
+        type: Object,
+        CustomFilters: {
+            type: Map,
+            default: new Map(),
+        },
+        Silent: {
+            type: Boolean,
+            default: false,
+        },
+        DeleteEmbedsAfterPlaying: {
+            type: Boolean,
+            default: false,
+        },
     },
     AllowPartialNSFW: {
         type: Boolean,
@@ -52,4 +68,4 @@ const Guilds = new Database.Schema({
     collection: 'GuildList',
 });
 
-module.exports = Database.model('GuildList', Guilds);
+module.exports = model('GuildList', Guilds);

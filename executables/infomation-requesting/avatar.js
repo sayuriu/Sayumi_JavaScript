@@ -1,5 +1,4 @@
 const { MessageEmbed: EmbedConstructor } = require('discord.js');
-const splashy = require('splashy');
 
 module.exports = {
 	name: 'avatar',
@@ -12,7 +11,7 @@ module.exports = {
 	usageSyntax: '|[user: User (Direct tag or ID, max 1)]|',
 	onTrigger: async (message, args, client) => {
 
-		if (!args[0]) return message.channel.send(avatarEmbed(message.author, await splashy(this.avatarImage)));
+		// if (!args[0]) return message.channel.send(avatarEmbed(message.author, await splashy(this.avatarImage)));
 
 		const calledUser = message.mentions.users.first()
 						|| await message.guild.members.fetch({ id: args[0], force: true })
@@ -20,7 +19,7 @@ module.exports = {
 
 		const send = async () => {
 			if (!calledUser) return message.channel.send('Couldn\'t find that user.');
-			message.channel.send(avatarEmbed(calledUser.user, await splashy(calledUser.user.displayAvatarURL({ format: 'jpg' }))));
+			// message.channel.send(avatarEmbed(calledUser.user, await splashy(calledUser.user.displayAvatarURL({ format: 'jpg' }))));
 		};
 
 		return await send();

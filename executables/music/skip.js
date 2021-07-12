@@ -1,25 +1,21 @@
-const { Check } = require('../../utils/Music');
-
 module.exports = {
 	name: 'mskip',
 	aliases: ['msk'],
+	description: 'Skips onto the next track... or whatever that is.',
 	group: ['Music'],
-	stable: true,
-	args: true,
-	guildOnly: true,
+	usage: '[tracks]',
+	usageSyntax: '|[tracks (number): Skip this amount of tracks]|',
 	onTrigger: (message, args, client) => {
-		if (!Check(message)) return;
-		const Instance = client.MusicInstances.get(message.guild.id);
-
-		args = isNaN(parseInt(args[0])) ? 0 : parseInt(args[0]);
-		if (Instance)
+		if (!args.length)
 		{
-			if (!Instance.queue.length) return message.channel.send('❌`There\'s nothing else in the queue!`');
-			if (args > Instance.queue.length) return message.channel.send('❌`Invalid: Skip amount exceeded amount of tracks in queue.`');
-			message.channel.send(`:arrow_double_down:\`Skipped ${args ? `${args} track${args > 1 ? 's' : ''}` : ''}\``);
-			return Instance.Skip(args);
+			client.MusicPlayer.skip(message);
+			return message.channel.send(':next_track: Skipped');
 		}
-
-		message.channel.send('There\'s no active playback yet. Try `mplay` and add some sound!');
+		const { tracks } = client.MusicPlayer.getQueue(message);
+		if (isNaN(args[0])) return message.channel.send(`I can skip buffer but, all I need is a number.\nCurrent number of tracks in queue: **${tracks.length - 1}**`);
+		const index = parseInt(args.join(' '));
+		if (index >= tracks.length - 1) return message.channel.send(':no_entry_sign: Your index is out of queue!');
+		client.MusicPlayer.jump(message, tracks[index]);
+		return message.channel.send(`:fast_foward: Skipped ${index > 1 ? 'a track' : `${index} tracks`}`);
 	},
 };

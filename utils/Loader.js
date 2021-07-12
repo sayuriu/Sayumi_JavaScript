@@ -2,6 +2,7 @@ const { lstatSync, statSync, readdirSync, writeFileSync } = require('fs');
 const { join } = require('path');
 const ParseError = require('./functions/common/parse-errors');
 const chalk = require('chalk');
+const groupSettings = require('./GroupSettings');
 
 class Loader
 {
@@ -72,7 +73,7 @@ function ParseCheck(type, path, client, data)
     let { size: sizec } = data.dirIndex || { size: 0 };
     const { invalidNames, emptyFiles, noFunc, errored } =  data.dirIndex || { invalidNames: [], emptyFiles: [], noFunc: [], errored: [] };
     try {
-        const object = require(path);
+        let object = require(path);
         const { name } = object;
         const size = statSync(path)['size'];
         sizec += size;
@@ -87,7 +88,25 @@ function ParseCheck(type, path, client, data)
 
         if (type === 'cmd')
         {
-            const { aliases, onTrigger } = object;
+            const { aliases, onTrigger, group } = object;
+
+            // Group settings
+            if (group?.length)
+            {
+                for (let i = 0; i < group.length; i++)
+                {
+                    if (Object.keys(groupSettings).includes(group[i]))
+                    {
+                        const configs = {};
+                        const { global, groups } = groupSettings[group[i]];
+                        for (const option in groups)
+                        {
+                            if (groups[option].includes(name)) configs[option] = true;
+                        }
+                        object = Object.assign(object, configs, global ? global : {});
+                    }
+                }
+            }
 
             // Check for command's functions
             if (!onTrigger || typeof onTrigger !== 'function') return noFunc.push(name ? `"${name}": ${this.path}` : this.path);
@@ -118,7 +137,7 @@ function ParseCheck(type, path, client, data)
             else
             {
                 client.removeAllListeners(name);
-            once ? client.once(name, onEmit.bind(null, client)) : client.on(name, onEmit.bind(null, client));
+                once ? client.once(name, onEmit.bind(null, client)) : client.on(name, onEmit.bind(null, client));
             }
             process.env.HANDLED_EVENTS++;
             data.loaded++;

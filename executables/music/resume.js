@@ -1,16 +1,16 @@
-const { Check } = require('../../utils/Music');
-
 module.exports = {
-	name: 'mresume',
+	name: 'resume',
 	aliases: ['mres'],
+	description: 'Resume the playback, if the player is paused.',
 	group: ['Music'],
-	stable: true,
-	guildOnly: true,
 	onTrigger: (message, client) => {
-		if (!Check(message)) return;
-		const Instance = client.MusicInstances.get(message.guild.id);
-		if (Instance) return Instance.TogglePause('resume');
-
-		message.channel.send('There\'s no active playback yet. Try `mplay` and add some sound!');
+		if (client.MusicPlayer.getQueue(message)?.paused)
+		{
+			// discordjs bug: dispatcher not resuming after calls
+			client.MusicPlayer.resume(message);
+			client.MusicPlayer.pause(message);
+			return client.MusicPlayer.resume(message);
+		}
+		message.channel.send('The player is not paused!');
 	},
 };

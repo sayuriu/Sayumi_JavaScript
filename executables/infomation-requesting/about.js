@@ -15,7 +15,7 @@ module.exports = {
 		let prefix = 's!';
 		if (message.guild)
 		{
-			const guild = await client.GuildDatabase.get(message.guild);
+			const guild = await client.Database.Guild.get(message.guild);
 			prefix = guild.prefix;
 		}
 

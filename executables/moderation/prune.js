@@ -3,8 +3,7 @@ const log = (require('../../utils/Logger'));
 module.exports = {
 	name: "prune",
 	description: "Prune messages from a channel, up to 99 messages.",
-	stable: true,
-	group: 'Moderation',
+	group: ['Moderation'],
 	reqPerms: 'MANAGE_MESSAGES',
 	reqUser: 'Message Manager',
 	guildOnly: true,

@@ -1,31 +1,55 @@
-const { SearchVideos, Check, MusicInstance } = require('../../utils/Music');
+const ytpl = require('ytpl');
 
 module.exports = {
 	name: 'mplay',
 	group: ['Music'],
-	stable: true,
-	args: true,
-	reqArgs: true,
-	guildOnly: true,
 	reqPerms: ['CONNECT', 'SPEAK'],
 	onTrigger: async (message, args, client) => {
-		if (!Check(message)) return;
-		const Instance = client.MusicInstances.get(message.guild.id);
-		if (!args)
+		if (!args.length)
 		{
-			if (Instance.vcConnection.dispatcher.paused) return Instance.TogglePause('resume');
-			return message.member.voice.channel.join().then(connection =>
-				new MusicInstance({ voiceChannel: message.member.voice.channel, textChannel: message.channel }, connection),
-			);
+			if (client.MusicPlayer.getQueue(message)?.paused) return client.MusicPlayer.resume(message);
+			return message.channel.send();
 		}
-		let [v] = await SearchVideos(args.join(' '), 1);
-		v = Object.assign(v, { requestedBy: message.member });
-
-		if (Instance) return Instance.AddToQueue(v);
-
-		message.member.voice.channel.join().then(connection => {
-			const inst = new MusicInstance({ voiceChannel: message.member.voice.channel, textChannel: message.channel }, connection);
-			inst.AddToQueue(v);
-		});
+		const failCallback = () => {
+			return message.channel.send('There was a problem while fetching playlist.');
+		};
+		const [query, ind] = await handleYTLinks(args.join(' '), failCallback);
+		client.MusicPlayer.play(message, query, true, ind);
 	},
 };
+
+async function handleYTLinks(link, failCallback)
+{
+	const [, videoID] = link.match(videoRegEx) ?? [];
+	const [, playlistID] = link.match(playlistRegEx) ?? [];
+	const [, startIndex] = link.match(playlistIndexRegEx) ?? [];
+
+	if (playlistID)
+	{
+		if (startIndex) return [generatePlaylistLink(playlistID), new Number(startIndex)];
+		if (videoID)
+		{
+			try
+			{
+				const res = await ytpl(playlistID);
+				const target = res.items.filter(v => v.id === videoID && v.isPlayable)[0];
+
+				return [generatePlaylistLink(playlistID), target ? res.items.indexOf(target) : 0];
+			}
+			catch(e)
+			{
+				failCallback();
+				if (videoID) return [videoID, 0];
+				return [link, 0];
+			}
+		}
+	}
+	if (videoID) return [videoID, 0];
+	return [link, 0];
+}
+
+const generatePlaylistLink = id => `https://www.youtube.com/playlist?list=${id}`;
+
+const playlistRegEx = /(?:youtube\.com.*(?:\?|&)(?:list)=)((?!videoseries)[a-zA-Z0-9_-]*)/;
+const playlistIndexRegEx = /&index=(\d+)/;
+const videoRegEx = /(?:youtube\.com.*(?:\?|&)(?:v)=|youtube\.com.*embed\/|youtube\.com.*v\/|youtu\.be\/)((?!videoseries)[a-zA-Z0-9_]*)/;

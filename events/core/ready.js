@@ -1,8 +1,7 @@
-const { statuses } = require('../utils/json/Responses.json');
+const { statuses } = require('../../utils/json/Responses.json');
 
 module.exports = {
 	name: 'ready',
-	stable: true,
 	once: true,
 	onEmit: (client) => {
 		client.Log.carrier('connected', client.Methods.Common.Greetings());

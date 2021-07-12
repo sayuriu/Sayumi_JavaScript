@@ -17,18 +17,24 @@ module.exports = {
     Time: {
         ConvertDate: require('./functions/time-manupilation/convert-date'),
         DateTime: require('./functions/time-manupilation/date-time'),
-        DaysAgo: require('./functions/time-manupilation/days-ago'),
+        ParseTimeMS: require('parse-ms'),
+        ParseTimeCode: require('./functions/time-manupilation/parse-time-code'),
         TimestampToTime: require('./functions/time-manupilation/timestamp-to-time'),
     },
+    // obsolete, may remove in the future
     DiscordClient: {
         ChannelCheck: require('./functions/discord-client/channel-check'),
         PermissionsCheck: require('./functions/discord-client/perms-check'),
         SelfMessageDelete: require('./functions/discord-client/self-msg-delete'),
     },
+    //
     Data: {
         ConvertBytes: require('./functions/dir-set/convert-bytes'),
     },
     DirSet: {
         GetTotalSize: require('./functions/dir-set/get-total-size'),
     },
+    // MusicUtils: {
+    //     HandleThumbnail: require('./functions/music-utils/handle-thumbnail'),
+    // },
 };

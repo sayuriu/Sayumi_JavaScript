@@ -1,8 +1,7 @@
 module.exports = {
 	name: 'uptime',
 	description: 'Shows how long is it sice last boot.',
-	stable: true,
-	group: 'Information',
+	group: ['Information'],
     aliases: ['runtime'],
 	onTrigger: (message, client) => {
 		const days = Math.floor(client.uptime / 86400000);

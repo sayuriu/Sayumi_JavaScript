@@ -1,5 +1,3 @@
-const { Error } = require("mongoose");
-
 const dirArr = __dirname.split('\\');
 const root = dirArr.splice(0, dirArr.length - 3).join('\\');
 
@@ -38,11 +36,11 @@ function ParseSyntaxError(error, map)
 module.exports = function ParseError(error, map)
 {
 	if (error instanceof SyntaxError) return ParseSyntaxError(error, map);
-	if (error instanceof TypeError) null;
-	if (error instanceof EvalError) null;
-	if (error instanceof ReferenceError) null;
-	if (error instanceof RangeError) null;
-	else if (error instanceof Error) null;
+	if (error instanceof TypeError) return null;
+	if (error instanceof EvalError) return null;
+	if (error instanceof ReferenceError) return null;
+	if (error instanceof RangeError) return null;
+	else if (error instanceof Error) return null;
 };
 
 // Problems: How are those errors constructed?

@@ -3,7 +3,6 @@ module.exports = {
 	aliases: ['r18', 'setnsfw'],
 	description: "Toggles NSFW setting for this channel.",
 	guildOnly: true,
-	stable: true,
 	args: true,
 	reqPerms: 'MANAGE_CHANNELS',
 	reqUser: 'Channel Manager',

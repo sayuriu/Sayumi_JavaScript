@@ -5,11 +5,10 @@ module.exports = {
 	group: 'Utilities',
 	guildOnly: true,
 	args: true,
-	stable: true,
 	usage: '',
 	cooldown: 0,
 	onTrigger: async (message, args, client) => {
-		const source = await client.GuildDatabase.get(message.guild);
+		const source = await client.Database.Guild.get(message.guild);
 		if (source.AFKUsers === false) return message.channel.send(`AFK function is disabled in this server.`);
 
 		let reason;

@@ -9,6 +9,12 @@ const Sayuri = Object.assign(new Client(), modules);
 // #endregion
 
 // #region Actions
-new Sayuri.Database(Sayuri).Init();
-new Sayuri.Client(Sayuri, process.env.TOKEN).Init();
+try {
+	new Sayuri.Database(Sayuri).Init();
+	new Sayuri.Client(Sayuri, process.env.TOKEN).Init();
+} catch (e) {
+	Sayuri.Log.error(`${e.message}\n${e.stack}`);
+	if (e.FATAL) process.exit(1);
+}
 // #endregion
+

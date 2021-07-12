@@ -5,7 +5,7 @@ module.exports = function()
 	const date = new Date();
 	const time = date.toTimeString();
 	const month = date.getMonth() + 1;
-	const res = {
+	return {
 		date: `${date.getDate() < 10 ? '0' : ''}${date.getDate()}`,
 		dateID: Math.floor(Date.now() / 86400000),
 		month: `${month < 10 ? '0' : ''}${month}`,
@@ -15,5 +15,4 @@ module.exports = function()
 		min: time.substr(3, 2),
 		sec: time.substr(6, 2),
 	};
-	return res;
 };

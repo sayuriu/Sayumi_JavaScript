@@ -3,7 +3,6 @@ const fetch = require('node-fetch');
 module.exports = {
 	name: 'apod',
 	description: 'Get Astronomy Picture of the Day.',
-	stable: true,
 	args: true,
 	group: 'NASA',
 	cooldown: 1440000,

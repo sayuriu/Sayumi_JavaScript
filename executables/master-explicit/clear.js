@@ -4,7 +4,6 @@ const { MessageEmbed: EmbedConstructor } = require('discord.js');
 module.exports = {
 	name: 'clear',
 	description: 'Sweeping time!',
-	stable: true,
 	cooldown: 0,
 	master_explicit: true,
 	args: true,

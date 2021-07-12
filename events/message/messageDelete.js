@@ -2,12 +2,10 @@ const { MessageEmbed: EmbedConstructor, MessageAttachment } = require('discord.j
 
 module.exports = {
 	name: 'messageDelete',
-	stable: true,
 	onEmit: async (client, message) => {
-
 		if (message.channel.type === 'dm') return;
 
-		const data = await client.GuildDatabase.get(message.guild);
+		const data = await client.Database.Guild.get(message.guild);
 
 		const LogChannel = message.guild.channels.cache.find(ch => ch.id === data.MessageLogChannel);
 		if (data.MessageLogState && LogChannel)
@@ -113,7 +111,7 @@ module.exports = {
 		User.deletedMessages = DeletedHistory;
 
 		History.set(message.author.id, User);
-		client.GuildDatabase.update(message.guild, { MessageLog: History });
+		client.Database.Guild.update(message.guild, { MessageLog: History });
 	},
 };
 
@@ -133,7 +131,7 @@ function convertMsgObject(message)
 
 	for (const key in msg)
 	{
-		if (msg[key] === null || msg[key] === undefined) delete msg[key];
+		if (!msg[key]) delete msg[key];
 	}
 	return msg;
 }

@@ -117,7 +117,7 @@ function logCarrier(logLevel, logMessage)
 	if (!Levels.some(i => i === logLevel.toLowerCase()))
 	{
 		// if (!logLevel.split('status:')[1].length) return this.carrier('err', '[Global Functions > Logger]: Empty status message.');
-		if (obj !== undefined) return console.log(output, obj);
+		if (obj) return console.log(output, obj);
 		return console.log(output);
 	}
 

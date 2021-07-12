@@ -1,15 +1,14 @@
-const { Check } = require('../../utils/Music');
-
 module.exports = {
 	name: 'loopqueue',
-	aliases: ['mlq'],
+	aliases: ['mlq', 'loop -q'],
 	group: ['Music'],
-	stable: true,
-	guildOnly: true,
 	onTrigger: (message, client) => {
-		if (!Check(message)) return;
-		const Instance = client.MusicInstances.get(message.guild.id);
-		if (Instance) return Instance.Toggle('loop-queue');
-		message.channel.send('Looping void...');
+		const queue = client.MusicPlayer.GetQueue(message);
+		const newState = inverse(queue.loopMode);
+		const string = `${newState ? ':repeat:' : ':no_entry_sign:'}`;
+		message.channel.send(string + ` Queue loop ${newState ? 'enabled' : 'disabled'}`);
+		return client.MusicPlayer.setLoopMode(message, newState);
 	},
 };
+
+const inverse = (any) => any ? false : true;

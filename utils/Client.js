@@ -1,6 +1,6 @@
-// Shorten stages of requiring
 const { Loader, ParseCheck, IssueWarns } = require('./Loader');
 const { error: outerr, carrier, bootstrap } = require('./Logger');
+const { Player: MusicPlayer } = require('discord-player');
 const http = require('http');
 const ClientInit = require('./database/methods/client');
 
@@ -18,14 +18,32 @@ module.exports = class Sayuri extends ClientInit {
 
         console.clear();
         bootstrap();
-        /** Initiates this client instance. */
+        /** Initiates client instance. */
         this.Init = () => {
+            this.HandleProcessErrors();
             this.Login(client, token);
+            client.MusicPlayer = new MusicPlayer(client, {
+                autoSelfDeaf: true,
+                // not enough processing power for lives but welp
+                enableLive: true,
+                fetchBeforeQueued: true,
+                leaveOnEmpty: false,
+                leaveOnEmptyCooldown: 60000,
+                leaveOnEnd: true,
+                leaveOnEndCooldown: 60000,
+                leaveOnStop: true,
+                ytdlDownloadOptions: {
+                    quality: 'highest',
+                    // inputStream: EPIPE error emitted when disabled on certain videos
+                    filter: 'audioonly',
+                },
+            });
+            client.MusicPlayer.setMaxListeners(1);
+            // require('discord-buttons')(client);
             this.EventListener(client);
             this.CommandInit(client);
-            this.HandleProcessErrors();
             this.KeepAlive(app, true);
-            this.Watch(client.ROOT_DIR, client);
+            this.WatchDog(client.ROOT_DIR, client);
 
             setTimeout(() => this.DBInit(), 3000);
         };
@@ -71,7 +89,7 @@ module.exports = class Sayuri extends ClientInit {
             outerr(`[Unhandled Promise Rejection] ${error.message}\n${error.stack}`);
         });
         process.on('exit', code => {
-            carrier(`status: ${code}`, `Process instance has exited with code ${code}.`);
+            carrier(`status ${code}`, `Process instance has exited with code ${code}.`);
         });
     }
 
@@ -96,8 +114,9 @@ module.exports = class Sayuri extends ClientInit {
      *
      * @param {string} rootDir Root directory.
      * @param {ClientData} client The client to pass in.
+     * @kind Still buggy
      */
-    Watch(rootDir, client)
+    WatchDog(rootDir, client)
     {
         const { watch, stat, readFileSync } = require('fs');
         const { join } = require('path');
@@ -118,14 +137,14 @@ module.exports = class Sayuri extends ClientInit {
                     client.Log.debug(`[Reload > rg] Registered ${cmdOrEvt.name  || 'something at'} [${printCSLPath.split('\\').join(' > ')}]`);
                 };
 
-                const exePath = (path.match(/executables/g) || []).length ? true : false;
-                const evtPath = (path.match(/events/g) || []).length ? true : false;
+                const exePath = (path.match(/executables/g) || []).length > 0;
+                const evtPath = (path.match(/events/g) || []).length > 0;
 
                 if (evt === 'change')
                 {
                     stat(filename, (e, stats) => {
 
-                        // ln 124: this was probably a 'remove' event: requesting to merge with handlers below - call handleErrors()
+                        // ln 149: this is probably a 'remove' event: requesting to merge with handlers below - call handleErrors()
 
                         if (e) client.Log.error(`[Reload - FileStats error] Path: ${path}\n${e.message}`);
                         if (!FSEventTimeout.get(path))

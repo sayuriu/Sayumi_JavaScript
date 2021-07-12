@@ -1,13 +1,12 @@
 module.exports = {
 	name: 'guildMemberAdd',
-	stable: true,
 	onEmit: async (client, member) => {
-		const source = await client.GuildDatabase.get(member.guild);
+		const source = await client.Database.Guild.get(member.guild);
 		const { welcomeMessage, welcomeChannel } = source;
 
 		if (member.id === client.id)
 		{
-			if (welcomeMessage === null && welcomeChannel === null)
+			if (!welcomeMessage && !welcomeChannel)
 			{
 				client.guilds.fetch(member.guild)['newGuilld'] = true;
 			}

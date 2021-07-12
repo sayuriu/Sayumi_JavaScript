@@ -53,7 +53,7 @@
     },
     "Moderation": {
         "name": "Moderation",
-        "descriptions": "",
+        "descriptions": "Command sets that will help you with moderating work.",
         "colorCode": "#000000",
         "keywords": [
             "mod",
@@ -62,23 +62,27 @@
     },
     "NASA": {
         "name": "NASA",
-        "descriptions": "",
+        "descriptions": "Time to look into space.",
         "colorCode": "#000000",
-        "keywords": []
+        "keywords": [
+            "nasa"
+        ]
     },
     "Fun": {
         "name": "Fun",
-        "descriptions": "",
+        "descriptions": "Funnies and unfunnies.",
         "colorCode": "#000000",
         "keywords": [
             "fun"
         ]
     },
-    "lastUpdated": 1614238789997,
+    "lastUpdated": 1625738981568,
     "Music": {
         "name": "Music",
-        "descriptions": "",
-        "colorCode": "#000000",
-        "keywords": []
+        "descriptions": "Memes or vibes, be sure to have a good time.",
+        "colorCode": "#e35679",
+        "keywords": [
+            "music"
+        ]
     }
 }

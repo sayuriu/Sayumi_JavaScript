@@ -48,4 +48,4 @@ module.exports = function HSLtoRGB(h, s, l)
 	g = Math.round((g + m) * 255);
 	b = Math.round((b + m) * 255);
 	return [r, g, b];
-}
+};

@@ -23,7 +23,6 @@ module.exports = class Initialize
 
 		const form = await new InitSchema(obj);
 		return form.save({}, (err) => {
-			// if (err) return logger.error(`[Database > Client Init Sync] ${err}`);
 			if (err) return logger.carrier('error', `[Database > Client Init Sync] ${err}`);
 		});
 	}

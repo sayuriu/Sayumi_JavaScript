@@ -11,11 +11,11 @@ module.exports = {
 	notes: 'If no arguments are provided, that will display settings\' status instead.',
 	settings_explicit: true,
 	onTrigger: async (message, args, client) => {
-		const source = await client.GuildDatabase.get(message.guild);
+		const source = await client.Database.Guild.get(message.guild);
 
-		if (args[1] !== undefined) args[1] = args[1].toLowerCase();
+		if (args[1]) args[1] = args[1].toLowerCase();
 
-		if (!args.length || args.length < 1 || args[0] === 'info' || args[0] === 'status' || args[0] === null)
+		if (!args.length || args.length < 1 || args[0] === 'info' || args[0] === 'status')
 		{
 			const channelPush = channelArray => {
 				const output = [];

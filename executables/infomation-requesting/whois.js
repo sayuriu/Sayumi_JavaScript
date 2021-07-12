@@ -14,7 +14,6 @@ module.exports = {
 	description: '',
 	group: ['Information'],
 	flags: ['Under Developement'],
-	stable: true,
 	guildOnly: true,
 	cooldown: 10,
 	args: true,

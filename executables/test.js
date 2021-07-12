@@ -6,7 +6,6 @@ const request = require('request');
 module.exports = {
 	name: 'test',
 	flags: ['Under Developement'],
-	stable: true,
 	usage: 'ooooooaaa <ab> [cd?]',
 	usageSyntax: 'wooqawowoaoaod |<this: THIS>|[that: THAT]|<eiowieowew>||[12]|',
 	onTrigger: async (message, client) => {

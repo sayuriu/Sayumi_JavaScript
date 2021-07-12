@@ -32,11 +32,9 @@ module.exports = class GuildDatabase {
 	{
 		const data = await GuildSchema.findOne({ guildID: guild.id });
 		if (data) return data;
-		else if (!data)
-		{
-			this.add(guild);
-			return DefaultSettings;
-		}
+
+		this.add(guild);
+		return DefaultSettings;
 	}
 
 	static async update(guild, settings)
@@ -52,6 +50,23 @@ module.exports = class GuildDatabase {
 			}
 		}
 
-		return await data.updateOne(settings);
+		data.guildID = guild.id;
+		await GuildSchema.updateOne({ guildID: guild.id }, data);
+		return guild.client.emit('databaseUpdate', 'guild', data);
+	}
+
+	static async loadFromCache(guild, force = false)
+	{
+		let data = guild.client.CachedGuildSettings.get(guild.id);
+		if (!data || force)
+		{
+			data = this.get(guild);
+			data.autoUpdate = setInterval(() => {
+				guild.client.CachedGuildSettings.delete(guild.id);
+				this.loadFromCache(guild);
+			}, 3600000);
+			guild.client.CachedGuildSettings.set(guild.id, data);
+		}
+		return data;
 	}
 };
